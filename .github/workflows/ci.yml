@@ -43,10 +43,16 @@ jobs:
       with:
         go-version-file: .go-version
         cache: true
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false
     - name: Generate docs
       run: make docs
     - name: Check docs
-      run: git diff-index --quiet HEAD --
+      run: |
+        GIT_STATUS=$(git status --porcelain)
+        test -z "$GIT_STATUS" || (echo -e "Unexpected difference after code generation: $GIT_STATUS"; exit 1)
 
   test:
     name: Test
@@ -63,9 +69,9 @@ jobs:
         - 1.5.*
     steps:
     - name: Checkout
-      uses: actions/checkout@3
+      uses: actions/checkout@v3
     - name: Setup go
-      uses: actions/setup-go@4
+      uses: actions/setup-go@v4
       with:
         go-version-file: .go-version
         cache: true

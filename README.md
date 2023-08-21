@@ -2,7 +2,7 @@
 
 [![Registry](https://img.shields.io/badge/pfsense-Terraform%20Registry-blue)](https://registry.terraform.io/providers/marshallford/pfsense/latest/docs)
 
-Used to configure [pfSense](https://www.pfsense.org/) firewall/router devices.
+Used to configure [pfSense](https://www.pfsense.org/) firewall/router devices with Terraform.
 
 ## Requirements
 
