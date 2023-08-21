@@ -124,7 +124,8 @@ func (r *DNSResolverHostOverrideResource) Metadata(ctx context.Context, req reso
 // TODO validators
 func (r *DNSResolverHostOverrideResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
+		Description:         "DNS Resolver Host Override. Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
+		MarkdownDescription: "DNS Resolver [Host Override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "GUID for host override.",
@@ -151,10 +152,11 @@ func (r *DNSResolverHostOverrideResource) Schema(ctx context.Context, req resour
 				Optional:    true,
 			},
 			"apply": schema.BoolAttribute{
-				Description: "Apply change",
-				Computed:    true,
-				Optional:    true,
-				Default:     booldefault.StaticBool(true),
+				Description:         "Apply change, defaults to 'true'.",
+				MarkdownDescription: "Apply change, defaults to `true`.",
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(true),
 			},
 		},
 	}

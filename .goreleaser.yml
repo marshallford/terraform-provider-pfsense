@@ -10,11 +10,11 @@ builds:
   # usage by users in CI/CD systems like Terraform Cloud where
   # they are unable to install libraries.
   - CGO_ENABLED=0
-  mod_timestamp: '{{ .CommitTimestamp }}'
+  mod_timestamp: "{{ .CommitTimestamp }}"
   flags:
   - -trimpath
   ldflags:
-  - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+  - "-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}"
   goos:
   - freebsd
   - windows
@@ -22,21 +22,21 @@ builds:
   - darwin
   goarch:
   - amd64
-  - '386'
+  - "386"
   - arm
   - arm64
   ignore:
   - goos: darwin
-    goarch: '386'
-  binary: '{{ .ProjectName }}_v{{ .Version }}'
+    goarch: "386"
+  binary: "{{ .ProjectName }}_v{{ .Version }}"
 archives:
 - format: zip
-  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 checksum:
   extra_files:
-  - glob: 'terraform-registry-manifest.json'
-    name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  - glob: "terraform-registry-manifest.json"
+    name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
+  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
   algorithm: sha256
 signs:
 - artifacts: checksum
@@ -52,9 +52,7 @@ signs:
   - "${artifact}"
 release:
   extra_files:
-  - glob: 'terraform-registry-manifest.json'
-    name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-  # If you want to manually examine the release before its live, uncomment this line:
-  draft: true
+  - glob: "terraform-registry-manifest.json"
+    name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
 changelog:
-  skip: true
+  use: github

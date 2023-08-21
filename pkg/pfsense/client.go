@@ -1,6 +1,7 @@
 package pfsense
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net"
@@ -18,16 +19,18 @@ import (
 const (
 	DefaultTimeout        = 30 * time.Second
 	DefaultConnectTimeout = 5 * time.Second
-	DefaultURL            = "http://192.168.1.1"
+	DefaultURL            = "https://192.168.1.1"
 	DefaultUsername       = "admin"
+	DefaultTLSSkipVerify  = false
 	clientName            = "go-pfsense"
 	descriptionSeparator  = "|"
 )
 
 type Options struct {
-	URL      *url.URL
-	Username string
-	Password string
+	URL           *url.URL
+	Username      string
+	Password      string
+	TLSSkipVerify *bool
 }
 
 type mutexes struct {
@@ -90,6 +93,11 @@ func NewClient(opts *Options) (*Client, error) {
 		return nil, errors.New("password required")
 	}
 
+	if opts.TLSSkipVerify == nil {
+		b := DefaultTLSSkipVerify
+		opts.TLSSkipVerify = &b
+	}
+
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
@@ -102,6 +110,9 @@ func NewClient(opts *Options) (*Client, error) {
 			Dial: (&net.Dialer{
 				Timeout: DefaultTimeout,
 			}).Dial,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: *opts.TLSSkipVerify,
+			},
 			TLSHandshakeTimeout: DefaultTimeout,
 		},
 	}

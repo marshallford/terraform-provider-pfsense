@@ -3,12 +3,12 @@
 page_title: "pfsense_dnsresolver_domainoverride Resource - terraform-provider-pfsense"
 subcategory: ""
 description: |-
-  Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.
+  DNS Resolver Domain Override https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html. Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.
 ---
 
 # pfsense_dnsresolver_domainoverride (Resource)
 
-Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.
+DNS Resolver [Domain Override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.
 
 ## Example Usage
 
@@ -30,7 +30,7 @@ resource "pfsense_dnsresolver_domainoverride" "example" {
 
 ### Optional
 
-- `apply` (Boolean) Apply change
+- `apply` (Boolean) Apply change, defaults to `true`.
 - `description` (String) For administrative reference (not parsed).
 
 ### Read-Only
