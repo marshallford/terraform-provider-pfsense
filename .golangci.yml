@@ -1,0 +1,24 @@
+linters:
+  enable-all: true
+  disable:
+  - cyclop
+  - depguard
+  - dupl
+  - exhaustivestruct
+  - exhaustruct
+  - funlen
+  - godot
+  - godox
+  - goerr113
+  - gofumpt
+  - gomnd
+  - ireturn
+  - lll
+  - nlreturn
+  - noctx
+  - prealloc
+  - revive
+  - tagliatelle
+  - varnamelen
+  - wrapcheck
+  - wsl

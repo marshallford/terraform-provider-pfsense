@@ -1,0 +1,163 @@
+package provider
+
+import (
+	"context"
+	"fmt"
+	"net/url"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
+)
+
+var (
+	_ provider.Provider = &pfSenseProvider{}
+)
+
+func unknownProviderValue(value string) (string, string) {
+	return fmt.Sprintf("Unknown pfSense %s", value),
+		fmt.Sprintf("The provider cannot create the pfSense client as there is an unknown configuration value for the %s. ", value) +
+			"Either target apply the source of the value first, set the value statically in the configuration."
+}
+
+func New(version string) func() provider.Provider {
+	return func() provider.Provider {
+		return &pfSenseProvider{
+			version: version,
+		}
+	}
+}
+
+type pfSenseProvider struct {
+	version string
+}
+
+type pfSenseProviderModel struct {
+	URL      types.String `tfsdk:"url"`
+	Username types.String `tfsdk:"username"`
+	Password types.String `tfsdk:"password"`
+}
+
+func (p *pfSenseProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "pfsense"
+	resp.Version = p.version
+}
+
+func (p *pfSenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Interact with pfSense.",
+		Attributes: map[string]schema.Attribute{
+			"url": schema.StringAttribute{
+				Description: fmt.Sprintf("pfSense administration URL, defaults to '%s'", pfsense.DefaultURL),
+				Optional:    true,
+			},
+			"username": schema.StringAttribute{
+				Description: fmt.Sprintf("pfSense administration username, defaults to '%s'", pfsense.DefaultUsername),
+				Optional:    true,
+			},
+			"password": schema.StringAttribute{
+				Description: "pfSense administration password",
+				Required:    true,
+				Sensitive:   true,
+			},
+		},
+	}
+}
+
+func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	tflog.Info(ctx, "Configuring pfSense client")
+
+	var config pfSenseProviderModel
+	diags := req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.URL.IsUnknown() {
+		summary, detail := unknownProviderValue("URL")
+		resp.Diagnostics.AddAttributeError(path.Root("url"), summary, detail)
+	}
+
+	if config.Username.IsUnknown() {
+		summary, detail := unknownProviderValue("username")
+		resp.Diagnostics.AddAttributeError(path.Root("username"), summary, detail)
+	}
+
+	if config.Username.IsUnknown() {
+		summary, detail := unknownProviderValue("password")
+		resp.Diagnostics.AddAttributeError(path.Root("password"), summary, detail)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var opts pfsense.Options
+
+	if !config.URL.IsNull() {
+		url, err := url.Parse(config.URL.ValueString())
+
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("url"),
+				"pfSense URL cannot be parsed",
+				err.Error(),
+			)
+		}
+
+		opts.URL = url
+	}
+
+	if !config.Username.IsNull() {
+		opts.Username = config.Username.ValueString()
+	}
+
+	opts.Password = config.Password.ValueString()
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	tflog.Debug(ctx, "Creating pfSense client")
+
+	client, err := pfsense.NewClient(&opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to create pfSense client",
+			"An unexpected error occurred when creating the pfSense client. "+
+				"If the error is not clear, please contact the provider developers.\n\n"+
+				"pfSense client Error: "+err.Error(),
+		)
+		return
+	}
+
+	ctx = tflog.SetField(ctx, "pfsense_url", client.Options.URL.String())
+	ctx = tflog.SetField(ctx, "pfsense_username", client.Options.Username)
+	ctx = tflog.SetField(ctx, "pfsense_password", client.Options.Password)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "pfsense_password")
+
+	resp.DataSourceData = client
+	resp.ResourceData = client
+
+	tflog.Info(ctx, "Configured pfSense client", map[string]any{"success": true})
+}
+
+func (p *pfSenseProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		NewSystemVersionDataSource,
+	}
+}
+
+func (p *pfSenseProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		NewDNSResolverApplyResource,
+		NewDNSResolverDomainOverrideResource,
+		NewDNSResolverHostOverrideResource,
+	}
+}
