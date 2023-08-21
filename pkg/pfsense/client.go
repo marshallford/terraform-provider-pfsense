@@ -103,6 +103,7 @@ func NewClient(opts *Options) (*Client, error) {
 		return nil, err
 	}
 
+	// #nosec G402
 	client := &http.Client{
 		Jar:     jar,
 		Timeout: DefaultTimeout,
