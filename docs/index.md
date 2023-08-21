@@ -3,21 +3,22 @@
 page_title: "pfsense Provider"
 subcategory: ""
 description: |-
-  Interact with pfSense.
+  Interact with pfSense https://www.pfsense.org/ firewall/router.
 ---
 
 # pfsense Provider
 
-Interact with pfSense.
+Interact with [pfSense](https://www.pfsense.org/) firewall/router.
 
 ## Example Usage
 
 ```terraform
 # Configuration-based authentication
 provider "pfsense" {
-  username = "admin"
-  password = var.pfsense_password
-  host     = "http://192.168.1.1"
+  username        = "admin"
+  password        = var.pfsense_password
+  host            = "https://192.168.1.1"
+  tls_skip_verify = true
 }
 ```
 
@@ -26,9 +27,10 @@ provider "pfsense" {
 
 ### Required
 
-- `password` (String, Sensitive) pfSense administration password
+- `password` (String, Sensitive) pfSense administration password.
 
 ### Optional
 
-- `url` (String) pfSense administration URL, defaults to 'http://192.168.1.1'
-- `username` (String) pfSense administration username, defaults to 'admin'
+- `tls_skip_verify` (Boolean) Skip verification of TLS certificates when set to `true`, defaults to `false`.
+- `url` (String) pfSense administration URL, defaults to 'https://192.168.1.1'.
+- `username` (String) pfSense administration username, defaults to 'admin'.

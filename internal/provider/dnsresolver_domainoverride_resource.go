@@ -99,7 +99,8 @@ func (r *DNSResolverDomainOverrideResource) Metadata(ctx context.Context, req re
 // TODO validators
 func (r *DNSResolverDomainOverrideResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
+		Description:         "DNS Resolver Domain Override. Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
+		MarkdownDescription: "DNS Resolver [Domain Override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "GUID for domain override.",
@@ -121,10 +122,11 @@ func (r *DNSResolverDomainOverrideResource) Schema(ctx context.Context, req reso
 				Optional:    true,
 			},
 			"apply": schema.BoolAttribute{
-				Description: "Apply change",
-				Computed:    true,
-				Optional:    true,
-				Default:     booldefault.StaticBool(true),
+				Description:         "Apply change, defaults to 'true'.",
+				MarkdownDescription: "Apply change, defaults to `true`.",
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(true),
 			},
 		},
 	}

@@ -38,9 +38,10 @@ type pfSenseProvider struct {
 }
 
 type pfSenseProviderModel struct {
-	URL      types.String `tfsdk:"url"`
-	Username types.String `tfsdk:"username"`
-	Password types.String `tfsdk:"password"`
+	URL           types.String `tfsdk:"url"`
+	Username      types.String `tfsdk:"username"`
+	Password      types.String `tfsdk:"password"`
+	TLSSkipVerify types.Bool   `tfsdk:"tls_skip_verify"`
 }
 
 func (p *pfSenseProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -50,20 +51,26 @@ func (p *pfSenseProvider) Metadata(_ context.Context, _ provider.MetadataRequest
 
 func (p *pfSenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Interact with pfSense.",
+		Description:         "Interact with pfSense firewall/router.",
+		MarkdownDescription: "Interact with [pfSense](https://www.pfsense.org/) firewall/router.",
 		Attributes: map[string]schema.Attribute{
 			"url": schema.StringAttribute{
-				Description: fmt.Sprintf("pfSense administration URL, defaults to '%s'", pfsense.DefaultURL),
+				Description: fmt.Sprintf("pfSense administration URL, defaults to '%s'.", pfsense.DefaultURL),
 				Optional:    true,
 			},
 			"username": schema.StringAttribute{
-				Description: fmt.Sprintf("pfSense administration username, defaults to '%s'", pfsense.DefaultUsername),
+				Description: fmt.Sprintf("pfSense administration username, defaults to '%s'.", pfsense.DefaultUsername),
 				Optional:    true,
 			},
 			"password": schema.StringAttribute{
-				Description: "pfSense administration password",
+				Description: "pfSense administration password.",
 				Required:    true,
 				Sensitive:   true,
+			},
+			"tls_skip_verify": schema.BoolAttribute{
+				Description:         fmt.Sprintf("Skip verification of TLS certificates when set to true, defaults to '%t'.", pfsense.DefaultTLSSkipVerify),
+				MarkdownDescription: fmt.Sprintf("Skip verification of TLS certificates when set to `true`, defaults to `%t`.", pfsense.DefaultTLSSkipVerify),
+				Optional:            true,
 			},
 		},
 	}
@@ -94,6 +101,11 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 		resp.Diagnostics.AddAttributeError(path.Root("password"), summary, detail)
 	}
 
+	if config.TLSSkipVerify.IsUnknown() {
+		summary, detail := unknownProviderValue("tls_skip_verify")
+		resp.Diagnostics.AddAttributeError(path.Root("tls_skip_verify"), summary, detail)
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -119,6 +131,10 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 	}
 
 	opts.Password = config.Password.ValueString()
+
+	if !config.TLSSkipVerify.IsNull() {
+		opts.TLSSkipVerify = config.TLSSkipVerify.ValueBoolPointer()
+	}
 
 	if resp.Diagnostics.HasError() {
 		return
