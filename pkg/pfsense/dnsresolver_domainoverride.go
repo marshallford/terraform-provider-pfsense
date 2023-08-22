@@ -1,6 +1,7 @@
 package pfsense
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -135,40 +136,29 @@ func scrapeDNSResolverDomainOverrides(doc *goquery.Document) (*DomainOverrides, 
 	return &domainOverrides, nil
 }
 
-func (pf *Client) getDNSResolverDomainOverrides() (*DomainOverrides, error) {
-	u := pf.Options.URL.ResolveReference(&url.URL{Path: "services_unbound.php"})
+func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOverrides, error) {
+	u := url.URL{Path: "services_unbound.php"}
 
-	resp, err := pf.httpClient.Get(u.String())
+	doc, err := pf.doHTML(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get DNS resolver page, %d %s", resp.StatusCode, resp.Status)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get domain override, %w", err)
 	}
 
 	return scrapeDNSResolverDomainOverrides(doc)
 }
 
-func (pf *Client) GetDNSResolverDomainOverrides() (*DomainOverrides, error) {
+func (pf *Client) GetDNSResolverDomainOverrides(ctx context.Context) (*DomainOverrides, error) {
 	pf.mutexes.DNSResolverDomainOverride.Lock()
 	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
 
-	return pf.getDNSResolverDomainOverrides()
+	return pf.getDNSResolverDomainOverrides(ctx)
 }
 
-func (pf *Client) GetDNSResolverDomainOverride(id string) (*DomainOverride, error) {
+func (pf *Client) GetDNSResolverDomainOverride(ctx context.Context, id string) (*DomainOverride, error) {
 	pf.mutexes.DNSResolverDomainOverride.Lock()
 	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
 
-	domainOverrides, err := pf.getDNSResolverDomainOverrides()
+	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -176,34 +166,23 @@ func (pf *Client) GetDNSResolverDomainOverride(id string) (*DomainOverride, erro
 	return domainOverrides.GetByID(id)
 }
 
-func (pf *Client) CreateDNSResolverDomainOverride(domainOverrideReq DomainOverride) (*DomainOverride, error) {
+func (pf *Client) CreateDNSResolverDomainOverride(ctx context.Context, domainOverrideReq DomainOverride) (*DomainOverride, error) {
 	pf.mutexes.DNSResolverDomainOverride.Lock()
 	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
 
 	domainOverrideReq.ID = uuid.New()
 
-	u := pf.Options.URL.ResolveReference(&url.URL{Path: "services_unbound_domainoverride_edit.php"})
-
-	resp, err := pf.httpClient.PostForm(u.String(), url.Values{
-		pf.tokenKey: {pf.token},
-		"domain":    {domainOverrideReq.Domain},
-		"ip":        {domainOverrideReq.formatIPAddress()},
-		"descr":     {domainOverrideReq.formatDescription()},
-		"save":      {"Save"},
-	})
-	if err != nil {
-		return nil, err
+	u := url.URL{Path: "services_unbound_domainoverride_edit.php"}
+	v := url.Values{
+		"domain": {domainOverrideReq.Domain},
+		"ip":     {domainOverrideReq.formatIPAddress()},
+		"descr":  {domainOverrideReq.formatDescription()},
+		"save":   {"Save"},
 	}
 
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to create domain override, %d %s", resp.StatusCode, resp.Status)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := pf.doHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create domain override, %w", err)
 	}
 
 	err = scrapeValidationErrors(doc)
@@ -224,7 +203,7 @@ func (pf *Client) CreateDNSResolverDomainOverride(domainOverrideReq DomainOverri
 	return domainOverride, nil
 }
 
-func (pf *Client) UpdateDNSResolverDomainOverride(domainOverrideReq DomainOverride) (*DomainOverride, error) {
+func (pf *Client) UpdateDNSResolverDomainOverride(ctx context.Context, domainOverrideReq DomainOverride) (*DomainOverride, error) {
 	pf.mutexes.DNSResolverDomainOverride.Lock()
 	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
 
@@ -233,7 +212,7 @@ func (pf *Client) UpdateDNSResolverDomainOverride(domainOverrideReq DomainOverri
 	}
 
 	// get current control ID of domain override
-	domainOverrides, err := pf.getDNSResolverDomainOverrides()
+	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -246,32 +225,21 @@ func (pf *Client) UpdateDNSResolverDomainOverride(domainOverrideReq DomainOverri
 	controlID := currentDomainOverride.controlID
 
 	// update domain override
-	u := pf.Options.URL.ResolveReference(&url.URL{Path: "services_unbound_domainoverride_edit.php"})
+	u := url.URL{Path: "services_unbound_domainoverride_edit.php"}
 	q := u.Query()
 	q.Set("id", controlID)
 	u.RawQuery = q.Encode()
-
-	resp, err := pf.httpClient.PostForm(u.String(), url.Values{
-		pf.tokenKey: {pf.token},
-		"domain":    {domainOverrideReq.Domain},
-		"ip":        {domainOverrideReq.formatIPAddress()},
-		"descr":     {domainOverrideReq.formatDescription()},
-		"id":        {controlID},
-		"save":      {"Save"},
-	})
-	if err != nil {
-		return nil, err
+	v := url.Values{
+		"domain": {domainOverrideReq.Domain},
+		"ip":     {domainOverrideReq.formatIPAddress()},
+		"descr":  {domainOverrideReq.formatDescription()},
+		"id":     {controlID},
+		"save":   {"Save"},
 	}
 
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to update domain override, %d %s", resp.StatusCode, resp.Status)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := pf.doHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to update domain override, %w", err)
 	}
 
 	err = scrapeValidationErrors(doc)
@@ -292,12 +260,12 @@ func (pf *Client) UpdateDNSResolverDomainOverride(domainOverrideReq DomainOverri
 	return domainOverride, nil
 }
 
-func (pf *Client) DeleteDNSResolverDomainOverride(id string) error {
+func (pf *Client) DeleteDNSResolverDomainOverride(ctx context.Context, id string) error {
 	pf.mutexes.DNSResolverDomainOverride.Lock()
 	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
 
 	// get current control ID of domain override
-	domainOverrides, err := pf.getDNSResolverDomainOverrides()
+	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
 		return err
 	}
@@ -310,22 +278,16 @@ func (pf *Client) DeleteDNSResolverDomainOverride(id string) error {
 	controlID := freshDomainOverride.controlID
 
 	// delete domain override
-	u := pf.Options.URL.ResolveReference(&url.URL{Path: "services_unbound.php"})
-
-	resp, err := pf.httpClient.PostForm(u.String(), url.Values{
-		pf.tokenKey: {pf.token},
-		"type":      {"doverride"},
-		"act":       {"del"},
-		"id":        {controlID},
-	})
-	if err != nil {
-		return err
+	u := url.URL{Path: "services_unbound.php"}
+	v := url.Values{
+		"type": {"doverride"},
+		"act":  {"del"},
+		"id":   {controlID},
 	}
 
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to delete domain override, %d %s", resp.StatusCode, resp.Status)
+	_, err = pf.doHTML(ctx, http.MethodPost, u, &v)
+	if err != nil {
+		return fmt.Errorf("failed to delete domain override, %w", err)
 	}
 
 	return nil

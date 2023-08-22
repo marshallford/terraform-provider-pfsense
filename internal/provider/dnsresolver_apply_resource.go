@@ -75,7 +75,7 @@ func (r *DNSResolverApplyResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	id, err := r.client.ApplyDNSResolverChanges()
+	id, err := r.client.ApplyDNSResolverChanges(ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError(

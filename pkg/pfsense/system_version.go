@@ -1,6 +1,7 @@
 package pfsense
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,17 +15,17 @@ type SystemVersion struct {
 	Latest  string `json:"version"`
 }
 
-func (pf *Client) GetSystemVersion() (*SystemVersion, error) {
+func (pf *Client) GetSystemVersion(ctx context.Context) (*SystemVersion, error) {
 	pf.mutexes.Version.Lock()
 	defer pf.mutexes.Version.Unlock()
 
-	u := pf.Options.URL.ResolveReference(&url.URL{Path: "pkg_mgr_install.php"})
-
-	resp, err := pf.httpClient.PostForm(u.String(), url.Values{
-		pf.tokenKey:  {pf.token},
+	u := url.URL{Path: "pkg_mgr_install.php"}
+	v := url.Values{
 		"ajax":       {"ajax"},
 		"getversion": {"yes"},
-	})
+	}
+
+	resp, err := pf.do(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +33,7 @@ func (pf *Client) GetSystemVersion() (*SystemVersion, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to submit version form, %d %s", resp.StatusCode, resp.Status)
+		return nil, fmt.Errorf("%s: %s %s", resp.Status, http.MethodPost, u.String())
 	}
 
 	b, err := io.ReadAll(resp.Body)

@@ -1,9 +1,9 @@
+# golangci-lint run --print-issued-lines=false --uniq-by-line=false --no-config --enable-all 2> /dev/null | awk 'NF>1{print $NF}' | tr -d '()' | sort -u
 linters:
   enable-all: true
   disable:
   - cyclop
   - depguard
-  - dupl
   - exhaustivestruct
   - exhaustruct
   - funlen
@@ -15,7 +15,6 @@ linters:
   - ireturn
   - lll
   - nlreturn
-  - noctx
   - prealloc
   - revive
   - tagliatelle

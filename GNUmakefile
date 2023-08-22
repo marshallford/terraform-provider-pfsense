@@ -25,12 +25,15 @@ lint/yamllint:
 install:
 	go install
 
-test: test/acc
+test: test/pkg test/acc
+
+test/pkg:
+	go test ./pkg/... -v $(TESTARGS) -timeout 60m
 
 test/acc:
-	TF_ACC=1 go test ./... -v $(TESTARGS) -timeout 120m
+	TF_ACC=1 go test ./internal/provider/... -v $(TESTARGS) -timeout 60m
 
 docs:
 	go generate ./...
 
-.PHONY: lint lint/editorconfig lint/yamllint install test test/acc docs
+.PHONY: lint lint/editorconfig lint/yamllint install test test/pkg test/acc docs
