@@ -165,7 +165,7 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	domainOverride, err := r.client.CreateDNSResolverDomainOverride(domainOverrideReq)
+	domainOverride, err := r.client.CreateDNSResolverDomainOverride(ctx, domainOverrideReq)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -176,7 +176,7 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges()
+		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -201,7 +201,7 @@ func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	domainOverride, err := r.client.GetDNSResolverDomainOverride(data.ID.ValueString())
+	domainOverride, err := r.client.GetDNSResolverDomainOverride(ctx, data.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -230,7 +230,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	domainOverride, err := r.client.UpdateDNSResolverDomainOverride(domainOverrideReq)
+	domainOverride, err := r.client.UpdateDNSResolverDomainOverride(ctx, domainOverrideReq)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -241,7 +241,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges()
+		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -265,7 +265,7 @@ func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	err := r.client.DeleteDNSResolverDomainOverride(data.ID.ValueString())
+	err := r.client.DeleteDNSResolverDomainOverride(ctx, data.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -276,7 +276,7 @@ func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req reso
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges()
+		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if err != nil {
 			resp.Diagnostics.AddError(

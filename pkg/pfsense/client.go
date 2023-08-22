@@ -1,9 +1,11 @@
 package pfsense
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -19,6 +21,7 @@ import (
 const (
 	DefaultTimeout        = 30 * time.Second
 	DefaultConnectTimeout = 5 * time.Second
+	DefaultMaxIdleConns   = 10
 	DefaultURL            = "https://192.168.1.1"
 	DefaultUsername       = "admin"
 	DefaultTLSSkipVerify  = false
@@ -72,7 +75,7 @@ func (pf *Client) updateToken(doc *goquery.Document) error {
 	return nil
 }
 
-func NewClient(opts *Options) (*Client, error) {
+func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	var err error
 
 	if opts.URL.String() == "" {
@@ -105,16 +108,19 @@ func NewClient(opts *Options) (*Client, error) {
 
 	// #nosec G402
 	client := &http.Client{
-		Jar:     jar,
-		Timeout: DefaultTimeout,
+		Jar: jar,
 		Transport: &http.Transport{
-			Dial: (&net.Dialer{
-				Timeout: DefaultTimeout,
-			}).Dial,
+			DialContext: (&net.Dialer{
+				Timeout:   DefaultTimeout,
+				KeepAlive: DefaultTimeout,
+				DualStack: true,
+			}).DialContext,
+			MaxIdleConns:    DefaultMaxIdleConns,
+			IdleConnTimeout: DefaultTimeout,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: *opts.TLSSkipVerify,
 			},
-			TLSHandshakeTimeout: DefaultTimeout,
+			TLSHandshakeTimeout: DefaultConnectTimeout,
 		},
 	}
 
@@ -124,21 +130,10 @@ func NewClient(opts *Options) (*Client, error) {
 		mutexes:    &mutexes{},
 	}
 
-	u := pf.Options.URL.ResolveReference(&url.URL{Path: "/"})
+	u := url.URL{Path: "/"}
 
 	// get initial token
-	resp, err := pf.httpClient.Get(u.String())
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get homepage, %d %s", resp.StatusCode, resp.Status)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := pf.doHTML(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -149,40 +144,82 @@ func NewClient(opts *Options) (*Client, error) {
 	}
 
 	// login
-	resp, err = pf.httpClient.PostForm(u.String(), url.Values{
-		pf.tokenKey:   {pf.token},
+	v := url.Values{
 		"usernamefld": {pf.Options.Username},
 		"passwordfld": {pf.Options.Password},
 		"login":       {"Sign In"},
-	})
+	}
+
+	doc, err = pf.doHTML(ctx, http.MethodPost, u, &v)
+	if err != nil {
+		return nil, fmt.Errorf("failed to login, %w", err)
+	}
+
+	body := doc.FindMatcher(goquery.Single("body"))
+
+	if body.Length() == 0 {
+		return nil, errors.New("failed to login, html response not valid")
+	}
+
+	if strings.Contains(body.Text(), "Username or Password incorrect") {
+		return nil, errors.New("failed to login, username or password incorrect")
+	}
+
+	err = pf.updateToken(doc)
+	if err != nil {
+		return nil, err
+	}
+
+	return pf, nil
+}
+
+func (pf *Client) doHTML(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*goquery.Document, error) {
+	resp, err := pf.do(ctx, method, relativeURL, values)
 	if err != nil {
 		return nil, err
 	}
 
 	defer resp.Body.Close()
 
-	doc, err = goquery.NewDocumentFromReader(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%s: %s %s", resp.Status, method, relativeURL.String())
+	}
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	body := doc.FindMatcher(goquery.Single("body"))
+	return doc, nil
+}
 
-	if body.Length() == 0 {
-		return nil, errors.New("html not valid")
+func (pf *Client) do(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*http.Response, error) {
+	var reqBody io.Reader
+	if values != nil {
+		if pf.tokenKey != "" && pf.token != "" {
+			values.Set(pf.tokenKey, pf.token)
+		}
+		reqBody = strings.NewReader(values.Encode())
 	}
 
-	if strings.Contains(body.Text(), "Username or Password incorrect") {
-		return nil, errors.New("login failed")
-	}
-
-	err = pf.updateToken(doc)
-
+	url := pf.Options.URL.ResolveReference(&relativeURL).String()
+	req, err := http.NewRequestWithContext(ctx, method, url, reqBody)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to create request: %s %s %w", method, relativeURL.String(), err)
 	}
 
-	return pf, nil
+	req.Header.Set("User-Agent", "go-pfsense")
+
+	if values != nil {
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	}
+
+	resp, err := pf.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to perform request: %s %s %w", method, relativeURL.String(), err)
+	}
+
+	return resp, nil
 }
 
 func parseDescription(rawDescription string) (string, string, error) {

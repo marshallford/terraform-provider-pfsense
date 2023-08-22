@@ -92,7 +92,7 @@ jobs:
         terraform_version: ${{ matrix.terraform }}
         terraform_wrapper: false
     - name: Test
-      run: make test/acc
+      run: make test
 
   check:
     name: Test

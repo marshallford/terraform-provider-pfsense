@@ -69,7 +69,7 @@ func (d *SystemVersionDataSource) Configure(_ context.Context, req datasource.Co
 func (d *SystemVersionDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data SystemVersionDataSourceModel
 
-	version, err := d.client.GetSystemVersion()
+	version, err := d.client.GetSystemVersion(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to get system version",

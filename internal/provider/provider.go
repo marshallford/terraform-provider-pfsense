@@ -142,7 +142,7 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 	tflog.Debug(ctx, "Creating pfSense client")
 
-	client, err := pfsense.NewClient(&opts)
+	client, err := pfsense.NewClient(ctx, &opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create pfSense client",
