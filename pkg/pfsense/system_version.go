@@ -3,7 +3,6 @@ package pfsense
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,36 +26,32 @@ func (pf *Client) GetSystemVersion(ctx context.Context) (*SystemVersion, error) 
 
 	resp, err := pf.do(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w system version, %w", ErrGetOperationFailed, err)
 	}
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s: %s %s", resp.Status, http.MethodPost, u.String())
-	}
-
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w system version, %w", ErrGetOperationFailed, err)
 	}
 
 	if !json.Valid(b) {
-		return nil, err
+		return nil, fmt.Errorf("%w system version, %w", ErrGetOperationFailed, err)
 	}
 
 	var r SystemVersion
 	err = json.Unmarshal(b, &r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w system version, %w", ErrUnableToParse, err)
 	}
 
 	if r.Current == "" {
-		return nil, errors.New("current version not returned")
+		return nil, fmt.Errorf("system version %w 'current'", ErrMissingField)
 	}
 
 	if r.Latest == "" {
-		return nil, errors.New("latest version not returned")
+		return nil, fmt.Errorf("system version %w 'latest'", ErrMissingField)
 	}
 
 	return &r, nil

@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -163,18 +162,9 @@ func (r *DNSResolverHostOverrideResource) Schema(ctx context.Context, req resour
 }
 
 func (r *DNSResolverHostOverrideResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*pfsense.Client)
+	client, ok := configureResourceClient(req, resp)
 
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *pfsense.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
 		return
 	}
 
@@ -197,22 +187,14 @@ func (r *DNSResolverHostOverrideResource) Create(ctx context.Context, req resour
 
 	hostOverride, err := r.client.CreateDNSResolverHostOverride(ctx, hostOverrideReq)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating host override",
-			"Could not create host override, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error creating host override", err) {
 		return
 	}
 
 	if data.Apply.ValueBool() {
 		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error applying host override",
-				"Could not apply host override, unexpected error: "+err.Error(),
-			)
+		if addError(&resp.Diagnostics, "Error applying host override", err) {
 			return
 		}
 	}
@@ -233,11 +215,7 @@ func (r *DNSResolverHostOverrideResource) Read(ctx context.Context, req resource
 
 	hostOverride, err := r.client.GetDNSResolverHostOverride(ctx, data.ID.ValueString())
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading host override",
-			"Could not read host override, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error reading host override", err) {
 		return
 	}
 
@@ -262,22 +240,14 @@ func (r *DNSResolverHostOverrideResource) Update(ctx context.Context, req resour
 
 	hostOverride, err := r.client.UpdateDNSResolverHostOverride(ctx, hostOverrideReq)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating host override",
-			"Could not update host override, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error updating host override", err) {
 		return
 	}
 
 	if data.Apply.ValueBool() {
 		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error applying host override",
-				"Could not apply host override, unexpected error: "+err.Error(),
-			)
+		if addError(&resp.Diagnostics, "Error applying host override", err) {
 			return
 		}
 	}
@@ -297,22 +267,14 @@ func (r *DNSResolverHostOverrideResource) Delete(ctx context.Context, req resour
 
 	err := r.client.DeleteDNSResolverHostOverride(ctx, data.ID.ValueString())
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting host override",
-			"Could not delete host override, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error deleting host override", err) {
 		return
 	}
 
 	if data.Apply.ValueBool() {
 		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error applying host override",
-				"Could not apply host override, unexpected error: "+err.Error(),
-			)
+		if addError(&resp.Diagnostics, "Error applying host override", err) {
 			return
 		}
 	}

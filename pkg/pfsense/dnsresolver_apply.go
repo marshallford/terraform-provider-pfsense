@@ -2,6 +2,7 @@ package pfsense
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,19 +10,25 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	ErrApplyDNSResolverChange = errors.New("failed to apply DNS resolver changes")
+)
+
 func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) (*uuid.UUID, error) {
-	pf.mutexes.DNSResolverHostOverride.Lock()
-	defer pf.mutexes.DNSResolverHostOverride.Unlock()
+	pf.mutexes.DNSResolverApply.Lock()
+	defer pf.mutexes.DNSResolverApply.Unlock()
 
 	u := url.URL{Path: "services_unbound.php"}
 	v := url.Values{
 		"apply": {"Apply Changes"},
 	}
 
-	_, err := pf.doHTML(ctx, http.MethodPost, u, &v)
+	resp, err := pf.do(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return nil, fmt.Errorf("failed to apply DNS resolver changes, %w", err)
+		return nil, fmt.Errorf("%w, %w", ErrApplyDNSResolverChange, err)
 	}
+
+	defer resp.Body.Close()
 
 	uuid := uuid.New()
 

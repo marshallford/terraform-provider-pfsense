@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -49,18 +48,9 @@ func (r *DNSResolverApplyResource) Schema(ctx context.Context, req resource.Sche
 }
 
 func (r *DNSResolverApplyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*pfsense.Client)
+	client, ok := configureResourceClient(req, resp)
 
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *pfsense.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
 		return
 	}
 
@@ -77,11 +67,7 @@ func (r *DNSResolverApplyResource) Create(ctx context.Context, req resource.Crea
 
 	id, err := r.client.ApplyDNSResolverChanges(ctx)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error applying DNS resolver changes",
-			"Could not apply DNS resolver changes, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error applying DNS resolver changes", err) {
 		return
 	}
 
