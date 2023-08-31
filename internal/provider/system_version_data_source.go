@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -48,18 +47,10 @@ func (d *SystemVersionDataSource) Schema(_ context.Context, _ datasource.SchemaR
 	}
 }
 
-func (d *SystemVersionDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
+func (d *SystemVersionDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	client, ok := configureDataSourceClient(req, resp)
 
-	client, ok := req.ProviderData.(*pfsense.Client)
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *pfsense.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
 		return
 	}
 
@@ -70,11 +61,8 @@ func (d *SystemVersionDataSource) Read(ctx context.Context, req datasource.ReadR
 	var data SystemVersionDataSourceModel
 
 	version, err := d.client.GetSystemVersion(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to get system version",
-			err.Error(),
-		)
+
+	if addError(&resp.Diagnostics, "Unable to get system version", err) {
 		return
 	}
 

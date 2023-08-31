@@ -29,16 +29,19 @@ func scrapeHTMLTable[T any, PT htmlTableRow[T]](sel *goquery.Selection) []T {
 			return
 		}
 
-		row.Find("td").Each(func(colIndex int, col *goquery.Selection) {
+		row.Find("td").EachWithBreak(func(colIndex int, col *goquery.Selection) bool {
 			text := strings.TrimSpace(col.Text())
 			if text == "" {
-				return
+				return true
 			}
+
 			err = pr.setByHTMLTableCol(colIndex, text)
 			if err != nil {
 				flag = true
-				return
+				return false
 			}
+
+			return true
 		})
 
 		if flag {
@@ -59,7 +62,7 @@ func scrapeValidationErrors(doc *goquery.Document) error {
 		inputErrorList.Find("li").Each(func(i int, e *goquery.Selection) {
 			inputErrors = append(inputErrors, strings.TrimSpace(e.Text()))
 		})
-		return fmt.Errorf("validation error(s): %s", strings.Join(inputErrors, ", "))
+		return fmt.Errorf("%w, '%s'", ErrServerValidation, strings.Join(inputErrors, ", "))
 	}
 	return nil
 }

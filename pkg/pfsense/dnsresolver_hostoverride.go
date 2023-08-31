@@ -2,7 +2,6 @@ package pfsense
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/netip"
@@ -63,12 +62,7 @@ func (ho *HostOverride) setByHTMLTableCol(i int, text string) error {
 			return err
 		}
 
-		err = ho.SetDescription(description)
-		if err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("host override does not have matching field for column %d", i)
+		return ho.SetDescription(description)
 	}
 	return nil
 }
@@ -76,7 +70,7 @@ func (ho *HostOverride) setByHTMLTableCol(i int, text string) error {
 func (ho *HostOverride) SetID(id string) error {
 	uuid, err := uuid.Parse(id)
 	if err != nil {
-		return errors.New("host override ID not valid UUID")
+		return fmt.Errorf("%w ID", ErrUnableToParse)
 	}
 
 	ho.ID = uuid
@@ -128,7 +122,7 @@ func (hos HostOverrides) GetByFQDN(fqdn string) (*HostOverride, error) {
 			return &ho, nil
 		}
 	}
-	return nil, fmt.Errorf("host override with FQDN %s not found ", fqdn)
+	return nil, fmt.Errorf("host override %w with FQDN '%s'", ErrNotFound, fqdn)
 }
 
 func (hos HostOverrides) GetByID(id string) (*HostOverride, error) {
@@ -137,14 +131,14 @@ func (hos HostOverrides) GetByID(id string) (*HostOverride, error) {
 			return &ho, nil
 		}
 	}
-	return nil, fmt.Errorf("host override with ID %s not found ", id)
+	return nil, fmt.Errorf("host override %w with ID '%s'", ErrNotFound, id)
 }
 
 func scrapeDNSResolverHostOverrides(doc *goquery.Document) (*HostOverrides, error) {
 	tableBody := doc.FindMatcher(goquery.Single("div.panel:has(h2:contains('Host Overrides')) table tbody"))
 
 	if tableBody.Length() == 0 {
-		return nil, errors.New("host overrides table not found")
+		return nil, fmt.Errorf("%w, host overrides table not found", ErrUnableToScrapeHTML)
 	}
 
 	hostOverrides := HostOverrides(scrapeHTMLTable[HostOverride](tableBody))
@@ -157,7 +151,7 @@ func (pf *Client) getDNSResolverHostOverrides(ctx context.Context) (*HostOverrid
 
 	doc, err := pf.doHTML(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get host override, %w", err)
+		return nil, err
 	}
 
 	return scrapeDNSResolverHostOverrides(doc)
@@ -167,7 +161,12 @@ func (pf *Client) GetDNSResolverHostOverrides(ctx context.Context) (*HostOverrid
 	pf.mutexes.DNSResolverHostOverride.Lock()
 	defer pf.mutexes.DNSResolverHostOverride.Unlock()
 
-	return pf.getDNSResolverHostOverrides(ctx)
+	hostOverrides, err := pf.getDNSResolverHostOverrides(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w host overrides, %w", ErrGetOperationFailed, err)
+	}
+
+	return hostOverrides, nil
 }
 
 func (pf *Client) GetDNSResolverHostOverride(ctx context.Context, id string) (*HostOverride, error) {
@@ -176,7 +175,7 @@ func (pf *Client) GetDNSResolverHostOverride(ctx context.Context, id string) (*H
 
 	hostOverrides, err := pf.getDNSResolverHostOverrides(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w host override (id '%s'), %w", ErrGetOperationFailed, id, err)
 	}
 
 	return hostOverrides.GetByID(id)
@@ -199,12 +198,12 @@ func (pf *Client) CreateDNSResolverHostOverride(ctx context.Context, hostOverrid
 
 	doc, err := pf.doHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create host override, %w", err)
+		return nil, fmt.Errorf("%w host override, %w", ErrCreateOperationFailed, err)
 	}
 
 	err = scrapeValidationErrors(doc)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create host override, %w", err)
+		return nil, fmt.Errorf("%w host override, %w", ErrCreateOperationFailed, err)
 	}
 
 	hostOverrides, err := scrapeDNSResolverHostOverrides(doc)
@@ -225,7 +224,7 @@ func (pf *Client) UpdateDNSResolverHostOverride(ctx context.Context, hostOverrid
 	defer pf.mutexes.DNSResolverHostOverride.Unlock()
 
 	if hostOverrideReq.ID == uuid.Nil {
-		return nil, errors.New("host override missing ID")
+		return nil, fmt.Errorf("host override %w 'ID'", ErrMissingField)
 	}
 
 	// get current control ID of host override
@@ -257,12 +256,12 @@ func (pf *Client) UpdateDNSResolverHostOverride(ctx context.Context, hostOverrid
 
 	doc, err := pf.doHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update host override, %w", err)
+		return nil, fmt.Errorf("%w host override, %w", ErrUpdateOperationFailed, err)
 	}
 
 	err = scrapeValidationErrors(doc)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update host override, %w", err)
+		return nil, fmt.Errorf("%w host override, %w", ErrUpdateOperationFailed, err)
 	}
 
 	hostOverrides, err = scrapeDNSResolverHostOverrides(doc)
@@ -305,7 +304,7 @@ func (pf *Client) DeleteDNSResolverHostOverride(ctx context.Context, id string) 
 
 	_, err = pf.doHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return fmt.Errorf("failed to delete host override, %w", err)
+		return fmt.Errorf("%w host override, %w", ErrDeleteOperationFailed, err)
 	}
 
 	return nil

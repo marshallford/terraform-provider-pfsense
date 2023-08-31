@@ -9,7 +9,6 @@ linters:
   - funlen
   - godot
   - godox
-  - goerr113
   - gofumpt
   - gomnd
   - ireturn

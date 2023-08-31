@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -133,18 +132,9 @@ func (r *DNSResolverDomainOverrideResource) Schema(ctx context.Context, req reso
 }
 
 func (r *DNSResolverDomainOverrideResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*pfsense.Client)
+	client, ok := configureResourceClient(req, resp)
 
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *pfsense.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
 		return
 	}
 
@@ -167,22 +157,14 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 
 	domainOverride, err := r.client.CreateDNSResolverDomainOverride(ctx, domainOverrideReq)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating domain override",
-			"Could not create domain override, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error creating domain override", err) {
 		return
 	}
 
 	if data.Apply.ValueBool() {
 		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error applying domain override",
-				"Could not apply domain override, unexpected error: "+err.Error(),
-			)
+		if addError(&resp.Diagnostics, "Error applying domain override", err) {
 			return
 		}
 	}
@@ -203,11 +185,7 @@ func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resour
 
 	domainOverride, err := r.client.GetDNSResolverDomainOverride(ctx, data.ID.ValueString())
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading domain override",
-			"Could not read domain override, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error reading domain override", err) {
 		return
 	}
 
@@ -232,22 +210,14 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 
 	domainOverride, err := r.client.UpdateDNSResolverDomainOverride(ctx, domainOverrideReq)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating domain override",
-			"Could not update domain override, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error updating domain override", err) {
 		return
 	}
 
 	if data.Apply.ValueBool() {
 		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error applying domain override",
-				"Could not apply domain override, unexpected error: "+err.Error(),
-			)
+		if addError(&resp.Diagnostics, "Error applying domain override", err) {
 			return
 		}
 	}
@@ -267,22 +237,14 @@ func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req reso
 
 	err := r.client.DeleteDNSResolverDomainOverride(ctx, data.ID.ValueString())
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting domain override",
-			"Could not delete domain override, unexpected error: "+err.Error(),
-		)
+	if addError(&resp.Diagnostics, "Error deleting domain override", err) {
 		return
 	}
 
 	if data.Apply.ValueBool() {
 		_, err = r.client.ApplyDNSResolverChanges(ctx)
 
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error applying domain override",
-				"Could not apply domain override, unexpected error: "+err.Error(),
-			)
+		if addError(&resp.Diagnostics, "Error applying domain override", err) {
 			return
 		}
 	}

@@ -3,7 +3,6 @@ package pfsense
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -38,8 +37,10 @@ type Options struct {
 
 type mutexes struct {
 	Version                   sync.Mutex
+	DNSResolverApply          sync.Mutex
 	DNSResolverHostOverride   sync.Mutex
 	DNSResolverDomainOverride sync.Mutex
+	DNSResolverConfigFile     sync.Mutex // TODO unsure if required
 }
 
 type Client struct {
@@ -53,7 +54,7 @@ type Client struct {
 func (pf *Client) updateToken(doc *goquery.Document) error {
 	head := doc.FindMatcher(goquery.Single("head")).Text()
 	if head == "" {
-		return errors.New("html not valid")
+		return ErrUnableToScrapeHTML
 	}
 	tokenKey := regexp.MustCompile(`var csrfMagicName = "([^"]+)";`)
 	token := regexp.MustCompile(`var csrfMagicToken = "([^"]+)";`)
@@ -61,13 +62,13 @@ func (pf *Client) updateToken(doc *goquery.Document) error {
 	tokenMatches := token.FindStringSubmatch(head)
 
 	if len(tokenKeyMatches) < 1 {
-		return errors.New("token key not found")
+		return fmt.Errorf("%w, token key not found", ErrLoginFailed)
 	}
 
 	pf.tokenKey = tokenKeyMatches[1]
 
 	if len(tokenMatches) < 1 {
-		return errors.New("token not found")
+		return fmt.Errorf("%w, token not found", ErrLoginFailed)
 	}
 
 	pf.token = tokenMatches[1]
@@ -93,7 +94,7 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	}
 
 	if opts.Password == "" {
-		return nil, errors.New("password required")
+		return nil, fmt.Errorf("%w, password required", ErrMissingField)
 	}
 
 	if opts.TLSSkipVerify == nil {
@@ -152,17 +153,17 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 
 	doc, err = pf.doHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return nil, fmt.Errorf("failed to login, %w", err)
+		return nil, fmt.Errorf("%w, %w", ErrLoginFailed, err)
 	}
 
 	body := doc.FindMatcher(goquery.Single("body"))
 
 	if body.Length() == 0 {
-		return nil, errors.New("failed to login, html response not valid")
+		return nil, fmt.Errorf("%w, %w", ErrLoginFailed, ErrUnableToScrapeHTML)
 	}
 
 	if strings.Contains(body.Text(), "Username or Password incorrect") {
-		return nil, errors.New("failed to login, username or password incorrect")
+		return nil, fmt.Errorf("%w, username or password incorrect", ErrLoginFailed)
 	}
 
 	err = pf.updateToken(doc)
@@ -171,26 +172,6 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	}
 
 	return pf, nil
-}
-
-func (pf *Client) doHTML(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*goquery.Document, error) {
-	resp, err := pf.do(ctx, method, relativeURL, values)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s: %s %s", resp.Status, method, relativeURL.String())
-	}
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
 }
 
 func (pf *Client) do(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*http.Response, error) {
@@ -205,7 +186,7 @@ func (pf *Client) do(ctx context.Context, method string, relativeURL url.URL, va
 	url := pf.Options.URL.ResolveReference(&relativeURL).String()
 	req, err := http.NewRequestWithContext(ctx, method, url, reqBody)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create request: %s %s %w", method, relativeURL.String(), err)
+		return nil, fmt.Errorf("unable to create request, %s %s %w", method, relativeURL.String(), err)
 	}
 
 	req.Header.Set("User-Agent", "go-pfsense")
@@ -216,16 +197,36 @@ func (pf *Client) do(ctx context.Context, method string, relativeURL url.URL, va
 
 	resp, err := pf.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("unable to perform request: %s %s %w", method, relativeURL.String(), err)
+		return nil, fmt.Errorf("unable to perform request, %s %s %w", method, relativeURL.String(), err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w, %s %s %s", ErrResponse, resp.Status, method, relativeURL.String())
 	}
 
 	return resp, nil
 }
 
+func (pf *Client) doHTML(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*goquery.Document, error) {
+	resp, err := pf.do(ctx, method, relativeURL, values)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
 func parseDescription(rawDescription string) (string, string, error) {
 	parts := strings.Split(rawDescription, descriptionSeparator)
 	if len(parts) != 3 || parts[0] != clientName {
-		return "", "", errors.New("not managed by client")
+		return "", "", ErrNotManagedByClient
 	}
 	return parts[1], parts[2], nil
 }
