@@ -2,7 +2,9 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -28,7 +30,7 @@ type DNSResolverApplyResourceModel struct {
 }
 
 func (r *DNSResolverApplyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dnsresolver_apply"
+	resp.TypeName = fmt.Sprintf("%s_dnsresolver_apply", req.ProviderTypeName)
 }
 
 // TODO validators
@@ -65,13 +67,13 @@ func (r *DNSResolverApplyResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	id, err := r.client.ApplyDNSResolverChanges(ctx)
+	err := r.client.ApplyDNSResolverChanges(ctx)
 
 	if addError(&resp.Diagnostics, "Error applying DNS resolver changes", err) {
 		return
 	}
 
-	data.ID = types.StringValue(id.String())
+	data.ID = types.StringValue(uuid.New().String())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

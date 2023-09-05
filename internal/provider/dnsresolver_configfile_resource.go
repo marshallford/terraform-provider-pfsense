@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -38,8 +39,9 @@ func (r *DNSResolverConfigFileResourceModel) Map(configFile *pfsense.ConfigFile)
 
 func (r DNSResolverConfigFileResourceModel) ConfigFile(diag *diag.Diagnostics) pfsense.ConfigFile {
 	var configFile pfsense.ConfigFile
+	var err error
 
-	err := configFile.SetName(r.Name.ValueString())
+	err = configFile.SetName(r.Name.ValueString())
 
 	if err != nil {
 		diag.AddAttributeError(
@@ -63,7 +65,7 @@ func (r DNSResolverConfigFileResourceModel) ConfigFile(diag *diag.Diagnostics) p
 }
 
 func (r *DNSResolverConfigFileResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dnsresolver_configfile"
+	resp.TypeName = fmt.Sprintf("%s_dnsresolver_configfile", req.ProviderTypeName)
 }
 
 // TODO validators
@@ -126,7 +128,7 @@ func (r *DNSResolverConfigFileResource) Create(ctx context.Context, req resource
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges(ctx)
+		err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if addError(&resp.Diagnostics, "Error applying config file", err) {
 			return
@@ -178,7 +180,7 @@ func (r *DNSResolverConfigFileResource) Update(ctx context.Context, req resource
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges(ctx)
+		err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if addError(&resp.Diagnostics, "Error applying config file", err) {
 			return
@@ -205,7 +207,7 @@ func (r *DNSResolverConfigFileResource) Delete(ctx context.Context, req resource
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges(ctx)
+		err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if addError(&resp.Diagnostics, "Error applying config file", err) {
 			return
@@ -214,5 +216,5 @@ func (r *DNSResolverConfigFileResource) Delete(ctx context.Context, req resource
 }
 
 func (r *DNSResolverConfigFileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }

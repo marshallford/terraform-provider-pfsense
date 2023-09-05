@@ -3,6 +3,7 @@ package pfsense
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -24,8 +25,6 @@ const (
 	DefaultURL            = "https://192.168.1.1"
 	DefaultUsername       = "admin"
 	DefaultTLSSkipVerify  = false
-	clientName            = "go-pfsense"
-	descriptionSeparator  = "|"
 )
 
 type Options struct {
@@ -36,11 +35,9 @@ type Options struct {
 }
 
 type mutexes struct {
-	Version                   sync.Mutex
 	DNSResolverApply          sync.Mutex
 	DNSResolverHostOverride   sync.Mutex
 	DNSResolverDomainOverride sync.Mutex
-	DNSResolverConfigFile     sync.Mutex // TODO unsure if required
 }
 
 type Client struct {
@@ -94,7 +91,7 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	}
 
 	if opts.Password == "" {
-		return nil, fmt.Errorf("%w, password required", ErrMissingField)
+		return nil, fmt.Errorf("%w, password required", ErrClientValidation)
 	}
 
 	if opts.TLSSkipVerify == nil {
@@ -114,7 +111,6 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 			DialContext: (&net.Dialer{
 				Timeout:   DefaultTimeout,
 				KeepAlive: DefaultTimeout,
-				DualStack: true,
 			}).DialContext,
 			MaxIdleConns:    DefaultMaxIdleConns,
 			IdleConnTimeout: DefaultTimeout,
@@ -158,7 +154,7 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 
 	body := doc.FindMatcher(goquery.Single("body"))
 
-	if body.Length() == 0 {
+	if body.Length() != 1 {
 		return nil, fmt.Errorf("%w, %w", ErrLoginFailed, ErrUnableToScrapeHTML)
 	}
 
@@ -223,15 +219,45 @@ func (pf *Client) doHTML(ctx context.Context, method string, relativeURL url.URL
 	return doc, nil
 }
 
-func parseDescription(rawDescription string) (string, string, error) {
-	parts := strings.Split(rawDescription, descriptionSeparator)
-	if len(parts) != 3 || parts[0] != clientName {
-		return "", "", ErrNotManagedByClient
+func (pf *Client) doPHPCommand(ctx context.Context, command string) ([]byte, error) {
+	u := url.URL{Path: "diag_command.php"}
+	v := url.Values{
+		"txtPHPCommand": {command},
+		"submit":        {"EXECPHP"},
 	}
-	return parts[1], parts[2], nil
+	doc, err := pf.doHTML(ctx, http.MethodPost, u, &v)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := doc.FindMatcher(goquery.Single("pre"))
+
+	if resp.Length() != 1 {
+		return nil, fmt.Errorf("%w, php command response not found", ErrUnableToScrapeHTML)
+	}
+
+	return []byte(resp.Text()), nil
 }
 
-func formatDescription(id string, description string) string {
-	parts := []string{clientName, id, description}
-	return strings.Join(parts, descriptionSeparator)
+func (pf *Client) getConfigJSON(ctx context.Context, value string) (json.RawMessage, error) {
+	resp, err := pf.doPHPCommand(ctx, fmt.Sprintf("print_r(json_encode($config%s));", value))
+	if err != nil {
+		return nil, err
+	}
+
+	if !json.Valid(resp) {
+		return nil, fmt.Errorf("%w php command response as JSON, %w", ErrUnableToParse, err)
+	}
+
+	return resp, nil
+}
+
+func removeEmptyStrings(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
 }

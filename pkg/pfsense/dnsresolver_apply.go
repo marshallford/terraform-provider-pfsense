@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-
-	"github.com/google/uuid"
 )
 
 var (
 	ErrApplyDNSResolverChange = errors.New("failed to apply DNS resolver changes")
 )
 
-func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) (*uuid.UUID, error) {
+func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) error {
 	pf.mutexes.DNSResolverApply.Lock()
 	defer pf.mutexes.DNSResolverApply.Unlock()
 
@@ -25,12 +23,10 @@ func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) (*uuid.UUID, erro
 
 	resp, err := pf.do(ctx, http.MethodPost, u, &v)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %w", ErrApplyDNSResolverChange, err)
+		return fmt.Errorf("%w, %w", ErrApplyDNSResolverChange, err)
 	}
 
 	defer resp.Body.Close()
 
-	uuid := uuid.New()
-
-	return &uuid, nil
+	return nil
 }

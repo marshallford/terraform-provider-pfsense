@@ -2,15 +2,15 @@
 linters:
   enable-all: true
   disable:
-  - cyclop
   - depguard
+  - cyclop
+  - dupl
   - exhaustivestruct
   - exhaustruct
   - funlen
   - godot
   - godox
   - gofumpt
-  - gomnd
   - ireturn
   - lll
   - nlreturn
