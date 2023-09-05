@@ -13,10 +13,19 @@ DNS Resolver [Domain Override](https://docs.netgate.com/pfsense/en/latest/servic
 ## Example Usage
 
 ```terraform
+# simple
 resource "pfsense_dnsresolver_domainoverride" "example" {
   domain      = "servers.example.com"
   ip_address  = "10.10.10.1:53"
   description = "dedicated DHCP/DNS for servers"
+}
+
+# SSL/TLS
+resource "pfsense_dnsresolver_domainoverride" "tls_example" {
+  domain       = "servers.example.com"
+  ip_address   = "192.168.2.1:853"
+  tls_queries  = true
+  tls_hostname = "some.host.name.com"
 }
 ```
 
@@ -32,7 +41,5 @@ resource "pfsense_dnsresolver_domainoverride" "example" {
 
 - `apply` (Boolean) Apply change, defaults to `true`.
 - `description` (String) For administrative reference (not parsed).
-
-### Read-Only
-
-- `id` (String) GUID for domain override.
+- `tls_hostname` (String) An optional TLS hostname used to verify the server certificate when performing TLS Queries.
+- `tls_queries` (Boolean) Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to `false`.

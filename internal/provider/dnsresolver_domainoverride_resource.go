@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -26,16 +27,22 @@ type DNSResolverDomainOverrideResource struct {
 }
 
 type DNSResolverDomainOverrideResourceModel struct {
-	ID          types.String `tfsdk:"id"`
 	Domain      types.String `tfsdk:"domain"`
 	IPAddress   types.String `tfsdk:"ip_address"`
+	TLSHostname types.String `tfsdk:"tls_hostname"`
 	Description types.String `tfsdk:"description"`
+	TLSQueries  types.Bool   `tfsdk:"tls_queries"`
 	Apply       types.Bool   `tfsdk:"apply"`
 }
 
 func (r *DNSResolverDomainOverrideResourceModel) Map(domainOverride *pfsense.DomainOverride) {
 	r.Domain = types.StringValue(domainOverride.Domain)
 	r.IPAddress = types.StringValue(domainOverride.IPAddress.String())
+	r.TLSQueries = types.BoolValue(domainOverride.TLSQueries)
+
+	if domainOverride.TLSHostname != "" {
+		r.TLSHostname = types.StringValue(domainOverride.TLSHostname)
+	}
 
 	if domainOverride.Description != "" {
 		r.Description = types.StringValue(domainOverride.Description)
@@ -44,20 +51,9 @@ func (r *DNSResolverDomainOverrideResourceModel) Map(domainOverride *pfsense.Dom
 
 func (r DNSResolverDomainOverrideResourceModel) DomainOverride(diag *diag.Diagnostics) pfsense.DomainOverride {
 	var domainOverride pfsense.DomainOverride
+	var err error
 
-	if !r.ID.IsUnknown() {
-		err := domainOverride.SetID(r.ID.ValueString())
-
-		if err != nil {
-			diag.AddAttributeError(
-				path.Root("id"),
-				"ID cannot be parsed",
-				err.Error(),
-			)
-		}
-	}
-
-	err := domainOverride.SetDomain(r.Domain.ValueString())
+	err = domainOverride.SetDomain(r.Domain.ValueString())
 
 	if err != nil {
 		diag.AddAttributeError(
@@ -77,8 +73,30 @@ func (r DNSResolverDomainOverrideResourceModel) DomainOverride(diag *diag.Diagno
 		)
 	}
 
+	err = domainOverride.SetTLSQueries(r.TLSQueries.ValueBool())
+
+	if err != nil {
+		diag.AddAttributeError(
+			path.Root("tls_queries"),
+			"TLS Queries cannot be parsed",
+			err.Error(),
+		)
+	}
+
+	if !r.TLSHostname.IsNull() {
+		err = domainOverride.SetTLSHostname(r.TLSHostname.ValueString())
+
+		if err != nil {
+			diag.AddAttributeError(
+				path.Root("tls_hostname"),
+				"TLS Hostname cannot be parsed",
+				err.Error(),
+			)
+		}
+	}
+
 	if !r.Description.IsNull() {
-		err := domainOverride.SetDescription(r.Description.ValueString())
+		err = domainOverride.SetDescription(r.Description.ValueString())
 
 		if err != nil {
 			diag.AddAttributeError(
@@ -88,11 +106,12 @@ func (r DNSResolverDomainOverrideResourceModel) DomainOverride(diag *diag.Diagno
 			)
 		}
 	}
+
 	return domainOverride
 }
 
 func (r *DNSResolverDomainOverrideResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dnsresolver_domainoverride"
+	resp.TypeName = fmt.Sprintf("%s_dnsresolver_domainoverride", req.ProviderTypeName)
 }
 
 // TODO validators
@@ -101,20 +120,28 @@ func (r *DNSResolverDomainOverrideResource) Schema(ctx context.Context, req reso
 		Description:         "DNS Resolver Domain Override. Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
 		MarkdownDescription: "DNS Resolver [Domain Override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Description: "GUID for domain override.",
-				Computed:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 			"domain": schema.StringAttribute{
 				Description: "Domain whose lookups will be directed to a user-specified DNS lookup server.",
 				Required:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"ip_address": schema.StringAttribute{
 				Description: "IPv4 or IPv6 address (including port) of the authoritative DNS server for this domain.",
 				Required:    true,
+			},
+			"tls_queries": schema.BoolAttribute{
+				Description:         "Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to 'false'.",
+				MarkdownDescription: "Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to `false`.",
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
+			},
+			"tls_hostname": schema.StringAttribute{
+				Description: "An optional TLS hostname used to verify the server certificate when performing TLS Queries.",
+				Optional:    true,
 			},
 			"description": schema.StringAttribute{
 				Description: "For administrative reference (not parsed).",
@@ -162,14 +189,13 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges(ctx)
+		err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if addError(&resp.Diagnostics, "Error applying domain override", err) {
 			return
 		}
 	}
 
-	data.ID = types.StringValue(domainOverride.ID.String())
 	data.Map(domainOverride)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -183,7 +209,7 @@ func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	domainOverride, err := r.client.GetDNSResolverDomainOverride(ctx, data.ID.ValueString())
+	domainOverride, err := r.client.GetDNSResolverDomainOverride(ctx, data.Domain.ValueString())
 
 	if addError(&resp.Diagnostics, "Error reading domain override", err) {
 		return
@@ -215,7 +241,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges(ctx)
+		err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if addError(&resp.Diagnostics, "Error applying domain override", err) {
 			return
@@ -235,14 +261,14 @@ func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	err := r.client.DeleteDNSResolverDomainOverride(ctx, data.ID.ValueString())
+	err := r.client.DeleteDNSResolverDomainOverride(ctx, data.Domain.ValueString())
 
 	if addError(&resp.Diagnostics, "Error deleting domain override", err) {
 		return
 	}
 
 	if data.Apply.ValueBool() {
-		_, err = r.client.ApplyDNSResolverChanges(ctx)
+		err = r.client.ApplyDNSResolverChanges(ctx)
 
 		if addError(&resp.Diagnostics, "Error applying domain override", err) {
 			return
@@ -251,5 +277,5 @@ func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req reso
 }
 
 func (r *DNSResolverDomainOverrideResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("domain"), req, resp)
 }

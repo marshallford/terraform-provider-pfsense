@@ -15,9 +15,6 @@ type SystemVersion struct {
 }
 
 func (pf *Client) GetSystemVersion(ctx context.Context) (*SystemVersion, error) {
-	pf.mutexes.Version.Lock()
-	defer pf.mutexes.Version.Unlock()
-
 	u := url.URL{Path: "pkg_mgr_install.php"}
 	v := url.Values{
 		"ajax":       {"ajax"},
@@ -43,15 +40,7 @@ func (pf *Client) GetSystemVersion(ctx context.Context) (*SystemVersion, error) 
 	var r SystemVersion
 	err = json.Unmarshal(b, &r)
 	if err != nil {
-		return nil, fmt.Errorf("%w system version, %w", ErrUnableToParse, err)
-	}
-
-	if r.Current == "" {
-		return nil, fmt.Errorf("system version %w 'current'", ErrMissingField)
-	}
-
-	if r.Latest == "" {
-		return nil, fmt.Errorf("system version %w 'latest'", ErrMissingField)
+		return nil, fmt.Errorf("%w system version response as JSON, %w", ErrUnableToParse, err)
 	}
 
 	return &r, nil
