@@ -21,10 +21,11 @@ import (
 const (
 	DefaultTimeout        = 30 * time.Second
 	DefaultConnectTimeout = 5 * time.Second
-	DefaultMaxIdleConns   = 10
+	DefaultMaxIdleConns   = 100
 	DefaultURL            = "https://192.168.1.1"
 	DefaultUsername       = "admin"
 	DefaultTLSSkipVerify  = false
+	DefaultPreResolveURL  = false
 )
 
 type Options struct {
@@ -32,6 +33,7 @@ type Options struct {
 	Username      string
 	Password      string
 	TLSSkipVerify *bool
+	PreResolveURL *bool
 }
 
 type mutexes struct {
@@ -99,21 +101,57 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 		opts.TLSSkipVerify = &b
 	}
 
+	if opts.PreResolveURL == nil {
+		b := DefaultPreResolveURL
+		opts.PreResolveURL = &b
+	}
+
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
+	}
+
+	dialer := &net.Dialer{
+		Timeout:   DefaultTimeout,
+		KeepAlive: DefaultTimeout,
+	}
+	dialerContext := dialer.DialContext
+
+	if *opts.PreResolveURL {
+		ips, err := net.LookupIP(opts.URL.Host)
+		if err != nil {
+			return nil, fmt.Errorf("%w, failed to pre-resolve URL, %w", ErrClientValidation, err)
+		}
+
+		dialerContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			host, port, err := net.SplitHostPort(addr)
+			if err != nil {
+				return nil, err
+			}
+
+			if host == opts.URL.Host {
+				var conn net.Conn
+				for _, ip := range ips {
+					conn, err = dialer.DialContext(ctx, network, net.JoinHostPort(ip.String(), port))
+					if err == nil {
+						break
+					}
+				}
+				return conn, err
+			}
+
+			return dialer.DialContext(ctx, network, addr)
+		}
 	}
 
 	// #nosec G402
 	client := &http.Client{
 		Jar: jar,
 		Transport: &http.Transport{
-			DialContext: (&net.Dialer{
-				Timeout:   DefaultTimeout,
-				KeepAlive: DefaultTimeout,
-			}).DialContext,
-			MaxIdleConns:    DefaultMaxIdleConns,
-			IdleConnTimeout: DefaultTimeout,
+			DialContext:         dialerContext,
+			MaxIdleConns:        DefaultMaxIdleConns,
+			MaxIdleConnsPerHost: DefaultMaxIdleConns,
+			IdleConnTimeout:     DefaultTimeout,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: *opts.TLSSkipVerify,
 			},

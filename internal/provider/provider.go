@@ -86,6 +86,7 @@ type pfSenseProviderModel struct {
 	Username      types.String `tfsdk:"username"`
 	Password      types.String `tfsdk:"password"`
 	TLSSkipVerify types.Bool   `tfsdk:"tls_skip_verify"`
+	PreResolveURL types.Bool   `tfsdk:"preresolve_url"`
 }
 
 func (p *pfSenseProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -112,8 +113,13 @@ func (p *pfSenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
 				Sensitive:   true,
 			},
 			"tls_skip_verify": schema.BoolAttribute{
-				Description:         fmt.Sprintf("Skip verification of TLS certificates when set to true, defaults to '%t'.", pfsense.DefaultTLSSkipVerify),
-				MarkdownDescription: fmt.Sprintf("Skip verification of TLS certificates when set to `true`, defaults to `%t`.", pfsense.DefaultTLSSkipVerify),
+				Description:         fmt.Sprintf("Skip verification of TLS certificates, defaults to '%t'.", pfsense.DefaultTLSSkipVerify),
+				MarkdownDescription: fmt.Sprintf("Skip verification of TLS certificates, defaults to `%t`.", pfsense.DefaultTLSSkipVerify),
+				Optional:            true,
+			},
+			"preresolve_url": schema.BoolAttribute{
+				Description:         fmt.Sprintf("Pre-resolve 'url' to prevent making DNS queries when restarting DNS services, defaults to '%t'.", pfsense.DefaultPreResolveURL),
+				MarkdownDescription: fmt.Sprintf("Pre-resolve `url` to prevent making DNS queries when restarting DNS services, defaults to `%t`.", pfsense.DefaultPreResolveURL),
 				Optional:            true,
 			},
 		},
@@ -150,6 +156,11 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 		resp.Diagnostics.AddAttributeError(path.Root("tls_skip_verify"), summary, detail)
 	}
 
+	if config.PreResolveURL.IsUnknown() {
+		summary, detail := unknownProviderValue("preresolve_url")
+		resp.Diagnostics.AddAttributeError(path.Root("preresolve_url"), summary, detail)
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -178,6 +189,10 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 	if !config.TLSSkipVerify.IsNull() {
 		opts.TLSSkipVerify = config.TLSSkipVerify.ValueBoolPointer()
+	}
+
+	if !config.PreResolveURL.IsNull() {
+		opts.PreResolveURL = config.PreResolveURL.ValueBoolPointer()
 	}
 
 	if resp.Diagnostics.HasError() {
