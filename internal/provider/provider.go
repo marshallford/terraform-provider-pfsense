@@ -115,8 +115,8 @@ func (p *pfSenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
 				Sensitive:   true,
 			},
 			"tls_skip_verify": schema.BoolAttribute{
-				Description:         fmt.Sprintf("Skip verification of TLS certificates when set to true, defaults to '%t'.", pfsense.DefaultTLSSkipVerify),
-				MarkdownDescription: fmt.Sprintf("Skip verification of TLS certificates when set to `true`, defaults to `%t`.", pfsense.DefaultTLSSkipVerify),
+				Description:         fmt.Sprintf("Skip verification of TLS certificates, defaults to '%t'.", pfsense.DefaultTLSSkipVerify),
+				MarkdownDescription: fmt.Sprintf("Skip verification of TLS certificates, defaults to `%t`.", pfsense.DefaultTLSSkipVerify),
 				Optional:            true,
 			},
 			"max_attempts": schema.Int64Attribute{
