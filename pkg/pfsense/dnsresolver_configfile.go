@@ -70,7 +70,7 @@ func (pf *Client) getDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, 
 		"return $configs;" +
 		fmt.Sprintf("}, glob('%s/*.%s'))));", dnsResolverConfigFileDir, dnsResolverConfigFileExt)
 
-	b, err := pf.doPHPCommand(ctx, command)
+	b, err := pf.runPHPCommand(ctx, command)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (pf *Client) createOrUpdateDNSResolverConfigFile(ctx context.Context, confi
 		"data":   {configFileReq.formatContent()},
 	}
 
-	resp, err := pf.do(ctx, http.MethodPost, u, &v)
+	resp, err := pf.call(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return nil, err
 	}
@@ -136,6 +136,7 @@ func (pf *Client) createOrUpdateDNSResolverConfigFile(ctx context.Context, confi
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
+	_, _ = io.Copy(io.Discard, resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +147,7 @@ func (pf *Client) createOrUpdateDNSResolverConfigFile(ctx context.Context, confi
 	}
 
 	if !strings.Contains(message, "success") {
-		return nil, fmt.Errorf("%w '%s'", ErrResponse, message)
+		return nil, fmt.Errorf("%w '%s'", ErrServerValidation, message)
 	}
 
 	configFiles, err := pf.getDNSResolverConfigFiles(ctx)
@@ -190,7 +191,7 @@ func (pf *Client) DeleteDNSResolverConfigFile(ctx context.Context, name string) 
 		"submit":     {"EXEC"},
 	}
 
-	_, err := pf.doHTML(ctx, http.MethodPost, u, &v)
+	_, err := pf.callHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return fmt.Errorf("%w config file, %w", ErrDeleteOperationFailed, err)
 	}

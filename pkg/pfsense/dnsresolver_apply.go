@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 )
@@ -21,12 +22,13 @@ func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) error {
 		"apply": {"Apply Changes"},
 	}
 
-	resp, err := pf.do(ctx, http.MethodPost, u, &v)
+	resp, err := pf.call(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return fmt.Errorf("%w, %w", ErrApplyDNSResolverChange, err)
 	}
 
 	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, resp.Body)
 
 	return nil
 }

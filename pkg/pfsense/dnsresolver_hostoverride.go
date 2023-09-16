@@ -250,7 +250,7 @@ func (pf *Client) createOrUpdateDNSResolverHostOverride(ctx context.Context, hos
 		u.RawQuery = q.Encode()
 	}
 
-	doc, err := pf.doHTML(ctx, http.MethodPost, u, &v)
+	doc, err := pf.callHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return nil, err
 	}
@@ -328,7 +328,7 @@ func (pf *Client) DeleteDNSResolverHostOverride(ctx context.Context, fqdn string
 		"id":   {strconv.Itoa(*controlID)},
 	}
 
-	_, err = pf.doHTML(ctx, http.MethodPost, u, &v)
+	_, err = pf.callHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return fmt.Errorf("%w host override, %w", ErrDeleteOperationFailed, err)
 	}

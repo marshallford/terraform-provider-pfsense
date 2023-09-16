@@ -5,11 +5,12 @@ import (
 )
 
 var (
+	ErrFailedRequest         = errors.New("failed request")
+	ErrHTTPStatus            = errors.New("HTTP status")
 	ErrLoginFailed           = errors.New("login failed")
 	ErrNotFound              = errors.New("not found")
 	ErrUnableToParse         = errors.New("unable to parse")
 	ErrUnableToScrapeHTML    = errors.New("unable to scrape HTML")
-	ErrResponse              = errors.New("response error")
 	ErrClientValidation      = errors.New("client validation")
 	ErrServerValidation      = errors.New("server validation")
 	ErrGetOperationFailed    = errors.New("failed to get")

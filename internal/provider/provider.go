@@ -86,6 +86,7 @@ type pfSenseProviderModel struct {
 	Username      types.String `tfsdk:"username"`
 	Password      types.String `tfsdk:"password"`
 	TLSSkipVerify types.Bool   `tfsdk:"tls_skip_verify"`
+	MaxAttempts   types.Int64  `tfsdk:"max_attempts"`
 }
 
 func (p *pfSenseProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -99,12 +100,14 @@ func (p *pfSenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
 		MarkdownDescription: "Interact with [pfSense](https://www.pfsense.org/) firewall/router.",
 		Attributes: map[string]schema.Attribute{
 			"url": schema.StringAttribute{
-				Description: fmt.Sprintf("pfSense administration URL, defaults to '%s'.", pfsense.DefaultURL),
-				Optional:    true,
+				Description:         fmt.Sprintf("pfSense administration URL, defaults to '%s'.", pfsense.DefaultURL),
+				MarkdownDescription: fmt.Sprintf("pfSense administration URL, defaults to `%s`.", pfsense.DefaultURL),
+				Optional:            true,
 			},
 			"username": schema.StringAttribute{
-				Description: fmt.Sprintf("pfSense administration username, defaults to '%s'.", pfsense.DefaultUsername),
-				Optional:    true,
+				Description:         fmt.Sprintf("pfSense administration username, defaults to '%s'.", pfsense.DefaultUsername),
+				MarkdownDescription: fmt.Sprintf("pfSense administration username, defaults to `%s`.", pfsense.DefaultUsername),
+				Optional:            true,
 			},
 			"password": schema.StringAttribute{
 				Description: "pfSense administration password.",
@@ -114,6 +117,11 @@ func (p *pfSenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
 			"tls_skip_verify": schema.BoolAttribute{
 				Description:         fmt.Sprintf("Skip verification of TLS certificates when set to true, defaults to '%t'.", pfsense.DefaultTLSSkipVerify),
 				MarkdownDescription: fmt.Sprintf("Skip verification of TLS certificates when set to `true`, defaults to `%t`.", pfsense.DefaultTLSSkipVerify),
+				Optional:            true,
+			},
+			"max_attempts": schema.Int64Attribute{
+				Description:         fmt.Sprintf("Maximum number of attempts (only applicable for retryable errors), defaults to '%d'.", pfsense.DefaultMaxAttempts),
+				MarkdownDescription: fmt.Sprintf("Maximum number of attempts (only applicable for retryable errors), defaults to `%d`.", pfsense.DefaultMaxAttempts),
 				Optional:            true,
 			},
 		},
@@ -150,6 +158,11 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 		resp.Diagnostics.AddAttributeError(path.Root("tls_skip_verify"), summary, detail)
 	}
 
+	if config.MaxAttempts.IsUnknown() {
+		summary, detail := unknownProviderValue("max_attempts")
+		resp.Diagnostics.AddAttributeError(path.Root("max_attempts"), summary, detail)
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -178,6 +191,11 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 	if !config.TLSSkipVerify.IsNull() {
 		opts.TLSSkipVerify = config.TLSSkipVerify.ValueBoolPointer()
+	}
+
+	if !config.MaxAttempts.IsNull() {
+		i := int(config.MaxAttempts.ValueInt64())
+		opts.MaxAttempts = &i
 	}
 
 	if resp.Diagnostics.HasError() {

@@ -13,12 +13,24 @@ Interact with [pfSense](https://www.pfsense.org/) firewall/router.
 ## Example Usage
 
 ```terraform
-# Configuration-based authentication
+# self-signed Web GUI certificate
 provider "pfsense" {
-  username        = "admin"
-  password        = var.pfsense_password
   host            = "https://192.168.1.1"
+  password        = var.pfsense_password
   tls_skip_verify = true
+}
+
+# trusted Web GUI certificate
+provider "pfsense" {
+  host     = "https://pfsense.lan"
+  password = var.pfsense_password
+}
+
+# custom user
+provider "pfsense" {
+  host     = "https://10.0.0.1"
+  username = "some-user"
+  password = var.pfsense_password
 }
 ```
 
@@ -31,6 +43,7 @@ provider "pfsense" {
 
 ### Optional
 
+- `max_attempts` (Number) Maximum number of attempts (only applicable for retryable errors), defaults to `3`.
 - `tls_skip_verify` (Boolean) Skip verification of TLS certificates when set to `true`, defaults to `false`.
-- `url` (String) pfSense administration URL, defaults to 'https://192.168.1.1'.
-- `username` (String) pfSense administration username, defaults to 'admin'.
+- `url` (String) pfSense administration URL, defaults to `https://192.168.1.1`.
+- `username` (String) pfSense administration username, defaults to `admin`.
