@@ -44,6 +44,6 @@ provider "pfsense" {
 ### Optional
 
 - `max_attempts` (Number) Maximum number of attempts (only applicable for retryable errors), defaults to `3`.
-- `tls_skip_verify` (Boolean) Skip verification of TLS certificates when set to `true`, defaults to `false`.
+- `tls_skip_verify` (Boolean) Skip verification of TLS certificates, defaults to `false`.
 - `url` (String) pfSense administration URL, defaults to `https://192.168.1.1`.
 - `username` (String) pfSense administration username, defaults to `admin`.
