@@ -21,7 +21,7 @@ func (pf *Client) GetSystemVersion(ctx context.Context) (*SystemVersion, error) 
 		"getversion": {"yes"},
 	}
 
-	resp, err := pf.do(ctx, http.MethodPost, u, &v)
+	resp, err := pf.call(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return nil, fmt.Errorf("%w system version, %w", ErrGetOperationFailed, err)
 	}
@@ -29,6 +29,7 @@ func (pf *Client) GetSystemVersion(ctx context.Context) (*SystemVersion, error) 
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
+	_, _ = io.Copy(io.Discard, resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("%w system version, %w", ErrGetOperationFailed, err)
 	}

@@ -2,7 +2,16 @@
 
 [![Registry](https://img.shields.io/badge/pfsense-Terraform%20Registry-blue)](https://registry.terraform.io/providers/marshallford/pfsense/latest/docs)
 
-Used to configure [pfSense](https://www.pfsense.org/) firewall/router devices with Terraform.
+Used to configure [pfSense](https://www.pfsense.org/) firewall/router systems with Terraform. Validated with pfSense CE, compatibility with pfSense Plus is not guaranteed.
+
+> [!WARNING]
+> All versions released prior to `v1.0.0` are to be considered [breaking changes](https://semver.org/#how-do-i-know-when-to-release-100).
+
+## Support Matrix
+
+| Release  | pfSense          | Terraform      |
+| :------: | :--------------: | :------------: |
+| < v1.0.0 | 2.6.0 CE         | >= 1.3, <= 1.5 |
 
 ## Requirements
 

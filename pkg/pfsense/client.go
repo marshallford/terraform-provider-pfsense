@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -16,15 +15,16 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/hashicorp/go-cleanhttp"
 )
 
 const (
-	DefaultTimeout        = 30 * time.Second
-	DefaultConnectTimeout = 5 * time.Second
-	DefaultMaxIdleConns   = 10
-	DefaultURL            = "https://192.168.1.1"
-	DefaultUsername       = "admin"
-	DefaultTLSSkipVerify  = false
+	DefaultURL           = "https://192.168.1.1"
+	DefaultUsername      = "admin"
+	DefaultTLSSkipVerify = false
+	DefaultRetryMinWait  = time.Second
+	DefaultRetryMaxWait  = 5 * time.Second
+	DefaultMaxAttempts   = 3
 )
 
 type Options struct {
@@ -32,6 +32,9 @@ type Options struct {
 	Username      string
 	Password      string
 	TLSSkipVerify *bool
+	RetryMinWait  *time.Duration
+	RetryMaxWait  *time.Duration
+	MaxAttempts   *int
 }
 
 type mutexes struct {
@@ -46,6 +49,23 @@ type Client struct {
 	tokenKey   string
 	httpClient *http.Client
 	mutexes    *mutexes
+}
+
+func (opts Options) newHTTPClient() *http.Client {
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		panic(err)
+	}
+
+	transport := cleanhttp.DefaultPooledTransport()
+	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: *opts.TLSSkipVerify} // #nosec G402
+
+	client := &http.Client{
+		Jar:       jar,
+		Transport: transport,
+	}
+
+	return client
 }
 
 func (pf *Client) updateToken(doc *goquery.Document) error {
@@ -99,38 +119,31 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 		opts.TLSSkipVerify = &b
 	}
 
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		return nil, err
+	if opts.RetryMinWait == nil {
+		td := DefaultRetryMinWait
+		opts.RetryMinWait = &td
 	}
 
-	// #nosec G402
-	client := &http.Client{
-		Jar: jar,
-		Transport: &http.Transport{
-			DialContext: (&net.Dialer{
-				Timeout:   DefaultTimeout,
-				KeepAlive: DefaultTimeout,
-			}).DialContext,
-			MaxIdleConns:    DefaultMaxIdleConns,
-			IdleConnTimeout: DefaultTimeout,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: *opts.TLSSkipVerify,
-			},
-			TLSHandshakeTimeout: DefaultConnectTimeout,
-		},
+	if opts.RetryMaxWait == nil {
+		td := DefaultRetryMaxWait
+		opts.RetryMaxWait = &td
+	}
+
+	if opts.MaxAttempts == nil {
+		i := DefaultMaxAttempts
+		opts.MaxAttempts = &i
 	}
 
 	pf := &Client{
 		Options:    opts,
-		httpClient: client,
+		httpClient: opts.newHTTPClient(),
 		mutexes:    &mutexes{},
 	}
 
 	u := url.URL{Path: "/"}
 
 	// get initial token
-	doc, err := pf.doHTML(ctx, http.MethodGet, u, nil)
+	doc, err := pf.callHTML(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +160,7 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 		"login":       {"Sign In"},
 	}
 
-	doc, err = pf.doHTML(ctx, http.MethodPost, u, &v)
+	doc, err = pf.callHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return nil, fmt.Errorf("%w, %w", ErrLoginFailed, err)
 	}
@@ -170,41 +183,8 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	return pf, nil
 }
 
-func (pf *Client) do(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*http.Response, error) {
-	var reqBody io.Reader
-	if values != nil {
-		if pf.tokenKey != "" && pf.token != "" {
-			values.Set(pf.tokenKey, pf.token)
-		}
-		reqBody = strings.NewReader(values.Encode())
-	}
-
-	url := pf.Options.URL.ResolveReference(&relativeURL).String()
-	req, err := http.NewRequestWithContext(ctx, method, url, reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create request, %s %s %w", method, relativeURL.String(), err)
-	}
-
-	req.Header.Set("User-Agent", "go-pfsense")
-
-	if values != nil {
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	}
-
-	resp, err := pf.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("unable to perform request, %s %s %w", method, relativeURL.String(), err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w, %s %s %s", ErrResponse, resp.Status, method, relativeURL.String())
-	}
-
-	return resp, nil
-}
-
-func (pf *Client) doHTML(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*goquery.Document, error) {
-	resp, err := pf.do(ctx, method, relativeURL, values)
+func (pf *Client) callHTML(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*goquery.Document, error) {
+	resp, err := pf.call(ctx, method, relativeURL, values)
 	if err != nil {
 		return nil, err
 	}
@@ -212,6 +192,7 @@ func (pf *Client) doHTML(ctx context.Context, method string, relativeURL url.URL
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	_, _ = io.Copy(io.Discard, resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -219,13 +200,13 @@ func (pf *Client) doHTML(ctx context.Context, method string, relativeURL url.URL
 	return doc, nil
 }
 
-func (pf *Client) doPHPCommand(ctx context.Context, command string) ([]byte, error) {
+func (pf *Client) runPHPCommand(ctx context.Context, command string) ([]byte, error) {
 	u := url.URL{Path: "diag_command.php"}
 	v := url.Values{
 		"txtPHPCommand": {command},
 		"submit":        {"EXECPHP"},
 	}
-	doc, err := pf.doHTML(ctx, http.MethodPost, u, &v)
+	doc, err := pf.callHTML(ctx, http.MethodPost, u, &v)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +221,7 @@ func (pf *Client) doPHPCommand(ctx context.Context, command string) ([]byte, err
 }
 
 func (pf *Client) getConfigJSON(ctx context.Context, value string) (json.RawMessage, error) {
-	resp, err := pf.doPHPCommand(ctx, fmt.Sprintf("print_r(json_encode($config%s));", value))
+	resp, err := pf.runPHPCommand(ctx, fmt.Sprintf("print_r(json_encode($config%s));", value))
 	if err != nil {
 		return nil, err
 	}
