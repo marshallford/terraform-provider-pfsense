@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -28,13 +30,13 @@ type DNSResolverHostOverrideResource struct {
 }
 
 type DNSResolverHostOverrideResourceModel struct {
-	Host        types.String                                `tfsdk:"host"`
-	Domain      types.String                                `tfsdk:"domain"`
-	IPAddresses []types.String                              `tfsdk:"ip_addresses"`
-	Description types.String                                `tfsdk:"description"`
-	Apply       types.Bool                                  `tfsdk:"apply"`
-	FQDN        types.String                                `tfsdk:"fqdn"`
-	Aliases     []DNSResolverHostOverrideAliasResourceModel `tfsdk:"aliases"`
+	Host        types.String   `tfsdk:"host"`
+	Domain      types.String   `tfsdk:"domain"`
+	IPAddresses []types.String `tfsdk:"ip_addresses"`
+	Description types.String   `tfsdk:"description"`
+	Apply       types.Bool     `tfsdk:"apply"`
+	FQDN        types.String   `tfsdk:"fqdn"`
+	Aliases     types.List     `tfsdk:"aliases"`
 }
 
 type DNSResolverHostOverrideAliasResourceModel struct {
@@ -43,7 +45,17 @@ type DNSResolverHostOverrideAliasResourceModel struct {
 	Description types.String `tfsdk:"description"`
 }
 
-func (r *DNSResolverHostOverrideResourceModel) Map(hostOverride *pfsense.HostOverride) {
+func (r DNSResolverHostOverrideAliasResourceModel) GetType() attr.Type {
+	return types.ObjectType{AttrTypes: map[string]attr.Type{
+		"host":        types.StringType,
+		"domain":      types.StringType,
+		"description": types.StringType,
+	}}
+}
+
+func (r *DNSResolverHostOverrideResourceModel) SetFromClient(ctx context.Context, hostOverride *pfsense.HostOverride) diag.Diagnostics {
+	var diags diag.Diagnostics
+
 	if hostOverride.Host != "" {
 		r.Host = types.StringValue(hostOverride.Host)
 	}
@@ -62,7 +74,8 @@ func (r *DNSResolverHostOverrideResourceModel) Map(hostOverride *pfsense.HostOve
 
 	r.FQDN = types.StringValue(hostOverride.FQDN())
 
-	var aliases []DNSResolverHostOverrideAliasResourceModel
+	aliases := []DNSResolverHostOverrideAliasResourceModel{}
+
 	for _, alias := range hostOverride.Aliases {
 		var aliasModel DNSResolverHostOverrideAliasResourceModel
 
@@ -78,18 +91,30 @@ func (r *DNSResolverHostOverrideResourceModel) Map(hostOverride *pfsense.HostOve
 
 		aliases = append(aliases, aliasModel)
 	}
-	r.Aliases = aliases
+
+	r.Aliases, diags = types.ListValueFrom(ctx, DNSResolverHostOverrideAliasResourceModel{}.GetType(), aliases)
+	if diags.HasError() {
+		return diags
+	}
+
+	return nil
 }
 
-func (r DNSResolverHostOverrideResourceModel) HostOverride(ctx *context.Context, diag *diag.Diagnostics) pfsense.HostOverride {
+func (r DNSResolverHostOverrideResourceModel) GetClientValue(ctx context.Context) (*pfsense.HostOverride, diag.Diagnostics) {
 	var hostOverride pfsense.HostOverride
 	var err error
+	var diags diag.Diagnostics
+
+	var aliasModels []*DNSResolverHostOverrideAliasResourceModel
+	diags = r.Aliases.ElementsAs(ctx, &aliasModels, false)
+	if diags.HasError() {
+		return nil, diags
+	}
 
 	if !r.Host.IsNull() {
 		err = hostOverride.SetHost(r.Host.ValueString())
-
 		if err != nil {
-			diag.AddAttributeError(
+			diags.AddAttributeError(
 				path.Root("host"),
 				"Host cannot be parsed",
 				err.Error(),
@@ -98,9 +123,8 @@ func (r DNSResolverHostOverrideResourceModel) HostOverride(ctx *context.Context,
 	}
 
 	err = hostOverride.SetDomain(r.Domain.ValueString())
-
 	if err != nil {
-		diag.AddAttributeError(
+		diags.AddAttributeError(
 			path.Root("domain"),
 			"Domain cannot be parsed",
 			err.Error(),
@@ -111,9 +135,10 @@ func (r DNSResolverHostOverrideResourceModel) HostOverride(ctx *context.Context,
 	for _, ipAddress := range r.IPAddresses {
 		ipAddresses = append(ipAddresses, ipAddress.ValueString())
 	}
+
 	err = hostOverride.SetIPAddresses(ipAddresses)
 	if err != nil {
-		diag.AddAttributeError(
+		diags.AddAttributeError(
 			path.Root("ip_addresses"),
 			"IP addresses cannot be parsed",
 			err.Error(),
@@ -122,9 +147,8 @@ func (r DNSResolverHostOverrideResourceModel) HostOverride(ctx *context.Context,
 
 	if !r.Description.IsNull() {
 		err = hostOverride.SetDescription(r.Description.ValueString())
-
 		if err != nil {
-			diag.AddAttributeError(
+			diags.AddAttributeError(
 				path.Root("description"),
 				"Description cannot be parsed",
 				err.Error(),
@@ -132,14 +156,13 @@ func (r DNSResolverHostOverrideResourceModel) HostOverride(ctx *context.Context,
 		}
 	}
 
-	for i, aliasModel := range r.Aliases {
+	for i, aliasModel := range aliasModels {
 		var alias pfsense.HostOverrideAlias
 
 		if !aliasModel.Host.IsNull() {
 			err = alias.SetHost(aliasModel.Host.ValueString())
-
 			if err != nil {
-				diag.AddAttributeError(
+				diags.AddAttributeError(
 					path.Root("aliases").AtListIndex(i).AtName("host"),
 					"Alias host cannot be parsed",
 					err.Error(),
@@ -148,9 +171,8 @@ func (r DNSResolverHostOverrideResourceModel) HostOverride(ctx *context.Context,
 		}
 
 		err = alias.SetDomain(aliasModel.Domain.ValueString())
-
 		if err != nil {
-			diag.AddAttributeError(
+			diags.AddAttributeError(
 				path.Root("aliases").AtListIndex(i).AtName("domain"),
 				"Alias domain cannot be parsed",
 				err.Error(),
@@ -159,9 +181,8 @@ func (r DNSResolverHostOverrideResourceModel) HostOverride(ctx *context.Context,
 
 		if !aliasModel.Description.IsNull() {
 			err = alias.SetDescription(aliasModel.Description.ValueString())
-
 			if err != nil {
-				diag.AddAttributeError(
+				diags.AddAttributeError(
 					path.Root("aliases").AtListIndex(i).AtName("description"),
 					"Alias description cannot be parsed",
 					err.Error(),
@@ -172,7 +193,7 @@ func (r DNSResolverHostOverrideResourceModel) HostOverride(ctx *context.Context,
 		hostOverride.Aliases = append(hostOverride.Aliases, alias)
 	}
 
-	return hostOverride
+	return &hostOverride, diags
 }
 
 func (r *DNSResolverHostOverrideResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -223,8 +244,11 @@ func (r *DNSResolverHostOverrideResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"aliases": schema.ListNestedAttribute{
-				Description: "List of additional names for this host.",
-				Optional:    true,
+				Description:         "List of additional names for this host, defaults to '[]'.",
+				MarkdownDescription: "List of additional names for this host, defaults to `[]`.",
+				Computed:            true,
+				Optional:            true,
+				Default:             listdefault.StaticValue(types.ListValueMust(DNSResolverHostOverrideAliasResourceModel{}.GetType(), []attr.Value{})),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"host": schema.StringAttribute{
@@ -258,39 +282,43 @@ func (r *DNSResolverHostOverrideResource) Configure(ctx context.Context, req res
 
 func (r *DNSResolverHostOverrideResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *DNSResolverHostOverrideResourceModel
+	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	hostOverrideReq := data.HostOverride(&ctx, &resp.Diagnostics)
-
+	hostOverrideReq, d := data.GetClientValue(ctx)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	hostOverride, err := r.client.CreateDNSResolverHostOverride(ctx, hostOverrideReq)
-
+	hostOverride, err := r.client.CreateDNSResolverHostOverride(ctx, *hostOverrideReq)
 	if addError(&resp.Diagnostics, "Error creating host override", err) {
 		return
 	}
 
+	diags = data.SetFromClient(ctx, hostOverride)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-
 		if addError(&resp.Diagnostics, "Error applying host override", err) {
 			return
 		}
 	}
-
-	data.Map(hostOverride)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *DNSResolverHostOverrideResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *DNSResolverHostOverrideResourceModel
+	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -298,47 +326,57 @@ func (r *DNSResolverHostOverrideResource) Read(ctx context.Context, req resource
 	}
 
 	hostOverride, err := r.client.GetDNSResolverHostOverride(ctx, data.FQDN.ValueString())
-
 	if addError(&resp.Diagnostics, "Error reading host override", err) {
 		return
 	}
 
-	data.Map(hostOverride)
+	diags = data.SetFromClient(ctx, hostOverride)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *DNSResolverHostOverrideResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *DNSResolverHostOverrideResourceModel
+	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	hostOverrideReq := data.HostOverride(&ctx, &resp.Diagnostics)
+	hostOverrideReq, d := data.GetClientValue(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	hostOverride, err := r.client.UpdateDNSResolverHostOverride(ctx, hostOverrideReq)
-
+	hostOverride, err := r.client.UpdateDNSResolverHostOverride(ctx, *hostOverrideReq)
 	if addError(&resp.Diagnostics, "Error updating host override", err) {
 		return
 	}
 
+	diags = data.SetFromClient(ctx, hostOverride)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-
 		if addError(&resp.Diagnostics, "Error applying host override", err) {
 			return
 		}
 	}
-
-	data.Map(hostOverride)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *DNSResolverHostOverrideResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -350,14 +388,14 @@ func (r *DNSResolverHostOverrideResource) Delete(ctx context.Context, req resour
 	}
 
 	err := r.client.DeleteDNSResolverHostOverride(ctx, data.FQDN.ValueString())
-
 	if addError(&resp.Diagnostics, "Error deleting host override", err) {
 		return
 	}
 
+	resp.State.RemoveResource(ctx)
+
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-
 		if addError(&resp.Diagnostics, "Error applying host override", err) {
 			return
 		}

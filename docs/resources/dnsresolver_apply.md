@@ -36,4 +36,4 @@ resource "pfsense_dnsresolver_apply" "example" {
 
 ### Read-Only
 
-- `id` (String) GUID for DNS resolver apply.
+- `id` (String) UUID for DNS resolver apply.

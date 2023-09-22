@@ -35,3 +35,12 @@ resource "pfsense_dnsresolver_configfile" "example" {
 ### Optional
 
 - `apply` (Boolean) Apply change, defaults to `true`.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# specify filename without '.conf' extension
+terraform import pfsense_dnsresolver_configfile.example some-filename
+```

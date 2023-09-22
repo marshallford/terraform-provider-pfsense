@@ -43,3 +43,11 @@ resource "pfsense_dnsresolver_domainoverride" "tls_example" {
 - `description` (String) For administrative reference (not parsed).
 - `tls_hostname` (String) An optional TLS hostname used to verify the server certificate when performing TLS Queries.
 - `tls_queries` (Boolean) Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to `false`.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import pfsense_dnsresolver_domainoverride.example example.com
+```
