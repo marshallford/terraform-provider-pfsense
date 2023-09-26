@@ -61,7 +61,6 @@ func (d *SystemVersionDataSource) Read(ctx context.Context, req datasource.ReadR
 	var data SystemVersionDataSourceModel
 
 	version, err := d.client.GetSystemVersion(ctx)
-
 	if addError(&resp.Diagnostics, "Unable to get system version", err) {
 		return
 	}

@@ -41,6 +41,7 @@ type mutexes struct {
 	DNSResolverApply          sync.Mutex
 	DNSResolverHostOverride   sync.Mutex
 	DNSResolverDomainOverride sync.Mutex
+	FirewallAlias             sync.Mutex
 }
 
 type Client struct {

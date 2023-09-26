@@ -1,0 +1,1 @@
+terraform import pfsense_dnsresolver_domainoverride.example example.com

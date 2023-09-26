@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -15,7 +14,6 @@ import (
 )
 
 var _ resource.Resource = &DNSResolverApplyResource{}
-var _ resource.ResourceWithImportState = &DNSResolverApplyResource{}
 
 func NewDNSResolverApplyResource() resource.Resource {
 	return &DNSResolverApplyResource{}
@@ -39,7 +37,7 @@ func (r *DNSResolverApplyResource) Schema(ctx context.Context, req resource.Sche
 		Description: "Apply DNS resolver configuration.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "GUID for DNS resolver apply.",
+				Description: "UUID for DNS resolver apply.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -68,7 +66,6 @@ func (r *DNSResolverApplyResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	err := r.client.ApplyDNSResolverChanges(ctx)
-
 	if addError(&resp.Diagnostics, "Error applying DNS resolver changes", err) {
 		return
 	}
@@ -85,8 +82,4 @@ func (r *DNSResolverApplyResource) Update(ctx context.Context, req resource.Upda
 }
 
 func (r *DNSResolverApplyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-}
-
-func (r *DNSResolverApplyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

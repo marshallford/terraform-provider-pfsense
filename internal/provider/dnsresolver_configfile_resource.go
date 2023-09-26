@@ -32,19 +32,21 @@ type DNSResolverConfigFileResourceModel struct {
 	Apply   types.Bool   `tfsdk:"apply"`
 }
 
-func (r *DNSResolverConfigFileResourceModel) Map(configFile *pfsense.ConfigFile) {
+func (r *DNSResolverConfigFileResourceModel) SetFromClient(ctx context.Context, configFile *pfsense.ConfigFile) diag.Diagnostics {
 	r.Name = types.StringValue(configFile.Name)
 	r.Content = types.StringValue(configFile.Content)
+
+	return nil
 }
 
-func (r DNSResolverConfigFileResourceModel) ConfigFile(diag *diag.Diagnostics) pfsense.ConfigFile {
+func (r DNSResolverConfigFileResourceModel) GetClientValue(ctx context.Context) (*pfsense.ConfigFile, diag.Diagnostics) {
 	var configFile pfsense.ConfigFile
 	var err error
+	var diags diag.Diagnostics
 
 	err = configFile.SetName(r.Name.ValueString())
-
 	if err != nil {
-		diag.AddAttributeError(
+		diags.AddAttributeError(
 			path.Root("name"),
 			"Name cannot be parsed",
 			err.Error(),
@@ -52,16 +54,15 @@ func (r DNSResolverConfigFileResourceModel) ConfigFile(diag *diag.Diagnostics) p
 	}
 
 	err = configFile.SetContent(r.Content.ValueString())
-
 	if err != nil {
-		diag.AddAttributeError(
+		diags.AddAttributeError(
 			path.Root("content"),
 			"Content cannot be parsed",
 			err.Error(),
 		)
 	}
 
-	return configFile
+	return &configFile, nil
 }
 
 func (r *DNSResolverConfigFileResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -109,39 +110,43 @@ func (r *DNSResolverConfigFileResource) Configure(ctx context.Context, req resou
 
 func (r *DNSResolverConfigFileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *DNSResolverConfigFileResourceModel
+	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	configFileReq := data.ConfigFile(&resp.Diagnostics)
-
+	configFileReq, d := data.GetClientValue(ctx)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	configFile, err := r.client.CreateDNSResolverConfigFile(ctx, configFileReq)
-
+	configFile, err := r.client.CreateDNSResolverConfigFile(ctx, *configFileReq)
 	if addError(&resp.Diagnostics, "Error creating config file", err) {
 		return
 	}
 
+	diags = data.SetFromClient(ctx, configFile)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-
 		if addError(&resp.Diagnostics, "Error applying config file", err) {
 			return
 		}
 	}
-
-	data.Map(configFile)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *DNSResolverConfigFileResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *DNSResolverConfigFileResourceModel
+	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -149,47 +154,57 @@ func (r *DNSResolverConfigFileResource) Read(ctx context.Context, req resource.R
 	}
 
 	configFile, err := r.client.GetDNSResolverConfigFile(ctx, data.Name.ValueString())
-
 	if addError(&resp.Diagnostics, "Error reading config file", err) {
 		return
 	}
 
-	data.Map(configFile)
+	diags = data.SetFromClient(ctx, configFile)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *DNSResolverConfigFileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *DNSResolverConfigFileResourceModel
+	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	configFileReq := data.ConfigFile(&resp.Diagnostics)
+	configFileReq, d := data.GetClientValue(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	configFile, err := r.client.UpdateDNSResolverConfigFile(ctx, configFileReq)
-
+	configFile, err := r.client.UpdateDNSResolverConfigFile(ctx, *configFileReq)
 	if addError(&resp.Diagnostics, "Error updating config file", err) {
 		return
 	}
 
+	diags = data.SetFromClient(ctx, configFile)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-
 		if addError(&resp.Diagnostics, "Error applying config file", err) {
 			return
 		}
 	}
-
-	data.Map(configFile)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *DNSResolverConfigFileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -201,14 +216,14 @@ func (r *DNSResolverConfigFileResource) Delete(ctx context.Context, req resource
 	}
 
 	err := r.client.DeleteDNSResolverConfigFile(ctx, data.Name.ValueString())
-
 	if addError(&resp.Diagnostics, "Error deleting config file", err) {
 		return
 	}
 
+	resp.State.RemoveResource(ctx)
+
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-
 		if addError(&resp.Diagnostics, "Error applying config file", err) {
 			return
 		}
