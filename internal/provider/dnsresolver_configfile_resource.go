@@ -69,7 +69,6 @@ func (r *DNSResolverConfigFileResource) Metadata(ctx context.Context, req resour
 	resp.TypeName = fmt.Sprintf("%s_dnsresolver_configfile", req.ProviderTypeName)
 }
 
-// TODO validators
 func (r *DNSResolverConfigFileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "DNS Resolver (Unbound) config file. Prerequisite: Must add the directive 'include-toplevel: /var/unbound/conf.d/*' to the DNS Resolver custom options input. Use with caution, content is not checked/validated.",
