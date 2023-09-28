@@ -37,3 +37,4 @@ resource "pfsense_dnsresolver_apply" "example" {
 ### Read-Only
 
 - `id` (String) UUID for DNS resolver apply.
+- `last_updated` (String) Last updated.

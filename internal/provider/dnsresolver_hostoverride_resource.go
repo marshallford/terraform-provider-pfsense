@@ -200,7 +200,6 @@ func (r *DNSResolverHostOverrideResource) Metadata(ctx context.Context, req reso
 	resp.TypeName = fmt.Sprintf("%s_dnsresolver_hostoverride", req.ProviderTypeName)
 }
 
-// TODO validators
 func (r *DNSResolverHostOverrideResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "DNS Resolver Host Override. Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
