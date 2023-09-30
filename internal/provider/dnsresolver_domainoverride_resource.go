@@ -31,11 +31,11 @@ type DNSResolverDomainOverrideResourceModel struct {
 	IPAddress   types.String `tfsdk:"ip_address"`
 	TLSHostname types.String `tfsdk:"tls_hostname"`
 	Description types.String `tfsdk:"description"`
-	TLSQueries  types.Bool   `tfsdk:"tls_queries"`
+	TLSQueries  types.Bool   `tfsdk:"tls_queries"` // unordered to avoid maligned error
 	Apply       types.Bool   `tfsdk:"apply"`
 }
 
-func (r *DNSResolverDomainOverrideResourceModel) SetFromClient(ctx context.Context, domainOverride *pfsense.DomainOverride) diag.Diagnostics {
+func (r *DNSResolverDomainOverrideResourceModel) SetFromValue(ctx context.Context, domainOverride *pfsense.DomainOverride) diag.Diagnostics {
 	r.Domain = types.StringValue(domainOverride.Domain)
 	r.IPAddress = types.StringValue(domainOverride.IPAddress.String())
 	r.TLSQueries = types.BoolValue(domainOverride.TLSQueries)
@@ -51,7 +51,7 @@ func (r *DNSResolverDomainOverrideResourceModel) SetFromClient(ctx context.Conte
 	return nil
 }
 
-func (r DNSResolverDomainOverrideResourceModel) GetClientValue(ctx context.Context) (*pfsense.DomainOverride, diag.Diagnostics) {
+func (r DNSResolverDomainOverrideResourceModel) Value(ctx context.Context) (*pfsense.DomainOverride, diag.Diagnostics) {
 	var domainOverride pfsense.DomainOverride
 	var err error
 	var diags diag.Diagnostics
@@ -110,7 +110,7 @@ func (r DNSResolverDomainOverrideResourceModel) GetClientValue(ctx context.Conte
 		}
 	}
 
-	return &domainOverride, nil
+	return &domainOverride, diags
 }
 
 func (r *DNSResolverDomainOverrideResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -119,8 +119,8 @@ func (r *DNSResolverDomainOverrideResource) Metadata(ctx context.Context, req re
 
 func (r *DNSResolverDomainOverrideResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "DNS Resolver Domain Override. Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
-		MarkdownDescription: "DNS Resolver [Domain Override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
+		Description:         "DNS resolver domain override. Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
+		MarkdownDescription: "DNS resolver [domain override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
 		Attributes: map[string]schema.Attribute{
 			"domain": schema.StringAttribute{
 				Description: "Domain whose lookups will be directed to a user-specified DNS lookup server.",
@@ -162,7 +162,6 @@ func (r *DNSResolverDomainOverrideResource) Schema(ctx context.Context, req reso
 
 func (r *DNSResolverDomainOverrideResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
-
 	if !ok {
 		return
 	}
@@ -179,7 +178,7 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	domainOverrideReq, d := data.GetClientValue(ctx)
+	domainOverrideReq, d := data.Value(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -190,7 +189,7 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	diags = data.SetFromClient(ctx, domainOverride)
+	diags = data.SetFromValue(ctx, domainOverride)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -220,7 +219,7 @@ func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	diags = data.SetFromClient(ctx, domainOverride)
+	diags = data.SetFromValue(ctx, domainOverride)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -238,7 +237,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	domainOverrideReq, d := data.GetClientValue(ctx)
+	domainOverrideReq, d := data.Value(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -253,7 +252,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	diags = data.SetFromClient(ctx, domainOverride)
+	diags = data.SetFromValue(ctx, domainOverride)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

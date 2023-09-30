@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -28,7 +29,7 @@ type SystemVersionDataSourceModel struct {
 }
 
 func (d *SystemVersionDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_system_version"
+	resp.TypeName = fmt.Sprintf("%s_system_version", req.ProviderTypeName)
 }
 
 func (d *SystemVersionDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -49,7 +50,6 @@ func (d *SystemVersionDataSource) Schema(_ context.Context, _ datasource.SchemaR
 
 func (d *SystemVersionDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	client, ok := configureDataSourceClient(req, resp)
-
 	if !ok {
 		return
 	}

@@ -45,7 +45,7 @@ type DNSResolverHostOverrideAliasResourceModel struct {
 	Description types.String `tfsdk:"description"`
 }
 
-func (r DNSResolverHostOverrideAliasResourceModel) GetType() attr.Type {
+func (r DNSResolverHostOverrideAliasResourceModel) GetAttrType() attr.Type {
 	return types.ObjectType{AttrTypes: map[string]attr.Type{
 		"host":        types.StringType,
 		"domain":      types.StringType,
@@ -53,7 +53,7 @@ func (r DNSResolverHostOverrideAliasResourceModel) GetType() attr.Type {
 	}}
 }
 
-func (r *DNSResolverHostOverrideResourceModel) SetFromClient(ctx context.Context, hostOverride *pfsense.HostOverride) diag.Diagnostics {
+func (r *DNSResolverHostOverrideResourceModel) SetFromValue(ctx context.Context, hostOverride *pfsense.HostOverride) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if hostOverride.Host != "" {
@@ -92,15 +92,12 @@ func (r *DNSResolverHostOverrideResourceModel) SetFromClient(ctx context.Context
 		aliases = append(aliases, aliasModel)
 	}
 
-	r.Aliases, diags = types.ListValueFrom(ctx, DNSResolverHostOverrideAliasResourceModel{}.GetType(), aliases)
-	if diags.HasError() {
-		return diags
-	}
+	r.Aliases, diags = types.ListValueFrom(ctx, DNSResolverHostOverrideAliasResourceModel{}.GetAttrType(), aliases)
 
-	return nil
+	return diags
 }
 
-func (r DNSResolverHostOverrideResourceModel) GetClientValue(ctx context.Context) (*pfsense.HostOverride, diag.Diagnostics) {
+func (r DNSResolverHostOverrideResourceModel) Value(ctx context.Context) (*pfsense.HostOverride, diag.Diagnostics) {
 	var hostOverride pfsense.HostOverride
 	var err error
 	var diags diag.Diagnostics
@@ -202,8 +199,8 @@ func (r *DNSResolverHostOverrideResource) Metadata(ctx context.Context, req reso
 
 func (r *DNSResolverHostOverrideResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "DNS Resolver Host Override. Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
-		MarkdownDescription: "DNS Resolver [Host Override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
+		Description:         "DNS resolver host override. Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
+		MarkdownDescription: "DNS resolver [host override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
 				Description: "Name of the host, without the domain part.",
@@ -247,7 +244,7 @@ func (r *DNSResolverHostOverrideResource) Schema(ctx context.Context, req resour
 				MarkdownDescription: "List of additional names for this host, defaults to `[]`.",
 				Computed:            true,
 				Optional:            true,
-				Default:             listdefault.StaticValue(types.ListValueMust(DNSResolverHostOverrideAliasResourceModel{}.GetType(), []attr.Value{})),
+				Default:             listdefault.StaticValue(types.ListValueMust(DNSResolverHostOverrideAliasResourceModel{}.GetAttrType(), []attr.Value{})),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"host": schema.StringAttribute{
@@ -271,7 +268,6 @@ func (r *DNSResolverHostOverrideResource) Schema(ctx context.Context, req resour
 
 func (r *DNSResolverHostOverrideResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
-
 	if !ok {
 		return
 	}
@@ -288,7 +284,7 @@ func (r *DNSResolverHostOverrideResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	hostOverrideReq, d := data.GetClientValue(ctx)
+	hostOverrideReq, d := data.Value(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -299,7 +295,7 @@ func (r *DNSResolverHostOverrideResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	diags = data.SetFromClient(ctx, hostOverride)
+	diags = data.SetFromValue(ctx, hostOverride)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -329,7 +325,7 @@ func (r *DNSResolverHostOverrideResource) Read(ctx context.Context, req resource
 		return
 	}
 
-	diags = data.SetFromClient(ctx, hostOverride)
+	diags = data.SetFromValue(ctx, hostOverride)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -347,7 +343,7 @@ func (r *DNSResolverHostOverrideResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	hostOverrideReq, d := data.GetClientValue(ctx)
+	hostOverrideReq, d := data.Value(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -362,7 +358,7 @@ func (r *DNSResolverHostOverrideResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	diags = data.SetFromClient(ctx, hostOverride)
+	diags = data.SetFromValue(ctx, hostOverride)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

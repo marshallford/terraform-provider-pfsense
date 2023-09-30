@@ -1,0 +1,1 @@
+terraform import pfsense_firewall_ip_alias.example alias_name

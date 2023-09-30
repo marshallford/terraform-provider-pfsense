@@ -3,12 +3,12 @@
 page_title: "pfsense_dnsresolver_configfile Resource - terraform-provider-pfsense"
 subcategory: ""
 description: |-
-  DNS Resolver (Unbound) config file https://man.freebsd.org/cgi/man.cgi?unbound.conf. Prerequisite: Must add the directive include-toplevel: /var/unbound/conf.d/* to the DNS Resolver custom options input. Use with caution, content is not checked/validated.
+  DNS resolver (Unbound) config file https://man.freebsd.org/cgi/man.cgi?unbound.conf. Prerequisite: Must add the directive include-toplevel: /var/unbound/conf.d/* to the DNS resolver custom options input. Use with caution, content is not checked/validated.
 ---
 
 # pfsense_dnsresolver_configfile (Resource)
 
-DNS Resolver (Unbound) [config file](https://man.freebsd.org/cgi/man.cgi?unbound.conf). **Prerequisite**: Must add the directive `include-toplevel: /var/unbound/conf.d/*` to the DNS Resolver custom options input. **Use with caution**, content is not checked/validated.
+DNS resolver (Unbound) [config file](https://man.freebsd.org/cgi/man.cgi?unbound.conf). **Prerequisite**: Must add the directive `include-toplevel: /var/unbound/conf.d/*` to the DNS resolver custom options input. **Use with caution**, content is not checked/validated.
 
 ## Example Usage
 

@@ -57,7 +57,6 @@ func (r *DNSResolverApplyResource) Schema(ctx context.Context, req resource.Sche
 
 func (r *DNSResolverApplyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
-
 	if !ok {
 		return
 	}

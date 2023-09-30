@@ -3,12 +3,12 @@
 page_title: "pfsense_dnsresolver_hostoverride Resource - terraform-provider-pfsense"
 subcategory: ""
 description: |-
-  DNS Resolver Host Override https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html. Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.
+  DNS resolver host override https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html. Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.
 ---
 
 # pfsense_dnsresolver_hostoverride (Resource)
 
-DNS Resolver [Host Override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.
+DNS resolver [host override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.
 
 ## Example Usage
 

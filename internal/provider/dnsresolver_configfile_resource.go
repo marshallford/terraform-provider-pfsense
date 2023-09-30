@@ -32,14 +32,14 @@ type DNSResolverConfigFileResourceModel struct {
 	Apply   types.Bool   `tfsdk:"apply"`
 }
 
-func (r *DNSResolverConfigFileResourceModel) SetFromClient(ctx context.Context, configFile *pfsense.ConfigFile) diag.Diagnostics {
+func (r *DNSResolverConfigFileResourceModel) SetFromValue(ctx context.Context, configFile *pfsense.ConfigFile) diag.Diagnostics {
 	r.Name = types.StringValue(configFile.Name)
 	r.Content = types.StringValue(configFile.Content)
 
 	return nil
 }
 
-func (r DNSResolverConfigFileResourceModel) GetClientValue(ctx context.Context) (*pfsense.ConfigFile, diag.Diagnostics) {
+func (r DNSResolverConfigFileResourceModel) Value(ctx context.Context) (*pfsense.ConfigFile, diag.Diagnostics) {
 	var configFile pfsense.ConfigFile
 	var err error
 	var diags diag.Diagnostics
@@ -62,7 +62,7 @@ func (r DNSResolverConfigFileResourceModel) GetClientValue(ctx context.Context) 
 		)
 	}
 
-	return &configFile, nil
+	return &configFile, diags
 }
 
 func (r *DNSResolverConfigFileResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -71,8 +71,8 @@ func (r *DNSResolverConfigFileResource) Metadata(ctx context.Context, req resour
 
 func (r *DNSResolverConfigFileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "DNS Resolver (Unbound) config file. Prerequisite: Must add the directive 'include-toplevel: /var/unbound/conf.d/*' to the DNS Resolver custom options input. Use with caution, content is not checked/validated.",
-		MarkdownDescription: "DNS Resolver (Unbound) [config file](https://man.freebsd.org/cgi/man.cgi?unbound.conf). **Prerequisite**: Must add the directive `include-toplevel: /var/unbound/conf.d/*` to the DNS Resolver custom options input. **Use with caution**, content is not checked/validated.",
+		Description:         "DNS resolver (Unbound) config file. Prerequisite: Must add the directive 'include-toplevel: /var/unbound/conf.d/*' to the DNS resolver custom options input. Use with caution, content is not checked/validated.",
+		MarkdownDescription: "DNS resolver (Unbound) [config file](https://man.freebsd.org/cgi/man.cgi?unbound.conf). **Prerequisite**: Must add the directive `include-toplevel: /var/unbound/conf.d/*` to the DNS resolver custom options input. **Use with caution**, content is not checked/validated.",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description: "Name of config file.",
@@ -99,7 +99,6 @@ func (r *DNSResolverConfigFileResource) Schema(ctx context.Context, req resource
 
 func (r *DNSResolverConfigFileResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
-
 	if !ok {
 		return
 	}
@@ -116,7 +115,7 @@ func (r *DNSResolverConfigFileResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	configFileReq, d := data.GetClientValue(ctx)
+	configFileReq, d := data.Value(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -127,7 +126,7 @@ func (r *DNSResolverConfigFileResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	diags = data.SetFromClient(ctx, configFile)
+	diags = data.SetFromValue(ctx, configFile)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -157,7 +156,7 @@ func (r *DNSResolverConfigFileResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	diags = data.SetFromClient(ctx, configFile)
+	diags = data.SetFromValue(ctx, configFile)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -175,7 +174,7 @@ func (r *DNSResolverConfigFileResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	configFileReq, d := data.GetClientValue(ctx)
+	configFileReq, d := data.Value(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -190,7 +189,7 @@ func (r *DNSResolverConfigFileResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	diags = data.SetFromClient(ctx, configFile)
+	diags = data.SetFromValue(ctx, configFile)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

@@ -41,14 +41,14 @@ type FirewallIPAliasEntryResourceModel struct {
 	Description types.String `tfsdk:"description"`
 }
 
-func (r FirewallIPAliasEntryResourceModel) GetType() attr.Type {
+func (r FirewallIPAliasEntryResourceModel) GetAttrType() attr.Type {
 	return types.ObjectType{AttrTypes: map[string]attr.Type{
 		"address":     types.StringType,
 		"description": types.StringType,
 	}}
 }
 
-func (r *FirewallIPAliasResourceModel) SetFromClient(ctx context.Context, ipAlias *pfsense.FirewallIPAlias) diag.Diagnostics {
+func (r *FirewallIPAliasResourceModel) SetFromValue(ctx context.Context, ipAlias *pfsense.FirewallIPAlias) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	r.Name = types.StringValue(ipAlias.Name)
@@ -72,15 +72,11 @@ func (r *FirewallIPAliasResourceModel) SetFromClient(ctx context.Context, ipAlia
 		entries = append(entries, entryModel)
 	}
 
-	r.Entries, diags = types.ListValueFrom(ctx, FirewallIPAliasEntryResourceModel{}.GetType(), entries)
-	if diags.HasError() {
-		return diags
-	}
-
-	return nil
+	r.Entries, diags = types.ListValueFrom(ctx, FirewallIPAliasEntryResourceModel{}.GetAttrType(), entries)
+	return diags
 }
 
-func (r FirewallIPAliasResourceModel) GetClientValue(ctx context.Context) (*pfsense.FirewallIPAlias, diag.Diagnostics) {
+func (r FirewallIPAliasResourceModel) Value(ctx context.Context) (*pfsense.FirewallIPAlias, diag.Diagnostics) {
 	var ipAlias pfsense.FirewallIPAlias
 	var err error
 	var diags diag.Diagnostics
@@ -155,7 +151,7 @@ func (r FirewallIPAliasResourceModel) GetClientValue(ctx context.Context) (*pfse
 }
 
 func (r *FirewallIPAliasResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_firewall_ipalias", req.ProviderTypeName)
+	resp.TypeName = fmt.Sprintf("%s_firewall_ip_alias", req.ProviderTypeName)
 }
 
 func (r *FirewallIPAliasResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -192,7 +188,7 @@ func (r *FirewallIPAliasResource) Schema(ctx context.Context, req resource.Schem
 				Description: "Host(s) or network(s).",
 				Computed:    true,
 				Optional:    true,
-				Default:     listdefault.StaticValue(types.ListValueMust(FirewallIPAliasEntryResourceModel{}.GetType(), []attr.Value{})),
+				Default:     listdefault.StaticValue(types.ListValueMust(FirewallIPAliasEntryResourceModel{}.GetAttrType(), []attr.Value{})),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"address": schema.StringAttribute{
@@ -216,7 +212,6 @@ func (r *FirewallIPAliasResource) Schema(ctx context.Context, req resource.Schem
 
 func (r *FirewallIPAliasResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
-
 	if !ok {
 		return
 	}
@@ -233,7 +228,7 @@ func (r *FirewallIPAliasResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	ipAliasReq, d := data.GetClientValue(ctx)
+	ipAliasReq, d := data.Value(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -244,7 +239,7 @@ func (r *FirewallIPAliasResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	diags = data.SetFromClient(ctx, ipAlias)
+	diags = data.SetFromValue(ctx, ipAlias)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -274,7 +269,7 @@ func (r *FirewallIPAliasResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	diags = data.SetFromClient(ctx, ipAlias)
+	diags = data.SetFromValue(ctx, ipAlias)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -292,7 +287,7 @@ func (r *FirewallIPAliasResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	ipAliasReq, d := data.GetClientValue(ctx)
+	ipAliasReq, d := data.Value(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -307,7 +302,7 @@ func (r *FirewallIPAliasResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	diags = data.SetFromClient(ctx, ipAlias)
+	diags = data.SetFromValue(ctx, ipAlias)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
