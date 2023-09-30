@@ -1,5 +1,5 @@
 # simple IP addresses example
-resource "pfsense_firewall_ipalias" "example" {
+resource "pfsense_firewall_ip_alias" "example" {
   name = "access_points"
   type = "host"
   entries = [
@@ -10,7 +10,7 @@ resource "pfsense_firewall_ipalias" "example" {
 }
 
 # network example
-resource "pfsense_firewall_ipalias" "network_example" {
+resource "pfsense_firewall_ip_alias" "network_example" {
   name        = "all_servers"
   description = "virtual machines"
   type        = "network"
@@ -22,11 +22,11 @@ resource "pfsense_firewall_ipalias" "network_example" {
 }
 
 # mixed example
-resource "pfsense_firewall_ipalias" "mixed_example" {
+resource "pfsense_firewall_ip_alias" "mixed_example" {
   name = "poe"
   type = "host"
   entries = [
-    { address = pfsense_firewall_ipalias.example.name },
+    { address = pfsense_firewall_ip_alias.example.name },
     { address = "192.168.1.10" },
     { address = "ipcam01.lan" },
   ]

@@ -228,6 +228,9 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 func (p *pfSenseProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		NewDNSResolverDomainOverridesDataSource,
+		NewDNSResolverHostOverridesDataSource,
+		NewFirewallAliasesDataSource,
 		NewSystemVersionDataSource,
 	}
 }

@@ -1,1 +1,0 @@
-terraform import pfsense_firewall_ipalias.example alias_name

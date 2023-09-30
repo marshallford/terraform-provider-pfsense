@@ -13,6 +13,11 @@ import (
 
 // TODO pfSense allows for more than one domain override entry with the same domain
 
+const (
+	DefaultDNSPort    = 53
+	DefaultTLSDNSPort = 853
+)
+
 type domainOverrideResponse struct {
 	Domain      string  `json:"domain"`
 	IPAddress   string  `json:"ip"`
@@ -30,8 +35,9 @@ type DomainOverride struct {
 }
 
 func (do DomainOverride) formatIPAddress() string {
-	index := strings.LastIndex(do.IPAddress.String(), ":")
-	return strings.Join([]string{do.IPAddress.String()[:index], do.IPAddress.String()[index+1:]}, "@")
+	addr := do.IPAddress.Addr().String()
+	port := strconv.Itoa(int(do.IPAddress.Port()))
+	return strings.Join([]string{addr, port}, "@")
 }
 
 func (do *DomainOverride) SetDomain(domain string) error {
@@ -112,8 +118,19 @@ func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 			return nil, fmt.Errorf("%w domain override response, %w", ErrUnableToParse, err)
 		}
 
+		addr := resp.IPAddress
+		port := strconv.Itoa(DefaultDNSPort)
+		if resp.TLSQueries != nil {
+			port = strconv.Itoa(DefaultTLSDNSPort)
+		}
+
 		index := strings.LastIndex(resp.IPAddress, "@")
-		err = domainOverride.SetIPAddress(strings.Join([]string{resp.IPAddress[:index], resp.IPAddress[index+1:]}, ":"))
+		if index != -1 {
+			addr = resp.IPAddress[:index]
+			port = resp.IPAddress[index+1:]
+		}
+
+		err = domainOverride.SetIPAddress(strings.Join([]string{addr, port}, ":"))
 		if err != nil {
 			return nil, fmt.Errorf("%w domain override response, %w", ErrUnableToParse, err)
 		}

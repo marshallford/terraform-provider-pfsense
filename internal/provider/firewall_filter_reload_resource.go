@@ -57,7 +57,6 @@ func (r *FirewallFilterReloadResource) Schema(ctx context.Context, req resource.
 
 func (r *FirewallFilterReloadResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
-
 	if !ok {
 		return
 	}
