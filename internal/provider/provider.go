@@ -210,6 +210,7 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 			"Unable to create pfSense client",
 			"An unexpected error occurred when creating the pfSense client. "+
 				"If the error is not clear, please contact the provider developers.\n\n"+
+				"pfSense client URL: "+opts.URL.String()+"\n"+
 				"pfSense client Error: "+err.Error(),
 		)
 		return
