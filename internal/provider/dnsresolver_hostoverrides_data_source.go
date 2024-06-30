@@ -191,7 +191,6 @@ func (d *DNSResolverHostOverridesDataSource) Read(ctx context.Context, req datas
 	hostOverrideModels := []DNSResolverHostOverrideDataSourceModel{}
 	for _, hostOverride := range *hostOverrides {
 		var hostOverrideModel DNSResolverHostOverrideDataSourceModel
-		hostOverride := hostOverride
 		diags = hostOverrideModel.SetFromValue(ctx, &hostOverride)
 		resp.Diagnostics.Append(diags...)
 		hostOverrideModels = append(hostOverrideModels, hostOverrideModel)

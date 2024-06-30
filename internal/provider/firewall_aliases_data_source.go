@@ -156,7 +156,6 @@ func (d *FirewallAliasesDataSource) Read(ctx context.Context, req datasource.Rea
 	ipAliasModels := []FirewallIPAliasDataSourceModel{}
 	for _, ipAlias := range *ipAliases {
 		var ipAliasModel FirewallIPAliasDataSourceModel
-		ipAlias := ipAlias
 		diags = ipAliasModel.SetFromValue(ctx, &ipAlias)
 		resp.Diagnostics.Append(diags...)
 		ipAliasModels = append(ipAliasModels, ipAliasModel)
