@@ -9,14 +9,14 @@ Used to configure [pfSense](https://www.pfsense.org/) firewall/router systems wi
 
 ## Support Matrix
 
-| Release  | pfSense          | Terraform      |
-| :------: | :--------------: | :------------: |
-| < v1.0.0 | 2.6.0 CE         | >= 1.3, <= 1.5 |
+| Release  | pfSense            | Terraform      |
+| :------: | :----------------: | :------------: |
+| < v1.0.0 | >= 2.6.0, <= 2.7.2 | >= 1.6, <= 1.8 |
 
-## Requirements
+## Development Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.3
-- [Go](https://golang.org/doc/install) >= 1.21
+- [Terraform](https://developer.hashicorp.com/terraform/downloads)
+- [Go](https://golang.org/doc/install)
 
 ## Building The Provider
 
@@ -44,7 +44,7 @@ Then commit the changes to `go.mod` and `go.sum`.
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#development-requirements) above).
 
 To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
