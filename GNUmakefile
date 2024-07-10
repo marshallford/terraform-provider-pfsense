@@ -8,19 +8,25 @@ endif
 DOCKER := docker
 DOCKER_RUN := $(DOCKER) run $(DOCKER_FLAGS)
 
-EDITORCONFIG_CHECKER_VERSION ?= 2.4.0
+EDITORCONFIG_CHECKER_VERSION ?= 2.7.2
 EDITORCONFIG_CHECKER := $(DOCKER_RUN) -v=$(CURDIR):/check docker.io/mstruebing/editorconfig-checker:$(EDITORCONFIG_CHECKER_VERSION)
 
-YAMLLINT_VERSION ?= 0.28.0
+YAMLLINT_VERSION ?= 0.31.0
 YAMLLINT := $(DOCKER_RUN) -v=$(CURDIR):/code docker.io/pipelinecomponents/yamllint:$(YAMLLINT_VERSION) yamllint
 
-lint: lint/editorconfig lint/yamllint
+GOLANGCI_LINT_VERSION ?= 1.59.1
+GOLANGCI_LINT := $(DOCKER_RUN) -v=$(CURDIR):/code -w /code docker.io/golangci/golangci-lint:v$(GOLANGCI_LINT_VERSION) golangci-lint run
+
+lint: lint/editorconfig lint/yamllint lint/go
 
 lint/editorconfig:
 	$(EDITORCONFIG_CHECKER)
 
 lint/yamllint:
 	$(YAMLLINT) .
+
+lint/go:
+	$(GOLANGCI_LINT)
 
 install:
 	go install
@@ -36,4 +42,4 @@ test/acc:
 docs:
 	go generate ./...
 
-.PHONY: lint lint/editorconfig lint/yamllint install test test/pkg test/acc docs
+.PHONY: lint lint/editorconfig lint/yamllint lint/go install test test/pkg test/acc docs

@@ -1,11 +1,17 @@
+run:
+  timeout: 5m
+
+issues:
+  max-per-linter: 0
+  max-same-issues: 0
+
 # golangci-lint run --print-issued-lines=false --uniq-by-line=false --no-config --enable-all 2> /dev/null | awk 'NF>1{print $NF}' | tr -d '()' | sort -u
 linters:
   enable-all: true
   disable:
-  - depguard
   - cyclop
+  - depguard
   - dupl
-  - exhaustivestruct
   - exhaustruct
   - funlen
   - godot
@@ -14,6 +20,7 @@ linters:
   - ireturn
   - lll
   - nlreturn
+  - perfsprint
   - prealloc
   - revive
   - tagliatelle
