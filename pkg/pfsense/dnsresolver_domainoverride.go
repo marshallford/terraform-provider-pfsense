@@ -21,8 +21,8 @@ const (
 type domainOverrideResponse struct {
 	Domain      string  `json:"domain"`
 	IPAddress   string  `json:"ip"`
-	TLSQueries  *string `json:"forward_tls_upstream"`
-	TLSHostname string  `json:"tls_hostname"`
+	TLSQueries  *string `json:"forward_tls_upstream"` //nolint:tagliatelle
+	TLSHostname string  `json:"tls_hostname"`         //nolint:tagliatelle
 	Description string  `json:"descr"`
 }
 
@@ -37,6 +37,7 @@ type DomainOverride struct {
 func (do DomainOverride) formatIPAddress() string {
 	addr := do.IPAddress.Addr().String()
 	port := strconv.Itoa(int(do.IPAddress.Port()))
+
 	return strings.Join([]string{addr, port}, "@")
 }
 
@@ -46,7 +47,7 @@ func (do *DomainOverride) SetDomain(domain string) error {
 	return nil
 }
 
-// TODO support address without port specified (default to 53/853)
+// TODO support address without port specified (default to 53/853).
 func (do *DomainOverride) SetIPAddress(ipAddress string) error {
 	addr, err := netip.ParseAddrPort(ipAddress)
 	if err != nil {
@@ -84,6 +85,7 @@ func (dos DomainOverrides) GetByDomain(domain string) (*DomainOverride, error) {
 			return &do, nil
 		}
 	}
+
 	return nil, fmt.Errorf("domain override %w with domain '%s'", ErrNotFound, domain)
 }
 
@@ -93,22 +95,23 @@ func (dos DomainOverrides) GetControlIDByDomain(domain string) (*int, error) {
 			return &i, nil
 		}
 	}
+
 	return nil, fmt.Errorf("domain override %w with domain '%s'", ErrNotFound, domain)
 }
 
 func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOverrides, error) {
-	b, err := pf.getConfigJSON(ctx, "['unbound']['domainoverrides']")
+	bytes, err := pf.getConfigJSON(ctx, "['unbound']['domainoverrides']")
 	if err != nil {
 		return nil, err
 	}
 
 	var doResp []domainOverrideResponse
-	err = json.Unmarshal(b, &doResp)
+	err = json.Unmarshal(bytes, &doResp)
 	if err != nil {
 		return nil, fmt.Errorf("%w, %w", ErrUnableToParse, err)
 	}
 
-	var domainOverrides DomainOverrides
+	domainOverrides := make(DomainOverrides, 0, len(doResp))
 	for _, resp := range doResp {
 		var domainOverride DomainOverride
 		var err error
@@ -183,8 +186,8 @@ func (pf *Client) GetDNSResolverDomainOverride(ctx context.Context, domain strin
 }
 
 func (pf *Client) createOrUpdateDNSResolverDomainOverride(ctx context.Context, domainOverrideReq DomainOverride, controlID *int) (*DomainOverride, error) {
-	u := url.URL{Path: "services_unbound_domainoverride_edit.php"}
-	v := url.Values{
+	relativeURL := url.URL{Path: "services_unbound_domainoverride_edit.php"}
+	values := url.Values{
 		"domain":       {domainOverrideReq.Domain},
 		"ip":           {domainOverrideReq.formatIPAddress()},
 		"tls_hostname": {domainOverrideReq.TLSHostname},
@@ -193,16 +196,16 @@ func (pf *Client) createOrUpdateDNSResolverDomainOverride(ctx context.Context, d
 	}
 
 	if domainOverrideReq.TLSQueries {
-		v.Set("forward_tls_upstream", "yes")
+		values.Set("forward_tls_upstream", "yes")
 	}
 
 	if controlID != nil {
-		q := u.Query()
+		q := relativeURL.Query()
 		q.Set("id", strconv.Itoa(*controlID))
-		u.RawQuery = q.Encode()
+		relativeURL.RawQuery = q.Encode()
 	}
 
-	doc, err := pf.callHTML(ctx, http.MethodPost, u, &v)
+	doc, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
 		return nil, err
 	}
@@ -273,14 +276,14 @@ func (pf *Client) DeleteDNSResolverDomainOverride(ctx context.Context, domain st
 		return fmt.Errorf("%w domain override, %w", ErrDeleteOperationFailed, err)
 	}
 
-	u := url.URL{Path: "services_unbound.php"}
-	v := url.Values{
+	relativeURL := url.URL{Path: "services_unbound.php"}
+	values := url.Values{
 		"type": {"doverride"},
 		"act":  {"del"},
 		"id":   {strconv.Itoa(*controlID)},
 	}
 
-	_, err = pf.callHTML(ctx, http.MethodPost, u, &v)
+	_, err = pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
 		return fmt.Errorf("%w domain override, %w", ErrDeleteOperationFailed, err)
 	}

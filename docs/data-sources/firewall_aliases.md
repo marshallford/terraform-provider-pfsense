@@ -25,7 +25,7 @@ output "firewall_ip_aliases" {
 
 ### Read-Only
 
-- `ip` (Attributes List) IP aliases (hosts and networks) (see [below for nested schema](#nestedatt--ip))
+- `ip` (Attributes List) IP aliases (hosts and networks). (see [below for nested schema](#nestedatt--ip))
 
 <a id="nestedatt--ip"></a>
 ### Nested Schema for `ip`

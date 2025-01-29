@@ -52,14 +52,16 @@ func (p *hostOverrideAliasItemResponse) UnmarshalJSON(data []byte) error {
 		}
 		*p = hostOverrideAliasItemResponse(resp)
 	}
+
 	return nil
 }
 
 func (ho HostOverride) formatIPAddresses() string {
-	var addrs []string
+	addrs := make([]string, 0, len(ho.IPAddresses))
 	for _, ipAddress := range ho.IPAddresses {
 		addrs = append(addrs, ipAddress.String())
 	}
+
 	return strings.Join(addrs, ",")
 }
 
@@ -127,6 +129,7 @@ func (hos HostOverrides) GetByFQDN(fqdn string) (*HostOverride, error) {
 			return &ho, nil
 		}
 	}
+
 	return nil, fmt.Errorf("host override %w with FQDN '%s'", ErrNotFound, fqdn)
 }
 
@@ -136,22 +139,23 @@ func (hos HostOverrides) GetControlIDByFQDN(fqdn string) (*int, error) {
 			return &i, nil
 		}
 	}
+
 	return nil, fmt.Errorf("host override %w with FQDN '%s'", ErrNotFound, fqdn)
 }
 
 func (pf *Client) getDNSResolverHostOverrides(ctx context.Context) (*HostOverrides, error) {
-	b, err := pf.getConfigJSON(ctx, "['unbound']['hosts']")
+	bytes, err := pf.getConfigJSON(ctx, "['unbound']['hosts']")
 	if err != nil {
 		return nil, err
 	}
 
 	var hoResp []hostOverrideResponse
-	err = json.Unmarshal(b, &hoResp)
+	err = json.Unmarshal(bytes, &hoResp)
 	if err != nil {
 		return nil, fmt.Errorf("%w, %w", ErrUnableToParse, err)
 	}
 
-	var hostOverrides HostOverrides
+	hostOverrides := make(HostOverrides, 0, len(hoResp))
 	for _, resp := range hoResp {
 		var hostOverride HostOverride
 		var err error
@@ -229,8 +233,8 @@ func (pf *Client) GetDNSResolverHostOverride(ctx context.Context, fqdn string) (
 }
 
 func (pf *Client) createOrUpdateDNSResolverHostOverride(ctx context.Context, hostOverrideReq HostOverride, controlID *int) (*HostOverride, error) {
-	u := url.URL{Path: "services_unbound_host_edit.php"}
-	v := url.Values{
+	relativeURL := url.URL{Path: "services_unbound_host_edit.php"}
+	values := url.Values{
 		"host":   {hostOverrideReq.Host},
 		"domain": {hostOverrideReq.Domain},
 		"ip":     {hostOverrideReq.formatIPAddresses()},
@@ -239,18 +243,18 @@ func (pf *Client) createOrUpdateDNSResolverHostOverride(ctx context.Context, hos
 	}
 
 	for i, alias := range hostOverrideReq.Aliases {
-		v.Set(fmt.Sprintf("aliashost%d", i), alias.Host)
-		v.Set(fmt.Sprintf("aliasdomain%d", i), alias.Domain)
-		v.Set(fmt.Sprintf("aliasdescription%d", i), alias.Description)
+		values.Set(fmt.Sprintf("aliashost%d", i), alias.Host)
+		values.Set(fmt.Sprintf("aliasdomain%d", i), alias.Domain)
+		values.Set(fmt.Sprintf("aliasdescription%d", i), alias.Description)
 	}
 
 	if controlID != nil {
-		q := u.Query()
+		q := relativeURL.Query()
 		q.Set("id", strconv.Itoa(*controlID))
-		u.RawQuery = q.Encode()
+		relativeURL.RawQuery = q.Encode()
 	}
 
-	doc, err := pf.callHTML(ctx, http.MethodPost, u, &v)
+	doc, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
 		return nil, err
 	}
@@ -321,14 +325,14 @@ func (pf *Client) DeleteDNSResolverHostOverride(ctx context.Context, fqdn string
 		return fmt.Errorf("%w host override, %w", ErrDeleteOperationFailed, err)
 	}
 
-	u := url.URL{Path: "services_unbound.php"}
-	v := url.Values{
+	relativeURL := url.URL{Path: "services_unbound.php"}
+	values := url.Values{
 		"type": {"host"},
 		"act":  {"del"},
 		"id":   {strconv.Itoa(*controlID)},
 	}
 
-	_, err = pf.callHTML(ctx, http.MethodPost, u, &v)
+	_, err = pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
 		return fmt.Errorf("%w host override, %w", ErrDeleteOperationFailed, err)
 	}

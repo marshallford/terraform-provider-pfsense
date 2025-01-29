@@ -16,14 +16,14 @@ linters:
   - funlen
   - godot
   - godox
-  - gofumpt
-  - ireturn
   - lll
-  - nlreturn
   - perfsprint
-  - prealloc
-  - revive
-  - tagliatelle
-  - varnamelen
-  - wrapcheck
+  - recvcheck # TODO look into further
+  - wrapcheck # TODO do later
   - wsl
+
+linters-settings:
+  varnamelen:
+    ignore-type-assert-ok: true
+    ignore-map-index-ok: true
+    ignore-chan-recv-ok: true

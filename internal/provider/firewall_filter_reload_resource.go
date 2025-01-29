@@ -16,7 +16,7 @@ import (
 
 var _ resource.Resource = &FirewallFilterReloadResource{}
 
-func NewFirewallFilterReloadResource() resource.Resource {
+func NewFirewallFilterReloadResource() resource.Resource { //nolint:ireturn
 	return &FirewallFilterReloadResource{}
 }
 
@@ -29,11 +29,11 @@ type FirewallFilterReloadResourceModel struct {
 	LastUpdated types.String `tfsdk:"last_updated"`
 }
 
-func (r *FirewallFilterReloadResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *FirewallFilterReloadResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_firewall_filter_reload", req.ProviderTypeName)
 }
 
-func (r *FirewallFilterReloadResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *FirewallFilterReloadResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Reload firewall filter.",
 		Attributes: map[string]schema.Attribute{
@@ -55,7 +55,7 @@ func (r *FirewallFilterReloadResource) Schema(ctx context.Context, req resource.
 	}
 }
 
-func (r *FirewallFilterReloadResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *FirewallFilterReloadResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
 	if !ok {
 		return
@@ -83,11 +83,11 @@ func (r *FirewallFilterReloadResource) Create(ctx context.Context, req resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *FirewallFilterReloadResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *FirewallFilterReloadResource) Read(_ context.Context, _ resource.ReadRequest, _ *resource.ReadResponse) {
 }
 
-func (r *FirewallFilterReloadResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *FirewallFilterReloadResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 }
 
-func (r *FirewallFilterReloadResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *FirewallFilterReloadResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
 }

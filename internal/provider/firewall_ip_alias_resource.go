@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -17,10 +16,12 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ resource.Resource = &FirewallIPAliasResource{}
-var _ resource.ResourceWithImportState = &FirewallIPAliasResource{}
+var (
+	_ resource.Resource                = &FirewallIPAliasResource{}
+	_ resource.ResourceWithImportState = &FirewallIPAliasResource{}
+)
 
-func NewFirewallIPAliasResource() resource.Resource {
+func NewFirewallIPAliasResource() resource.Resource { //nolint:ireturn
 	return &FirewallIPAliasResource{}
 }
 
@@ -28,175 +29,53 @@ type FirewallIPAliasResource struct {
 	client *pfsense.Client
 }
 
-type FirewallIPAliasResourceModel struct {
-	Name        types.String `tfsdk:"name"`
-	Description types.String `tfsdk:"description"`
-	Type        types.String `tfsdk:"type"`
-	Apply       types.Bool   `tfsdk:"apply"`
-	Entries     types.List   `tfsdk:"entries"`
-}
-
-type FirewallIPAliasEntryResourceModel struct {
-	Address     types.String `tfsdk:"address"`
-	Description types.String `tfsdk:"description"`
-}
-
-func (r FirewallIPAliasEntryResourceModel) GetAttrType() attr.Type {
-	return types.ObjectType{AttrTypes: map[string]attr.Type{
-		"address":     types.StringType,
-		"description": types.StringType,
-	}}
-}
-
-func (r *FirewallIPAliasResourceModel) SetFromValue(ctx context.Context, ipAlias *pfsense.FirewallIPAlias) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	r.Name = types.StringValue(ipAlias.Name)
-
-	if ipAlias.Description != "" {
-		r.Description = types.StringValue(ipAlias.Description)
-	}
-
-	r.Type = types.StringValue(ipAlias.Type)
-
-	entries := []FirewallIPAliasEntryResourceModel{}
-	for _, entry := range ipAlias.Entries {
-		var entryModel FirewallIPAliasEntryResourceModel
-
-		entryModel.Address = types.StringValue(entry.Address)
-
-		if entry.Description != "" {
-			entryModel.Description = types.StringValue(entry.Description)
-		}
-
-		entries = append(entries, entryModel)
-	}
-
-	r.Entries, diags = types.ListValueFrom(ctx, FirewallIPAliasEntryResourceModel{}.GetAttrType(), entries)
-	return diags
-}
-
-func (r FirewallIPAliasResourceModel) Value(ctx context.Context) (*pfsense.FirewallIPAlias, diag.Diagnostics) {
-	var ipAlias pfsense.FirewallIPAlias
-	var err error
-	var diags diag.Diagnostics
-
-	var entryModels []*FirewallIPAliasEntryResourceModel
-	diags = r.Entries.ElementsAs(ctx, &entryModels, false)
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	err = ipAlias.SetName(r.Name.ValueString())
-
-	if err != nil {
-		diags.AddAttributeError(
-			path.Root("name"),
-			"Name cannot be parsed",
-			err.Error(),
-		)
-	}
-
-	if !r.Description.IsNull() {
-		err = ipAlias.SetDescription(r.Description.ValueString())
-
-		if err != nil {
-			diags.AddAttributeError(
-				path.Root("description"),
-				"Description cannot be parsed",
-				err.Error(),
-			)
-		}
-	}
-
-	err = ipAlias.SetType(r.Type.ValueString())
-
-	if err != nil {
-		diags.AddAttributeError(
-			path.Root("type"),
-			"Type cannot be parsed",
-			err.Error(),
-		)
-	}
-
-	for i, entryModel := range entryModels {
-		var entry pfsense.FirewallIPAliasEntry
-
-		err = entry.SetAddress(entryModel.Address.ValueString())
-
-		if err != nil {
-			diags.AddAttributeError(
-				path.Root("entries").AtListIndex(i).AtName("address"),
-				"Entry address cannot be parsed",
-				err.Error(),
-			)
-		}
-
-		if !entryModel.Description.IsNull() {
-			err = entry.SetDescription(entryModel.Description.ValueString())
-
-			if err != nil {
-				diags.AddAttributeError(
-					path.Root("entries").AtListIndex(i).AtName("description"),
-					"Entry description cannot be parsed",
-					err.Error(),
-				)
-			}
-		}
-
-		ipAlias.Entries = append(ipAlias.Entries, entry)
-	}
-
-	return &ipAlias, diags
-}
-
-func (r *FirewallIPAliasResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *FirewallIPAliasResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_firewall_ip_alias", req.ProviderTypeName)
 }
 
-func (r *FirewallIPAliasResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Firewall IP alias, defines a group of hosts or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
 		MarkdownDescription: "Firewall IP [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of hosts or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description: "Name of alias.",
+				Description: FirewallIPAliasModel{}.descriptions()["name"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"description": schema.StringAttribute{
-				Description: "For administrative reference (not parsed).",
+				Description: FirewallIPAliasModel{}.descriptions()["description"].Description,
 				Optional:    true,
 			},
 			"type": schema.StringAttribute{
-				Description: "Type of alias.",
+				Description: FirewallIPAliasModel{}.descriptions()["type"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"apply": schema.BoolAttribute{
-				Description:         "Apply change, defaults to 'true'.",
-				MarkdownDescription: "Apply change, defaults to `true`.",
+				Description:         FirewallIPAliasModel{}.descriptions()["apply"].Description,
+				MarkdownDescription: FirewallIPAliasModel{}.descriptions()["apply"].MarkdownDescription,
 				Computed:            true,
 				Optional:            true,
 				Default:             booldefault.StaticBool(true),
 			},
 			"entries": schema.ListNestedAttribute{
-				Description: "Host(s) or network(s).",
+				Description: FirewallIPAliasModel{}.descriptions()["entries"].Description,
 				Computed:    true,
 				Optional:    true,
-				Default:     listdefault.StaticValue(types.ListValueMust(FirewallIPAliasEntryResourceModel{}.GetAttrType(), []attr.Value{})),
+				Default:     listdefault.StaticValue(types.ListValueMust(types.ObjectType{AttrTypes: FirewallIPAliasEntryModel{}.AttrTypes()}, []attr.Value{})),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"address": schema.StringAttribute{
-							Description: "Hosts must be specified by their IP address or fully qualified domain name (FQDN). Networks are specified in CIDR format.",
+							Description: FirewallIPAliasEntryModel{}.descriptions()["address"].Description,
 							Required:    true,
 						},
 						"description": schema.StringAttribute{
-							Description: "For administrative reference (not parsed).",
+							Description: FirewallIPAliasEntryModel{}.descriptions()["description"].Description,
 							Computed:    true,
 							Optional:    true,
 							PlanModifiers: []planmodifier.String{
@@ -210,7 +89,7 @@ func (r *FirewallIPAliasResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
-func (r *FirewallIPAliasResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *FirewallIPAliasResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
 	if !ok {
 		return
@@ -220,27 +99,27 @@ func (r *FirewallIPAliasResource) Configure(ctx context.Context, req resource.Co
 }
 
 func (r *FirewallIPAliasResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *FirewallIPAliasResourceModel
-	var diags diag.Diagnostics
+	var data *FirewallIPAliasModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ipAliasReq, d := data.Value(ctx)
-	resp.Diagnostics.Append(d...)
+	var ipAliasReq pfsense.FirewallIPAlias
+	resp.Diagnostics.Append(data.Value(ctx, &ipAliasReq)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ipAlias, err := r.client.CreateFirewallIPAlias(ctx, *ipAliasReq)
+	ipAlias, err := r.client.CreateFirewallIPAlias(ctx, ipAliasReq)
 	if addError(&resp.Diagnostics, "Error creating IP alias", err) {
 		return
 	}
 
-	diags = data.SetFromValue(ctx, ipAlias)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(data.Value(ctx, ipAlias)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -249,15 +128,14 @@ func (r *FirewallIPAliasResource) Create(ctx context.Context, req resource.Creat
 
 	if data.Apply.ValueBool() {
 		err = r.client.ReloadFirewallFilter(ctx)
-		if addError(&resp.Diagnostics, "Error applying IP alias", err) {
+		if addWarning(&resp.Diagnostics, "Error applying IP alias", err) {
 			return
 		}
 	}
 }
 
 func (r *FirewallIPAliasResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *FirewallIPAliasResourceModel
-	var diags diag.Diagnostics
+	var data *FirewallIPAliasModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -269,8 +147,8 @@ func (r *FirewallIPAliasResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	diags = data.SetFromValue(ctx, ipAlias)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(data.Value(ctx, ipAlias)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -279,31 +157,27 @@ func (r *FirewallIPAliasResource) Read(ctx context.Context, req resource.ReadReq
 }
 
 func (r *FirewallIPAliasResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *FirewallIPAliasResourceModel
-	var diags diag.Diagnostics
+	var data *FirewallIPAliasModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ipAliasReq, d := data.Value(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	var ipAliasReq pfsense.FirewallIPAlias
+	resp.Diagnostics.Append(data.Value(ctx, &ipAliasReq)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ipAlias, err := r.client.UpdateFirewallIPAlias(ctx, *ipAliasReq)
+	ipAlias, err := r.client.UpdateFirewallIPAlias(ctx, ipAliasReq)
 	if addError(&resp.Diagnostics, "Error updating IP alias", err) {
 		return
 	}
 
-	diags = data.SetFromValue(ctx, ipAlias)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(data.Value(ctx, ipAlias)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -312,14 +186,14 @@ func (r *FirewallIPAliasResource) Update(ctx context.Context, req resource.Updat
 
 	if data.Apply.ValueBool() {
 		err = r.client.ReloadFirewallFilter(ctx)
-		if addError(&resp.Diagnostics, "Error applying IP alias", err) {
+		if addWarning(&resp.Diagnostics, "Error applying IP alias", err) {
 			return
 		}
 	}
 }
 
 func (r *FirewallIPAliasResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *FirewallIPAliasResourceModel
+	var data *FirewallIPAliasModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -335,7 +209,7 @@ func (r *FirewallIPAliasResource) Delete(ctx context.Context, req resource.Delet
 
 	if data.Apply.ValueBool() {
 		err = r.client.ReloadFirewallFilter(ctx)
-		if addError(&resp.Diagnostics, "Error applying IP alias", err) {
+		if addWarning(&resp.Diagnostics, "Error applying IP alias", err) {
 			return
 		}
 	}

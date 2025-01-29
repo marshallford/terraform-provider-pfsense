@@ -8,38 +8,55 @@ endif
 DOCKER := docker
 DOCKER_RUN := $(DOCKER) run $(DOCKER_FLAGS)
 
-EDITORCONFIG_CHECKER_VERSION ?= 2.7.2
-EDITORCONFIG_CHECKER := $(DOCKER_RUN) -v=$(CURDIR):/check docker.io/mstruebing/editorconfig-checker:$(EDITORCONFIG_CHECKER_VERSION)
+TERRAFORM_VERSION ?= 1.10.5
 
-YAMLLINT_VERSION ?= 0.31.0
+EDITORCONFIG_CHECKER_VERSION ?= 3.0.3
+EDITORCONFIG_CHECKER := $(DOCKER_RUN) -v=$(CURDIR):/check docker.io/mstruebing/editorconfig-checker:v$(EDITORCONFIG_CHECKER_VERSION)
+
+SHELLCHECK_VERSION ?= 0.10.0
+SHELLCHECK := $(DOCKER_RUN) -v=$(CURDIR):/mnt docker.io/koalaman/shellcheck:v$(SHELLCHECK_VERSION)
+
+YAMLLINT_VERSION ?= 0.33.0
 YAMLLINT := $(DOCKER_RUN) -v=$(CURDIR):/code docker.io/pipelinecomponents/yamllint:$(YAMLLINT_VERSION) yamllint
 
-GOLANGCI_LINT_VERSION ?= 1.59.1
+GOLANGCI_LINT_VERSION ?= 1.63.4
 GOLANGCI_LINT := $(DOCKER_RUN) -v=$(CURDIR):/code -w /code docker.io/golangci/golangci-lint:v$(GOLANGCI_LINT_VERSION) golangci-lint run
 
-lint: lint/editorconfig lint/yamllint lint/go
+lint: lint/terraform lint/editorconfig lint/shellcheck lint/yamllint lint/go
+
+lint/terraform:
+	terraform fmt -recursive -check
 
 lint/editorconfig:
 	$(EDITORCONFIG_CHECKER)
+
+lint/shellcheck:
+	$(SHELLCHECK) $(shell find . -type f -name '*.sh')
 
 lint/yamllint:
 	$(YAMLLINT) .
 
 lint/go:
-	$(GOLANGCI_LINT)
+	$(GOLANGCI_LINT) --fix
 
 install:
 	go install
 
-test: test/pkg test/acc
+cover:
+	go tool cover -html=cover.out
+
+test: test/docs test/pkg test/acc
+
+test/docs:
+	TFENV_TERRAFORM_VERSION=$(TERRAFORM_VERSION) go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs validate
 
 test/pkg:
-	go test ./pkg/... -v $(TESTARGS) -timeout 60m
+	go test ./pkg/... -v -coverprofile=cover.out $(TESTARGS) -timeout 60m
 
 test/acc:
-	TF_ACC=1 go test ./internal/provider/... -v $(TESTARGS) -timeout 60m
+	TF_ACC=1 TFENV_TERRAFORM_VERSION=$(TERRAFORM_VERSION) go test ./internal/provider/... -v -coverprofile=cover.out $(TESTARGS) -timeout 60m
 
 docs:
-	go generate ./...
+	TFENV_TERRAFORM_VERSION=$(TERRAFORM_VERSION) go generate ./...
 
-.PHONY: lint lint/editorconfig lint/yamllint lint/go install test test/pkg test/acc docs
+.PHONY: lint lint/terraform lint/editorconfig lint/shellcheck lint/yamllint lint/go install cover test test/docs test/pkg test/acc docs

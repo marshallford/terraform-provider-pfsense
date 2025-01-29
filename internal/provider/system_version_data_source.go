@@ -15,7 +15,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &SystemVersionDataSource{}
 )
 
-func NewSystemVersionDataSource() datasource.DataSource {
+func NewSystemVersionDataSource() datasource.DataSource { //nolint:ireturn
 	return &SystemVersionDataSource{}
 }
 
@@ -48,7 +48,7 @@ func (d *SystemVersionDataSource) Schema(_ context.Context, _ datasource.SchemaR
 	}
 }
 
-func (d *SystemVersionDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *SystemVersionDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	client, ok := configureDataSourceClient(req, resp)
 	if !ok {
 		return
@@ -57,7 +57,7 @@ func (d *SystemVersionDataSource) Configure(ctx context.Context, req datasource.
 	d.client = client
 }
 
-func (d *SystemVersionDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *SystemVersionDataSource) Read(ctx context.Context, _ datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data SystemVersionDataSourceModel
 
 	version, err := d.client.GetSystemVersion(ctx)
