@@ -99,9 +99,8 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 
 	if opts.URL.String() == "" {
 		url, err := url.Parse(DefaultURL)
-
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w, %w", ErrClientValidation, err)
 		}
 
 		opts.URL = url
@@ -135,33 +134,33 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 		opts.MaxAttempts = &i
 	}
 
-	pf := &Client{
+	pfsense := &Client{
 		Options:    opts,
 		httpClient: opts.newHTTPClient(),
 		mutexes:    &mutexes{},
 	}
 
-	u := url.URL{Path: "/"}
+	rootURL := url.URL{Path: "/"}
 
 	// get initial token
-	doc, err := pf.callHTML(ctx, http.MethodGet, u, nil)
+	doc, err := pfsense.callHTML(ctx, http.MethodGet, rootURL, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	err = pf.updateToken(doc)
+	err = pfsense.updateToken(doc)
 	if err != nil {
 		return nil, err
 	}
 
 	// login
-	v := url.Values{
-		"usernamefld": {pf.Options.Username},
-		"passwordfld": {pf.Options.Password},
+	values := url.Values{
+		"usernamefld": {pfsense.Options.Username},
+		"passwordfld": {pfsense.Options.Password},
 		"login":       {"Sign In"},
 	}
 
-	doc, err = pf.callHTML(ctx, http.MethodPost, u, &v)
+	doc, err = pfsense.callHTML(ctx, http.MethodPost, rootURL, &values)
 	if err != nil {
 		return nil, fmt.Errorf("%w, %w", ErrLoginFailed, err)
 	}
@@ -176,12 +175,12 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 		return nil, fmt.Errorf("%w, username or password incorrect", ErrLoginFailed)
 	}
 
-	err = pf.updateToken(doc)
+	err = pfsense.updateToken(doc)
 	if err != nil {
 		return nil, err
 	}
 
-	return pf, nil
+	return pfsense, nil
 }
 
 func (pf *Client) callHTML(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*goquery.Document, error) {
@@ -228,18 +227,19 @@ func (pf *Client) getConfigJSON(ctx context.Context, value string) (json.RawMess
 	}
 
 	if !json.Valid(resp) {
-		return nil, fmt.Errorf("%w php command response as JSON, %w", ErrUnableToParse, err)
+		return nil, fmt.Errorf("%w, php command response as JSON, %w", ErrUnableToParse, err)
 	}
 
 	return resp, nil
 }
 
 func removeEmptyStrings(s []string) []string {
-	var r []string
+	var results []string
 	for _, str := range s {
 		if str != "" {
-			r = append(r, str)
+			results = append(results, str)
 		}
 	}
-	return r
+
+	return results
 }

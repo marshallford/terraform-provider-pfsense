@@ -20,6 +20,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
     - name: Lint
       run: make lint
 
@@ -50,12 +54,14 @@ jobs:
       with:
         go-version-file: .go-version
         cache: true
+    - name: Download dependencies
+      run: go mod download
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_wrapper: false
-    - name: Generate docs
-      run: make docs
+    - name: Generate and validate docs
+      run: make docs test/docs
     - name: Check docs
       run: |
         GIT_STATUS=$(git status --porcelain)
@@ -72,9 +78,9 @@ jobs:
       fail-fast: false
       matrix:
         terraform:
-        - 1.6.*
-        - 1.7.*
         - 1.8.*
+        - 1.9.*
+        - 1.10.*
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -91,7 +97,7 @@ jobs:
         terraform_version: ${{ matrix.terraform }}
         terraform_wrapper: false
     - name: Test
-      run: make test
+      run: make test/pkg test/acc
 
   check:
     name: Test

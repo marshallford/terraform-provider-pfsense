@@ -27,10 +27,11 @@ func shouldRetry(ctx context.Context, resp *http.Response, err error) (bool, err
 	return false, nil
 }
 
-func linearJitter(min, max time.Duration, attempt int) *time.Timer {
+func linearJitter(minJitter, maxJitter time.Duration, attempt int) *time.Timer {
 	rand := rand.New(rand.NewSource(int64(time.Now().Nanosecond()))) // #nosec G404
-	jitter := int64(rand.Float64()*float64(max-min)) + int64(min)
+	jitter := int64(rand.Float64()*float64(maxJitter-minJitter)) + int64(minJitter)
 	duration := time.Duration(jitter * int64(attempt))
+
 	return time.NewTimer(duration)
 }
 
@@ -61,6 +62,7 @@ func (pf *Client) retryableDo(req *http.Request, reqBody *[]byte) (*http.Respons
 		select {
 		case <-req.Context().Done():
 			timer.Stop()
+
 			return nil, req.Context().Err()
 		case <-timer.C:
 		}
@@ -114,7 +116,6 @@ func (pf *Client) call(ctx context.Context, method string, relativeURL url.URL, 
 	}
 
 	resp, err := pf.retryableDo(req, reqBody)
-
 	if err != nil {
 		return nil, err
 	}

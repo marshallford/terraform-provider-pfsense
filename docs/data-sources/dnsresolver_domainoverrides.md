@@ -35,5 +35,5 @@ Read-Only:
 - `description` (String) For administrative reference (not parsed).
 - `domain` (String) Domain whose lookups will be directed to a user-specified DNS lookup server.
 - `ip_address` (String) IPv4 or IPv6 address (including port) of the authoritative DNS server for this domain.
-- `tls_hostname` (String) An optional TLS hostname used to verify the server certificate when performing TLS Queries.
+- `tls_hostname` (String) A TLS hostname used to verify the server certificate when performing TLS Queries.
 - `tls_queries` (Boolean) Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to `false`.

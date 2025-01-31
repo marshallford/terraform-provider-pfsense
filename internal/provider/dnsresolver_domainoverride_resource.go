@@ -15,10 +15,17 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ resource.Resource = &DNSResolverDomainOverrideResource{}
-var _ resource.ResourceWithImportState = &DNSResolverDomainOverrideResource{}
+var (
+	_ resource.Resource                = &DNSResolverDomainOverrideResource{}
+	_ resource.ResourceWithImportState = &DNSResolverDomainOverrideResource{}
+)
 
-func NewDNSResolverDomainOverrideResource() resource.Resource {
+type DNSResolverDomainOverrideResourceModel struct {
+	DNSResolverDomainOverrideModel
+	Apply types.Bool `tfsdk:"apply"`
+}
+
+func NewDNSResolverDomainOverrideResource() resource.Resource { //nolint:ireturn
 	return &DNSResolverDomainOverrideResource{}
 }
 
@@ -26,104 +33,17 @@ type DNSResolverDomainOverrideResource struct {
 	client *pfsense.Client
 }
 
-type DNSResolverDomainOverrideResourceModel struct {
-	Domain      types.String `tfsdk:"domain"`
-	IPAddress   types.String `tfsdk:"ip_address"`
-	TLSHostname types.String `tfsdk:"tls_hostname"`
-	Description types.String `tfsdk:"description"`
-	TLSQueries  types.Bool   `tfsdk:"tls_queries"` // unordered to avoid maligned error
-	Apply       types.Bool   `tfsdk:"apply"`
-}
-
-func (r *DNSResolverDomainOverrideResourceModel) SetFromValue(ctx context.Context, domainOverride *pfsense.DomainOverride) diag.Diagnostics {
-	r.Domain = types.StringValue(domainOverride.Domain)
-	r.IPAddress = types.StringValue(domainOverride.IPAddress.String())
-	r.TLSQueries = types.BoolValue(domainOverride.TLSQueries)
-
-	if domainOverride.TLSHostname != "" {
-		r.TLSHostname = types.StringValue(domainOverride.TLSHostname)
-	}
-
-	if domainOverride.Description != "" {
-		r.Description = types.StringValue(domainOverride.Description)
-	}
-
-	return nil
-}
-
-func (r DNSResolverDomainOverrideResourceModel) Value(ctx context.Context) (*pfsense.DomainOverride, diag.Diagnostics) {
-	var domainOverride pfsense.DomainOverride
-	var err error
-	var diags diag.Diagnostics
-
-	err = domainOverride.SetDomain(r.Domain.ValueString())
-
-	if err != nil {
-		diags.AddAttributeError(
-			path.Root("domain"),
-			"Domain cannot be parsed",
-			err.Error(),
-		)
-	}
-
-	err = domainOverride.SetIPAddress(r.IPAddress.ValueString())
-
-	if err != nil {
-		diags.AddAttributeError(
-			path.Root("ip_address"),
-			"IP address cannot be parsed",
-			err.Error(),
-		)
-	}
-
-	err = domainOverride.SetTLSQueries(r.TLSQueries.ValueBool())
-
-	if err != nil {
-		diags.AddAttributeError(
-			path.Root("tls_queries"),
-			"TLS Queries cannot be parsed",
-			err.Error(),
-		)
-	}
-
-	if !r.TLSHostname.IsNull() {
-		err = domainOverride.SetTLSHostname(r.TLSHostname.ValueString())
-
-		if err != nil {
-			diags.AddAttributeError(
-				path.Root("tls_hostname"),
-				"TLS Hostname cannot be parsed",
-				err.Error(),
-			)
-		}
-	}
-
-	if !r.Description.IsNull() {
-		err = domainOverride.SetDescription(r.Description.ValueString())
-
-		if err != nil {
-			diags.AddAttributeError(
-				path.Root("description"),
-				"Description cannot be parsed",
-				err.Error(),
-			)
-		}
-	}
-
-	return &domainOverride, diags
-}
-
-func (r *DNSResolverDomainOverrideResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DNSResolverDomainOverrideResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_dnsresolver_domainoverride", req.ProviderTypeName)
 }
 
-func (r *DNSResolverDomainOverrideResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DNSResolverDomainOverrideResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "DNS resolver domain override. Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
 		MarkdownDescription: "DNS resolver [domain override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
 		Attributes: map[string]schema.Attribute{
 			"domain": schema.StringAttribute{
-				Description: "Domain whose lookups will be directed to a user-specified DNS lookup server.",
+				Description: DNSResolverDomainOverrideModel{}.descriptions()["domain"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -131,36 +51,36 @@ func (r *DNSResolverDomainOverrideResource) Schema(ctx context.Context, req reso
 				},
 			},
 			"ip_address": schema.StringAttribute{
-				Description: "IPv4 or IPv6 address (including port) of the authoritative DNS server for this domain.",
+				Description: DNSResolverDomainOverrideModel{}.descriptions()["ip_address"].Description,
 				Required:    true,
 			},
 			"tls_queries": schema.BoolAttribute{
-				Description:         "Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to 'false'.",
-				MarkdownDescription: "Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to `false`.",
+				Description:         DNSResolverDomainOverrideModel{}.descriptions()["tls_queries"].Description,
+				MarkdownDescription: DNSResolverDomainOverrideModel{}.descriptions()["tls_queries"].MarkdownDescription,
 				Computed:            true,
 				Optional:            true,
-				Default:             booldefault.StaticBool(false),
+				Default:             booldefault.StaticBool(defaultDomainOverrideTLSQueries),
 			},
 			"tls_hostname": schema.StringAttribute{
-				Description: "An optional TLS hostname used to verify the server certificate when performing TLS Queries.",
+				Description: DNSResolverDomainOverrideModel{}.descriptions()["tls_hostname"].Description,
 				Optional:    true,
 			},
 			"description": schema.StringAttribute{
-				Description: "For administrative reference (not parsed).",
+				Description: DNSResolverDomainOverrideModel{}.descriptions()["description"].Description,
 				Optional:    true,
 			},
 			"apply": schema.BoolAttribute{
-				Description:         "Apply change, defaults to 'true'.",
-				MarkdownDescription: "Apply change, defaults to `true`.",
+				Description:         applyDescription,
+				MarkdownDescription: applyMarkdownDescription,
 				Computed:            true,
 				Optional:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(defaultApply),
 			},
 		},
 	}
 }
 
-func (r *DNSResolverDomainOverrideResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DNSResolverDomainOverrideResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
 	if !ok {
 		return
@@ -178,19 +98,20 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	domainOverrideReq, d := data.Value(ctx)
-	resp.Diagnostics.Append(d...)
+	var domainOverrideReq pfsense.DomainOverride
+	diags.Append(data.Value(ctx, &domainOverrideReq)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	domainOverride, err := r.client.CreateDNSResolverDomainOverride(ctx, *domainOverrideReq)
+	domainOverride, err := r.client.CreateDNSResolverDomainOverride(ctx, domainOverrideReq)
 	if addError(&resp.Diagnostics, "Error creating domain override", err) {
 		return
 	}
 
-	diags = data.SetFromValue(ctx, domainOverride)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(data.Set(ctx, *domainOverride)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -199,15 +120,12 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addError(&resp.Diagnostics, "Error applying domain override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying domain override", err)
 	}
 }
 
 func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *DNSResolverDomainOverrideResourceModel
-	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -219,8 +137,8 @@ func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	diags = data.SetFromValue(ctx, domainOverride)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(data.Set(ctx, *domainOverride)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -237,23 +155,24 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	domainOverrideReq, d := data.Value(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	var domainOverrideReq pfsense.DomainOverride
+	diags.Append(data.Value(ctx, &domainOverrideReq)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	domainOverride, err := r.client.UpdateDNSResolverDomainOverride(ctx, *domainOverrideReq)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	domainOverride, err := r.client.UpdateDNSResolverDomainOverride(ctx, domainOverrideReq)
 	if addError(&resp.Diagnostics, "Error updating domain override", err) {
 		return
 	}
 
-	diags = data.SetFromValue(ctx, domainOverride)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(data.Set(ctx, *domainOverride)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -262,9 +181,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addError(&resp.Diagnostics, "Error applying domain override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying domain override", err)
 	}
 }
 
@@ -285,9 +202,7 @@ func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req reso
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addError(&resp.Diagnostics, "Error applying domain override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying domain override", err)
 	}
 }
 

@@ -16,7 +16,7 @@ import (
 
 var _ resource.Resource = &DNSResolverApplyResource{}
 
-func NewDNSResolverApplyResource() resource.Resource {
+func NewDNSResolverApplyResource() resource.Resource { //nolint:ireturn
 	return &DNSResolverApplyResource{}
 }
 
@@ -24,16 +24,16 @@ type DNSResolverApplyResource struct {
 	client *pfsense.Client
 }
 
-type DNSResolverApplyResourceModel struct {
+type DNSResolverApplyModel struct {
 	ID          types.String `tfsdk:"id"`
 	LastUpdated types.String `tfsdk:"last_updated"`
 }
 
-func (r *DNSResolverApplyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DNSResolverApplyResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_dnsresolver_apply", req.ProviderTypeName)
 }
 
-func (r *DNSResolverApplyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DNSResolverApplyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Apply DNS resolver configuration.",
 		Attributes: map[string]schema.Attribute{
@@ -55,7 +55,7 @@ func (r *DNSResolverApplyResource) Schema(ctx context.Context, req resource.Sche
 	}
 }
 
-func (r *DNSResolverApplyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DNSResolverApplyResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
 	if !ok {
 		return
@@ -65,7 +65,7 @@ func (r *DNSResolverApplyResource) Configure(ctx context.Context, req resource.C
 }
 
 func (r *DNSResolverApplyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DNSResolverApplyResourceModel
+	var data *DNSResolverApplyModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -83,11 +83,11 @@ func (r *DNSResolverApplyResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *DNSResolverApplyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *DNSResolverApplyResource) Read(_ context.Context, _ resource.ReadRequest, _ *resource.ReadResponse) {
 }
 
-func (r *DNSResolverApplyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *DNSResolverApplyResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 }
 
-func (r *DNSResolverApplyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *DNSResolverApplyResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
 }

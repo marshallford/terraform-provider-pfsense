@@ -13,11 +13,13 @@ func scrapeHTMLValidationErrors(doc *goquery.Document) error {
 
 	if inputErrorList.Length() != 0 {
 		var inputErrors []string
-		inputErrorList.Find("li").Each(func(i int, e *goquery.Selection) {
+		inputErrorList.Find("li").Each(func(_ int, e *goquery.Selection) {
 			inputErrors = append(inputErrors, strings.TrimSpace(e.Text()))
 		})
+
 		return fmt.Errorf("%w, '%s'", ErrServerValidation, strings.Join(inputErrors, ", "))
 	}
+
 	return nil
 }
 
@@ -27,5 +29,6 @@ func sanitizeHTMLMessage(text string) (string, error) {
 		return "", err
 	}
 	sanitize := regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
+
 	return sanitize.ReplaceAllString(doc.Text(), ""), nil
 }
