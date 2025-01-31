@@ -19,7 +19,6 @@ type DNSResolverHostOverrideModel struct {
 	Domain      types.String `tfsdk:"domain"`
 	IPAddresses types.List   `tfsdk:"ip_addresses"`
 	Description types.String `tfsdk:"description"`
-	Apply       types.Bool   `tfsdk:"apply"`
 	FQDN        types.String `tfsdk:"fqdn"`
 	Aliases     types.List   `tfsdk:"aliases"`
 }
@@ -43,10 +42,6 @@ func (DNSResolverHostOverrideModel) descriptions() map[string]attrDescription {
 		},
 		"description": {
 			Description: "For administrative reference (not parsed).",
-		},
-		"apply": {
-			Description:         "Apply change, defaults to 'true'.",
-			MarkdownDescription: "Apply change, defaults to `true`.",
 		},
 		"fqdn": {
 			Description: "Fully qualified domain name of host.",

@@ -22,6 +22,11 @@ var (
 	_ resource.ResourceWithImportState = &DNSResolverHostOverrideResource{}
 )
 
+type DNSResolverHostOverrideResourceModel struct {
+	DNSResolverHostOverrideModel
+	Apply types.Bool `tfsdk:"apply"`
+}
+
 func NewDNSResolverHostOverrideResource() resource.Resource { //nolint:ireturn
 	return &DNSResolverHostOverrideResource{}
 }
@@ -63,11 +68,11 @@ func (r *DNSResolverHostOverrideResource) Schema(_ context.Context, _ resource.S
 				Optional:    true,
 			},
 			"apply": schema.BoolAttribute{
-				Description:         DNSResolverHostOverrideModel{}.descriptions()["apply"].Description,
-				MarkdownDescription: DNSResolverHostOverrideModel{}.descriptions()["apply"].MarkdownDescription,
+				Description:         applyDescription,
+				MarkdownDescription: applyMarkdownDescription,
 				Computed:            true,
 				Optional:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(defaultApply),
 			},
 			"fqdn": schema.StringAttribute{
 				Description: DNSResolverHostOverrideModel{}.descriptions()["fqdn"].Description,
@@ -113,7 +118,7 @@ func (r *DNSResolverHostOverrideResource) Configure(_ context.Context, req resou
 }
 
 func (r *DNSResolverHostOverrideResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DNSResolverHostOverrideModel
+	var data *DNSResolverHostOverrideResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -149,7 +154,7 @@ func (r *DNSResolverHostOverrideResource) Create(ctx context.Context, req resour
 }
 
 func (r *DNSResolverHostOverrideResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DNSResolverHostOverrideModel
+	var data *DNSResolverHostOverrideResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -171,7 +176,7 @@ func (r *DNSResolverHostOverrideResource) Read(ctx context.Context, req resource
 }
 
 func (r *DNSResolverHostOverrideResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *DNSResolverHostOverrideModel
+	var data *DNSResolverHostOverrideResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -207,7 +212,7 @@ func (r *DNSResolverHostOverrideResource) Update(ctx context.Context, req resour
 }
 
 func (r *DNSResolverHostOverrideResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DNSResolverHostOverrideModel
+	var data *DNSResolverHostOverrideResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {

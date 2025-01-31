@@ -83,8 +83,8 @@ func (r *DNSResolverConfigFileResource) Schema(_ context.Context, _ resource.Sch
 				Required:            true,
 			},
 			"apply": schema.BoolAttribute{
-				Description:         "Apply change, defaults to 'true'.",
-				MarkdownDescription: "Apply change, defaults to `true`.",
+				Description:         applyDescription,
+				MarkdownDescription: applyMarkdownDescription,
 				Computed:            true,
 				Optional:            true,
 				Default:             booldefault.StaticBool(true),

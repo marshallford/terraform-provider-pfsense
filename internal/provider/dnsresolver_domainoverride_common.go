@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -17,10 +18,9 @@ type DNSResolverDomainOverridesModel struct {
 type DNSResolverDomainOverrideModel struct {
 	Domain      types.String `tfsdk:"domain"`
 	IPAddress   types.String `tfsdk:"ip_address"`
+	TLSQueries  types.Bool   `tfsdk:"tls_queries"`
 	TLSHostname types.String `tfsdk:"tls_hostname"`
 	Description types.String `tfsdk:"description"`
-	TLSQueries  types.Bool   `tfsdk:"tls_queries"` // unordered to avoid maligned error
-	Apply       types.Bool   `tfsdk:"apply"`
 }
 
 func (DNSResolverDomainOverrideModel) descriptions() map[string]attrDescription {
@@ -32,18 +32,14 @@ func (DNSResolverDomainOverrideModel) descriptions() map[string]attrDescription 
 			Description: "IPv4 or IPv6 address (including port) of the authoritative DNS server for this domain.",
 		},
 		"tls_queries": {
-			Description:         "Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to 'false'.",
-			MarkdownDescription: "Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to `false`.",
+			Description:         fmt.Sprintf("Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to '%t'.", defaultDomainOverrideTLSQueries),
+			MarkdownDescription: fmt.Sprintf("Queries to all DNS servers for this domain will be sent using SSL/TLS, defaults to `%t`.", defaultDomainOverrideTLSQueries),
 		},
 		"tls_hostname": {
 			Description: "A TLS hostname used to verify the server certificate when performing TLS Queries.",
 		},
 		"description": {
 			Description: "For administrative reference (not parsed).",
-		},
-		"apply": {
-			Description:         "Apply change, defaults to 'true'.",
-			MarkdownDescription: "Apply change, defaults to `true`.",
 		},
 	}
 }

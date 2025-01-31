@@ -21,6 +21,11 @@ var (
 	_ resource.ResourceWithImportState = &FirewallIPAliasResource{}
 )
 
+type FirewallIPAliasResourceModel struct {
+	FirewallIPAliasModel
+	Apply types.Bool `tfsdk:"apply"`
+}
+
 func NewFirewallIPAliasResource() resource.Resource { //nolint:ireturn
 	return &FirewallIPAliasResource{}
 }
@@ -57,11 +62,11 @@ func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaReq
 				},
 			},
 			"apply": schema.BoolAttribute{
-				Description:         FirewallIPAliasModel{}.descriptions()["apply"].Description,
-				MarkdownDescription: FirewallIPAliasModel{}.descriptions()["apply"].MarkdownDescription,
+				Description:         applyDescription,
+				MarkdownDescription: applyMarkdownDescription,
 				Computed:            true,
 				Optional:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(defaultApply),
 			},
 			"entries": schema.ListNestedAttribute{
 				Description: FirewallIPAliasModel{}.descriptions()["entries"].Description,
@@ -99,7 +104,7 @@ func (r *FirewallIPAliasResource) Configure(_ context.Context, req resource.Conf
 }
 
 func (r *FirewallIPAliasResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *FirewallIPAliasModel
+	var data *FirewallIPAliasResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -135,7 +140,7 @@ func (r *FirewallIPAliasResource) Create(ctx context.Context, req resource.Creat
 }
 
 func (r *FirewallIPAliasResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *FirewallIPAliasModel
+	var data *FirewallIPAliasResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -157,7 +162,7 @@ func (r *FirewallIPAliasResource) Read(ctx context.Context, req resource.ReadReq
 }
 
 func (r *FirewallIPAliasResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *FirewallIPAliasModel
+	var data *FirewallIPAliasResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -193,7 +198,7 @@ func (r *FirewallIPAliasResource) Update(ctx context.Context, req resource.Updat
 }
 
 func (r *FirewallIPAliasResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *FirewallIPAliasModel
+	var data *FirewallIPAliasResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {

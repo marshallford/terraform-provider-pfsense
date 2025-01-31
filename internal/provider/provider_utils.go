@@ -11,7 +11,11 @@ import (
 )
 
 const (
-	diagDetailPrefix = "Underlying error details"
+	diagDetailPrefix                = "Underlying error details"
+	defaultDomainOverrideTLSQueries = false
+	defaultApply                    = true
+	applyDescription                = "Apply change, defaults to 'true'."
+	applyMarkdownDescription        = "Apply change, defaults to `true`."
 )
 
 type attrDescription struct {

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
@@ -18,6 +19,11 @@ var (
 	_ resource.Resource                = &DNSResolverDomainOverrideResource{}
 	_ resource.ResourceWithImportState = &DNSResolverDomainOverrideResource{}
 )
+
+type DNSResolverDomainOverrideResourceModel struct {
+	DNSResolverDomainOverrideModel
+	Apply types.Bool `tfsdk:"apply"`
+}
 
 func NewDNSResolverDomainOverrideResource() resource.Resource { //nolint:ireturn
 	return &DNSResolverDomainOverrideResource{}
@@ -53,7 +59,7 @@ func (r *DNSResolverDomainOverrideResource) Schema(_ context.Context, _ resource
 				MarkdownDescription: DNSResolverDomainOverrideModel{}.descriptions()["tls_queries"].MarkdownDescription,
 				Computed:            true,
 				Optional:            true,
-				Default:             booldefault.StaticBool(false),
+				Default:             booldefault.StaticBool(defaultDomainOverrideTLSQueries),
 			},
 			"tls_hostname": schema.StringAttribute{
 				Description: DNSResolverDomainOverrideModel{}.descriptions()["tls_hostname"].Description,
@@ -64,11 +70,11 @@ func (r *DNSResolverDomainOverrideResource) Schema(_ context.Context, _ resource
 				Optional:    true,
 			},
 			"apply": schema.BoolAttribute{
-				Description:         DNSResolverDomainOverrideModel{}.descriptions()["apply"].Description,
-				MarkdownDescription: DNSResolverDomainOverrideModel{}.descriptions()["apply"].MarkdownDescription,
+				Description:         applyDescription,
+				MarkdownDescription: applyMarkdownDescription,
 				Computed:            true,
 				Optional:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(defaultApply),
 			},
 		},
 	}
@@ -84,7 +90,7 @@ func (r *DNSResolverDomainOverrideResource) Configure(_ context.Context, req res
 }
 
 func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DNSResolverDomainOverrideModel
+	var data *DNSResolverDomainOverrideResourceModel
 	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -121,7 +127,7 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 }
 
 func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DNSResolverDomainOverrideModel
+	var data *DNSResolverDomainOverrideResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -143,7 +149,7 @@ func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resour
 }
 
 func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *DNSResolverDomainOverrideModel
+	var data *DNSResolverDomainOverrideResourceModel
 	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -184,7 +190,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 }
 
 func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DNSResolverDomainOverrideModel
+	var data *DNSResolverDomainOverrideResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {

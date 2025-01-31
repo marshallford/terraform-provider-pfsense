@@ -18,7 +18,6 @@ type FirewallIPAliasModel struct {
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 	Type        types.String `tfsdk:"type"`
-	Apply       types.Bool   `tfsdk:"apply"`
 	Entries     types.List   `tfsdk:"entries"`
 }
 
@@ -37,10 +36,6 @@ func (FirewallIPAliasModel) descriptions() map[string]attrDescription {
 		},
 		"type": {
 			Description: "Type of alias.",
-		},
-		"apply": {
-			Description:         "Apply change, defaults to 'true'.",
-			MarkdownDescription: "Apply change, defaults to `true`.",
 		},
 		"entries": {
 			Description: "Host(s) or network(s).",
