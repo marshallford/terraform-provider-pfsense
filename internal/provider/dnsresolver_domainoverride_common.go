@@ -39,7 +39,7 @@ func (DNSResolverDomainOverrideModel) descriptions() map[string]attrDescription 
 			Description: "A TLS hostname used to verify the server certificate when performing TLS Queries.",
 		},
 		"description": {
-			Description: "For administrative reference (not parsed).",
+			Description: descriptionDescription,
 		},
 	}
 }

@@ -41,7 +41,7 @@ func (DNSResolverHostOverrideModel) descriptions() map[string]attrDescription {
 			Description: "IPv4 or IPv6 addresses to be returned for the host.",
 		},
 		"description": {
-			Description: "For administrative reference (not parsed).",
+			Description: descriptionDescription,
 		},
 		"fqdn": {
 			Description: "Fully qualified domain name of host.",
@@ -62,7 +62,7 @@ func (DNSResolverHostOverrideAliasModel) descriptions() map[string]attrDescripti
 			Description: "Parent domain of the host.",
 		},
 		"description": {
-			Description: "For administrative reference (not parsed).",
+			Description: descriptionDescription,
 		},
 	}
 }
@@ -112,7 +112,7 @@ func (m *DNSResolverHostOverrideModel) Set(ctx context.Context, hostOverride pfs
 
 	m.Domain = types.StringValue(hostOverride.Domain)
 
-	ipAddressesValue, newDiags := types.ListValueFrom(ctx, types.StringType, hostOverride.IPAddresses)
+	ipAddressesValue, newDiags := types.ListValueFrom(ctx, types.StringType, hostOverride.StringifyIPAddresses())
 	diags.Append(newDiags...)
 	m.IPAddresses = ipAddressesValue
 

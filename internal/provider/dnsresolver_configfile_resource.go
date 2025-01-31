@@ -87,7 +87,7 @@ func (r *DNSResolverConfigFileResource) Schema(_ context.Context, _ resource.Sch
 				MarkdownDescription: applyMarkdownDescription,
 				Computed:            true,
 				Optional:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(defaultApply),
 			},
 		},
 	}
@@ -132,9 +132,7 @@ func (r *DNSResolverConfigFileResource) Create(ctx context.Context, req resource
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying config file", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying config file", err)
 	}
 }
 
@@ -190,9 +188,7 @@ func (r *DNSResolverConfigFileResource) Update(ctx context.Context, req resource
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying config file", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying config file", err)
 	}
 }
 
@@ -213,9 +209,7 @@ func (r *DNSResolverConfigFileResource) Delete(ctx context.Context, req resource
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying config file", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying config file", err)
 	}
 }
 

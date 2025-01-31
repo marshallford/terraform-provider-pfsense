@@ -120,9 +120,7 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying domain override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying domain override", err)
 	}
 }
 
@@ -183,9 +181,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying domain override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying domain override", err)
 	}
 }
 
@@ -206,9 +202,7 @@ func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req reso
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying domain override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying domain override", err)
 	}
 }
 

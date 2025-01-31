@@ -40,8 +40,8 @@ func (r *FirewallIPAliasResource) Metadata(_ context.Context, req resource.Metad
 
 func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "Firewall IP alias, defines a group of hosts or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
-		MarkdownDescription: "Firewall IP [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of hosts or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
+		Description:         "Firewall IP alias, defines a group of hosts and/or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
+		MarkdownDescription: "Firewall IP [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of hosts and/or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description: FirewallIPAliasModel{}.descriptions()["name"].Description,
@@ -123,7 +123,7 @@ func (r *FirewallIPAliasResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	resp.Diagnostics.Append(data.Value(ctx, ipAlias)...)
+	resp.Diagnostics.Append(data.Set(ctx, *ipAlias)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -133,9 +133,7 @@ func (r *FirewallIPAliasResource) Create(ctx context.Context, req resource.Creat
 
 	if data.Apply.ValueBool() {
 		err = r.client.ReloadFirewallFilter(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying IP alias", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying IP alias", err)
 	}
 }
 
@@ -181,7 +179,7 @@ func (r *FirewallIPAliasResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	resp.Diagnostics.Append(data.Value(ctx, ipAlias)...)
+	resp.Diagnostics.Append(data.Set(ctx, *ipAlias)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -191,9 +189,7 @@ func (r *FirewallIPAliasResource) Update(ctx context.Context, req resource.Updat
 
 	if data.Apply.ValueBool() {
 		err = r.client.ReloadFirewallFilter(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying IP alias", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying IP alias", err)
 	}
 }
 
@@ -214,9 +210,7 @@ func (r *FirewallIPAliasResource) Delete(ctx context.Context, req resource.Delet
 
 	if data.Apply.ValueBool() {
 		err = r.client.ReloadFirewallFilter(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying IP alias", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying IP alias", err)
 	}
 }
 

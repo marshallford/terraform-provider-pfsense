@@ -16,6 +16,7 @@ const (
 	defaultApply                    = true
 	applyDescription                = "Apply change, defaults to 'true'."
 	applyMarkdownDescription        = "Apply change, defaults to `true`."
+	descriptionDescription          = "For administrative reference (not parsed)."
 )
 
 type attrDescription struct {
@@ -99,7 +100,7 @@ func addPathError(diags *diag.Diagnostics, path path.Path, summary string, err e
 	return false
 }
 
-func addWarning(diags *diag.Diagnostics, summary string, err error) bool {
+func addWarning(diags *diag.Diagnostics, summary string, err error) bool { //nolint:unparam
 	if err != nil {
 		diags.AddWarning(summary, fmt.Sprintf("%s: %s", diagDetailPrefix, err))
 

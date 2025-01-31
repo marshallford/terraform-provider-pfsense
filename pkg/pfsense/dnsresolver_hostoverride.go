@@ -56,13 +56,18 @@ func (p *hostOverrideAliasItemResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (ho HostOverride) formatIPAddresses() string {
+// TODO replace with Terraform custom type for netip.Addr
+func (ho HostOverride) StringifyIPAddresses() []string {
 	addrs := make([]string, 0, len(ho.IPAddresses))
 	for _, ipAddress := range ho.IPAddresses {
 		addrs = append(addrs, ipAddress.String())
 	}
 
-	return strings.Join(addrs, ",")
+	return addrs
+}
+
+func (ho HostOverride) formatIPAddresses() string {
+	return strings.Join(ho.StringifyIPAddresses(), ",")
 }
 
 func (ho HostOverride) FQDN() string {
@@ -134,9 +139,9 @@ func (hos HostOverrides) GetByFQDN(fqdn string) (*HostOverride, error) {
 }
 
 func (hos HostOverrides) GetControlIDByFQDN(fqdn string) (*int, error) {
-	for i, ho := range hos {
+	for index, ho := range hos {
 		if ho.FQDN() == fqdn {
-			return &i, nil
+			return &index, nil
 		}
 	}
 
@@ -242,10 +247,10 @@ func (pf *Client) createOrUpdateDNSResolverHostOverride(ctx context.Context, hos
 		"save":   {"Save"},
 	}
 
-	for i, alias := range hostOverrideReq.Aliases {
-		values.Set(fmt.Sprintf("aliashost%d", i), alias.Host)
-		values.Set(fmt.Sprintf("aliasdomain%d", i), alias.Domain)
-		values.Set(fmt.Sprintf("aliasdescription%d", i), alias.Description)
+	for index, alias := range hostOverrideReq.Aliases {
+		values.Set(fmt.Sprintf("aliashost%d", index), alias.Host)
+		values.Set(fmt.Sprintf("aliasdomain%d", index), alias.Domain)
+		values.Set(fmt.Sprintf("aliasdescription%d", index), alias.Description)
 	}
 
 	if controlID != nil {

@@ -147,9 +147,7 @@ func (r *DNSResolverHostOverrideResource) Create(ctx context.Context, req resour
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying host override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying host override", err)
 	}
 }
 
@@ -205,9 +203,7 @@ func (r *DNSResolverHostOverrideResource) Update(ctx context.Context, req resour
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying host override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying host override", err)
 	}
 }
 
@@ -228,9 +224,7 @@ func (r *DNSResolverHostOverrideResource) Delete(ctx context.Context, req resour
 
 	if data.Apply.ValueBool() {
 		err = r.client.ApplyDNSResolverChanges(ctx)
-		if addWarning(&resp.Diagnostics, "Error applying host override", err) {
-			return
-		}
+		addWarning(&resp.Diagnostics, "Error applying host override", err)
 	}
 }
 

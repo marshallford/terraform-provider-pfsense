@@ -199,5 +199,6 @@ func (p *pfSenseProvider) Resources(_ context.Context) []func() resource.Resourc
 		NewDNSResolverHostOverrideResource,
 		NewFirewallFilterReloadResource,
 		NewFirewallIPAliasResource,
+		NewFirewallPortAliasResource,
 	}
 }

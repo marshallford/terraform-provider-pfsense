@@ -10,10 +10,6 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-type FirewallAliasesModel struct {
-	IP types.List `tfsdk:"ip"`
-}
-
 type FirewallIPAliasModel struct {
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
@@ -29,10 +25,10 @@ type FirewallIPAliasEntryModel struct {
 func (FirewallIPAliasModel) descriptions() map[string]attrDescription {
 	return map[string]attrDescription{
 		"name": {
-			Description: "Name of alias.",
+			Description: "Name of IP alias.",
 		},
 		"description": {
-			Description: "For administrative reference (not parsed).",
+			Description: descriptionDescription,
 		},
 		"type": {
 			Description: "Type of alias.",
@@ -49,7 +45,7 @@ func (FirewallIPAliasEntryModel) descriptions() map[string]attrDescription {
 			Description: "Hosts must be specified by their IP address or fully qualified domain name (FQDN). Networks are specified in CIDR format.",
 		},
 		"description": {
-			Description: "For administrative reference (not parsed).",
+			Description: descriptionDescription,
 		},
 	}
 }
@@ -70,23 +66,6 @@ func (FirewallIPAliasEntryModel) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (m *FirewallAliasesModel) Set(ctx context.Context, ipAliases pfsense.FirewallIPAliases) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	ipAliasModels := []FirewallIPAliasModel{}
-	for _, ipAlias := range ipAliases {
-		var ipAliasModel FirewallIPAliasModel
-		diags.Append(ipAliasModel.Set(ctx, ipAlias)...)
-		ipAliasModels = append(ipAliasModels, ipAliasModel)
-	}
-
-	ipAliasesValue, newDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: FirewallIPAliasModel{}.AttrTypes()}, ipAliasModels)
-	diags.Append(newDiags...)
-	m.IP = ipAliasesValue
-
-	return diags
-}
-
 func (m *FirewallIPAliasModel) Set(ctx context.Context, ipAlias pfsense.FirewallIPAlias) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -105,9 +84,9 @@ func (m *FirewallIPAliasModel) Set(ctx context.Context, ipAlias pfsense.Firewall
 		ipAliasEntryModels = append(ipAliasEntryModels, ipAliasEntryModel)
 	}
 
-	ipAliasesValue, newDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: FirewallIPAliasModel{}.AttrTypes()}, ipAliasEntryModels)
+	ipAliasEntriesValue, newDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: FirewallIPAliasEntryModel{}.AttrTypes()}, ipAliasEntryModels)
 	diags.Append(newDiags...)
-	m.Entries = ipAliasesValue
+	m.Entries = ipAliasEntriesValue
 
 	return diags
 }

@@ -3,18 +3,18 @@
 page_title: "pfsense_firewall_ip_alias Resource - terraform-provider-pfsense"
 subcategory: ""
 description: |-
-  Firewall IP alias https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html, defines a group of hosts or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.
+  Firewall IP alias https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html, defines a group of hosts and/or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.
 ---
 
 # pfsense_firewall_ip_alias (Resource)
 
-Firewall IP [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of hosts or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.
+Firewall IP [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of hosts and/or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.
 
 ## Example Usage
 
 ```terraform
-# simple IP addresses example
-resource "pfsense_firewall_ip_alias" "example" {
+# host example
+resource "pfsense_firewall_ip_alias" "host_example" {
   name = "access_points"
   type = "host"
   entries = [
@@ -36,12 +36,12 @@ resource "pfsense_firewall_ip_alias" "network_example" {
   ]
 }
 
-# mixed example
-resource "pfsense_firewall_ip_alias" "mixed_example" {
+# advanced example
+resource "pfsense_firewall_ip_alias" "advanced_example" {
   name = "poe"
   type = "host"
   entries = [
-    { address = pfsense_firewall_ip_alias.example.name },
+    { address = pfsense_firewall_ip_alias.host_example.name },
     { address = "192.168.1.10" },
     { address = "ipcam01.lan" },
   ]
@@ -53,7 +53,7 @@ resource "pfsense_firewall_ip_alias" "mixed_example" {
 
 ### Required
 
-- `name` (String) Name of alias.
+- `name` (String) Name of IP alias.
 - `type` (String) Type of alias.
 
 ### Optional

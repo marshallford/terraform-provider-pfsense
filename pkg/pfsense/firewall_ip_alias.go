@@ -28,7 +28,7 @@ type FirewallIPAlias struct {
 }
 
 type FirewallIPAliasEntry struct {
-	Address     string // TODO can be a IP, CIDR, FQDN, or alias, how to validate?
+	Address     string
 	Description string
 }
 
@@ -51,6 +51,7 @@ func (ipAlias *FirewallIPAlias) SetType(t string) error {
 }
 
 func (entry *FirewallIPAliasEntry) SetAddress(addr string) error {
+	// TODO can be a IP, CIDR, FQDN, or Alias -- how to validate?
 	entry.Address = addr
 
 	return nil
@@ -138,16 +139,16 @@ func (pf *Client) getFirewallIPAliases(ctx context.Context) (*FirewallIPAliases,
 			return nil, fmt.Errorf("%w firewall IP alias response, addresses and descriptions do not match", ErrUnableToParse)
 		}
 
-		for _, address := range addresses {
+		for index := range addresses {
 			var entry FirewallIPAliasEntry
 			var err error
 
-			err = entry.SetAddress(address)
+			err = entry.SetAddress(addresses[index])
 			if err != nil {
 				return nil, fmt.Errorf("%w firewall IP alias response, %w", ErrUnableToParse, err)
 			}
 
-			err = entry.SetDescription(address)
+			err = entry.SetDescription(details[index])
 			if err != nil {
 				return nil, fmt.Errorf("%w firewall IP alias response, %w", ErrUnableToParse, err)
 			}
@@ -194,9 +195,9 @@ func (pf *Client) createOrUpdateFirewallIPAlias(ctx context.Context, ipAliasReq 
 		"save":  {"Save"},
 	}
 
-	for i, entry := range ipAliasReq.Entries {
-		values.Set(fmt.Sprintf("address%d", i), entry.Address)
-		values.Set(fmt.Sprintf("detail%d", i), entry.Description)
+	for index, entry := range ipAliasReq.Entries {
+		values.Set(fmt.Sprintf("address%d", index), entry.Address)
+		values.Set(fmt.Sprintf("detail%d", index), entry.Description)
 	}
 
 	if controlID != nil {

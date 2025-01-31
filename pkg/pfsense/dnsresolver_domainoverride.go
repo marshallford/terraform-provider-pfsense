@@ -90,9 +90,9 @@ func (dos DomainOverrides) GetByDomain(domain string) (*DomainOverride, error) {
 }
 
 func (dos DomainOverrides) GetControlIDByDomain(domain string) (*int, error) {
-	for i, do := range dos {
+	for index, do := range dos {
 		if do.Domain == domain {
-			return &i, nil
+			return &index, nil
 		}
 	}
 
