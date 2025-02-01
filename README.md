@@ -1,17 +1,18 @@
-# Terraform Provider pfSense
+# Terraform Provider for pfSense
 
 [![Registry](https://img.shields.io/badge/pfsense-Terraform%20Registry-blue)](https://registry.terraform.io/providers/marshallford/pfsense/latest/docs)
+[![Go Report Card](https://goreportcard.com/badge/github.com/marshallford/terraform-provider-pfsense)](https://goreportcard.com/report/github.com/marshallford/terraform-provider-pfsense)
 
-Used to configure [pfSense](https://www.pfsense.org/) firewall/router systems with Terraform. Validated with pfSense CE, compatibility with pfSense Plus is not guaranteed.
+Configure [pfSense](https://www.pfsense.org/) firewall/router with Terraform. Validated with pfSense CE, compatibility with pfSense Plus is not guaranteed.
+
+## Support Matrix
 
 > [!WARNING]
 > All versions released prior to `v1.0.0` are to be considered [breaking changes](https://semver.org/#how-do-i-know-when-to-release-100).
 
-## Support Matrix
-
-| Release  | pfSense            | Terraform      |
-| :------: | :----------------: | :------------: |
-| < v1.0.0 | >= 2.6.0, <= 2.7.2 | >= 1.6, <= 1.8 |
+| Release  | pfSense            | Terraform |
+| :------: | :----------------: | :-------: |
+| < v1.0.0 | >= 2.6.0, <= 2.7.2 | >= 1.7.0  |
 
 ## Development Requirements
 
