@@ -59,9 +59,8 @@ func (d *DNSResolverHostOverridesDataSource) Schema(_ context.Context, _ datasou
 							Computed:    true,
 						},
 						"aliases": schema.ListNestedAttribute{
-							Description:         DNSResolverHostOverrideModel{}.descriptions()["aliases"].Description,
-							MarkdownDescription: DNSResolverHostOverrideModel{}.descriptions()["aliases"].MarkdownDescription,
-							Computed:            true,
+							Description: DNSResolverHostOverrideModel{}.descriptions()["aliases"].Description,
+							Computed:    true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"host": schema.StringAttribute{

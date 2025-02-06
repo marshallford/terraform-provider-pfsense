@@ -11,12 +11,13 @@ import (
 )
 
 const (
-	diagDetailPrefix                = "Underlying error details"
-	defaultDomainOverrideTLSQueries = false
-	defaultApply                    = true
-	applyDescription                = "Apply change, defaults to 'true'."
-	applyMarkdownDescription        = "Apply change, defaults to `true`."
-	descriptionDescription          = "For administrative reference (not parsed)."
+	diagDetailPrefix                        = "Underlying error details"
+	defaultDomainOverrideTLSQueries         = false
+	defaultStaticMappingARPTableStaticEntry = false
+	defaultApply                            = true
+	applyDescription                        = "Apply change, defaults to 'true'."
+	applyMarkdownDescription                = "Apply change, defaults to `true`."
+	descriptionDescription                  = "For administrative reference (not parsed)."
 )
 
 type attrDescription struct {

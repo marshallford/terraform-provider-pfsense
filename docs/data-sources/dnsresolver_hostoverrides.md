@@ -32,7 +32,7 @@ output "hostoverrides" {
 
 Read-Only:
 
-- `aliases` (Attributes List) List of additional names for this host, defaults to `[]`. (see [below for nested schema](#nestedatt--all--aliases))
+- `aliases` (Attributes List) List of additional names for this host. (see [below for nested schema](#nestedatt--all--aliases))
 - `description` (String) For administrative reference (not parsed).
 - `domain` (String) Parent domain of the host.
 - `fqdn` (String) Fully qualified domain name of host.

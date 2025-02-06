@@ -91,14 +91,14 @@ func (pf *Client) retryableDo(req *http.Request, reqBody *[]byte) (*http.Respons
 	return nil, fmt.Errorf("%w after %d attempt(s), %s %s", ErrFailedRequest, attempt, req.Method, req.URL.Path)
 }
 
-func (pf *Client) call(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*http.Response, error) {
+func (pf *Client) call(ctx context.Context, method string, relativeURL url.URL, formValues *url.Values) (*http.Response, error) {
 	var reqBody *[]byte
 	var reqBodyContentLength int64
-	if values != nil {
+	if formValues != nil {
 		if pf.tokenKey != "" && pf.token != "" {
-			values.Set(pf.tokenKey, pf.token)
+			formValues.Set(pf.tokenKey, pf.token)
 		}
-		reqBytes := []byte(values.Encode())
+		reqBytes := []byte(formValues.Encode())
 		reqBody = &reqBytes
 		reqBodyContentLength = int64(len(reqBytes))
 	}
@@ -111,7 +111,7 @@ func (pf *Client) call(ctx context.Context, method string, relativeURL url.URL, 
 
 	req.ContentLength = reqBodyContentLength
 	req.Header.Set("User-Agent", "go-pfsense")
-	if values != nil {
+	if formValues != nil {
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
 

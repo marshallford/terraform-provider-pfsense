@@ -73,7 +73,7 @@ func (r *DNSResolverApplyResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	err := r.client.ApplyDNSResolverChanges(ctx)
-	if addError(&resp.Diagnostics, "Error applying DNS resolver changes", err) {
+	if addError(&resp.Diagnostics, "Error applying dns resolver changes", err) {
 		return
 	}
 

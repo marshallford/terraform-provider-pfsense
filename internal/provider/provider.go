@@ -188,6 +188,7 @@ func (p *pfSenseProvider) DataSources(_ context.Context) []func() datasource.Dat
 		NewDNSResolverHostOverridesDataSource,
 		NewFirewallAliasesDataSource,
 		NewSystemVersionDataSource,
+		NewDHCPDV4StaticMappingsDataSource,
 	}
 }
 
@@ -200,5 +201,7 @@ func (p *pfSenseProvider) Resources(_ context.Context) []func() resource.Resourc
 		NewFirewallFilterReloadResource,
 		NewFirewallIPAliasResource,
 		NewFirewallPortAliasResource,
+		NewDHCPDV4ApplyResource,
+		NewDHCPDV4StaticMappingResource,
 	}
 }

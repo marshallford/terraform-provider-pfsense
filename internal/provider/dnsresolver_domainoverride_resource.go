@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -91,7 +90,6 @@ func (r *DNSResolverDomainOverrideResource) Configure(_ context.Context, req res
 
 func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *DNSResolverDomainOverrideResourceModel
-	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -99,7 +97,7 @@ func (r *DNSResolverDomainOverrideResource) Create(ctx context.Context, req reso
 	}
 
 	var domainOverrideReq pfsense.DomainOverride
-	diags.Append(data.Value(ctx, &domainOverrideReq)...)
+	resp.Diagnostics.Append(data.Value(ctx, &domainOverrideReq)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -148,7 +146,6 @@ func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resour
 
 func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *DNSResolverDomainOverrideResourceModel
-	var diags diag.Diagnostics
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -156,11 +153,7 @@ func (r *DNSResolverDomainOverrideResource) Update(ctx context.Context, req reso
 	}
 
 	var domainOverrideReq pfsense.DomainOverride
-	diags.Append(data.Value(ctx, &domainOverrideReq)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(data.Value(ctx, &domainOverrideReq)...)
 
 	if resp.Diagnostics.HasError() {
 		return

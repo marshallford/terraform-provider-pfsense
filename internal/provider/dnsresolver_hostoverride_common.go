@@ -47,8 +47,7 @@ func (DNSResolverHostOverrideModel) descriptions() map[string]attrDescription {
 			Description: "Fully qualified domain name of host.",
 		},
 		"aliases": {
-			Description:         "List of additional names for this host, defaults to '[]'.",
-			MarkdownDescription: "List of additional names for this host, defaults to `[]`.",
+			Description: "List of additional names for this host.",
 		},
 	}
 }
@@ -172,10 +171,7 @@ func (m DNSResolverHostOverrideModel) Value(ctx context.Context, hostOverride *p
 	)
 
 	var ipAddresses []string
-	if !m.IPAddresses.IsNull() {
-		diags.Append(m.IPAddresses.ElementsAs(ctx, &ipAddresses, false)...)
-	}
-
+	diags.Append(m.IPAddresses.ElementsAs(ctx, &ipAddresses, false)...)
 	addPathError(
 		&diags,
 		path.Root("ip_addresses"),

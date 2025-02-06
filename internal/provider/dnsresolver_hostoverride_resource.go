@@ -82,11 +82,10 @@ func (r *DNSResolverHostOverrideResource) Schema(_ context.Context, _ resource.S
 				},
 			},
 			"aliases": schema.ListNestedAttribute{
-				Description:         DNSResolverHostOverrideModel{}.descriptions()["aliases"].Description,
-				MarkdownDescription: DNSResolverHostOverrideModel{}.descriptions()["aliases"].MarkdownDescription,
-				Computed:            true,
-				Optional:            true,
-				Default:             listdefault.StaticValue(types.ListValueMust(types.ObjectType{AttrTypes: DNSResolverHostOverrideAliasModel{}.AttrTypes()}, []attr.Value{})),
+				Description: DNSResolverHostOverrideModel{}.descriptions()["aliases"].Description,
+				Computed:    true,
+				Optional:    true,
+				Default:     listdefault.StaticValue(types.ListValueMust(types.ObjectType{AttrTypes: DNSResolverHostOverrideAliasModel{}.AttrTypes()}, []attr.Value{})),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"host": schema.StringAttribute{
