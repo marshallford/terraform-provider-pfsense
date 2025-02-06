@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -20,45 +19,17 @@ var (
 	_ resource.ResourceWithImportState = &DNSResolverConfigFileResource{}
 )
 
+type DNSResolverConfigFileResourceModel struct {
+	DNSResolverConfigFileModel
+	Apply types.Bool `tfsdk:"apply"`
+}
+
 func NewDNSResolverConfigFileResource() resource.Resource { //nolint:ireturn
 	return &DNSResolverConfigFileResource{}
 }
 
 type DNSResolverConfigFileResource struct {
 	client *pfsense.Client
-}
-
-type DNSResolverConfigFileModel struct {
-	Name    types.String `tfsdk:"name"`
-	Content types.String `tfsdk:"content"`
-	Apply   types.Bool   `tfsdk:"apply"`
-}
-
-func (r *DNSResolverConfigFileModel) Set(_ context.Context, configFile pfsense.ConfigFile) diag.Diagnostics {
-	r.Name = types.StringValue(configFile.Name)
-	r.Content = types.StringValue(configFile.Content)
-
-	return nil
-}
-
-func (r DNSResolverConfigFileModel) Value(_ context.Context, configFile *pfsense.ConfigFile) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	addPathError(
-		&diags,
-		path.Root("name"),
-		"Name cannot be parsed",
-		configFile.SetName(r.Name.ValueString()),
-	)
-
-	addPathError(
-		&diags,
-		path.Root("content"),
-		"Content cannot be parsed",
-		configFile.SetContent(r.Content.ValueString()),
-	)
-
-	return diags
 }
 
 func (r *DNSResolverConfigFileResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -71,15 +42,15 @@ func (r *DNSResolverConfigFileResource) Schema(_ context.Context, _ resource.Sch
 		MarkdownDescription: "DNS resolver (Unbound) [config file](https://man.freebsd.org/cgi/man.cgi?unbound.conf). **Prerequisite**: Must add the directive `include-toplevel: /var/unbound/conf.d/*` to the DNS resolver custom options input. **Use with caution**, content is not checked/validated.",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description: "Name of config file.",
+				Description: DNSResolverConfigFileModel{}.descriptions()["name"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"content": schema.StringAttribute{
-				Description:         "Contents of file. Must specify Unbound clause(s). Comments start with '#' and last to the end of line.",
-				MarkdownDescription: "Contents of file. Must specify Unbound clause(s). Comments start with `#` and last to the end of line.",
+				Description:         DNSResolverConfigFileModel{}.descriptions()["content"].Description,
+				MarkdownDescription: DNSResolverConfigFileModel{}.descriptions()["content"].MarkdownDescription,
 				Required:            true,
 			},
 			"apply": schema.BoolAttribute{
@@ -103,7 +74,7 @@ func (r *DNSResolverConfigFileResource) Configure(_ context.Context, req resourc
 }
 
 func (r *DNSResolverConfigFileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DNSResolverConfigFileModel
+	var data *DNSResolverConfigFileResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -137,7 +108,7 @@ func (r *DNSResolverConfigFileResource) Create(ctx context.Context, req resource
 }
 
 func (r *DNSResolverConfigFileResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DNSResolverConfigFileModel
+	var data *DNSResolverConfigFileResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -159,7 +130,7 @@ func (r *DNSResolverConfigFileResource) Read(ctx context.Context, req resource.R
 }
 
 func (r *DNSResolverConfigFileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *DNSResolverConfigFileModel
+	var data *DNSResolverConfigFileResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -193,7 +164,7 @@ func (r *DNSResolverConfigFileResource) Update(ctx context.Context, req resource
 }
 
 func (r *DNSResolverConfigFileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DNSResolverConfigFileModel
+	var data *DNSResolverConfigFileResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {

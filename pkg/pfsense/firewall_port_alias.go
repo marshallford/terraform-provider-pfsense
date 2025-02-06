@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 )
 
 type firewallPortAliasResponse struct {
@@ -120,8 +119,8 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 			continue
 		}
 
-		addresses := strings.Split(resp.Addresses, " ")
-		details := strings.Split(resp.Details, "||")
+		addresses := safeSplit(resp.Addresses, " ")
+		details := safeSplit(resp.Details, "||")
 
 		if len(addresses) != len(details) {
 			return nil, fmt.Errorf("%w firewall port alias response, addresses and descriptions do not match", ErrUnableToParse)

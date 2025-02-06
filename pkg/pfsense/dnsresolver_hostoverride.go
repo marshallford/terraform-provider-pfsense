@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+const (
+	hostOverrideIPAddressesSep = ","
+)
+
 type hostOverrideResponse struct {
 	Host        string                        `json:"host"`
 	Domain      string                        `json:"domain"`
@@ -60,14 +64,14 @@ func (p *hostOverrideAliasItemResponse) UnmarshalJSON(data []byte) error {
 func (ho HostOverride) StringifyIPAddresses() []string {
 	addrs := make([]string, 0, len(ho.IPAddresses))
 	for _, ipAddress := range ho.IPAddresses {
-		addrs = append(addrs, ipAddress.String())
+		addrs = append(addrs, safeAddrString(ipAddress))
 	}
 
 	return addrs
 }
 
 func (ho HostOverride) formatIPAddresses() string {
-	return strings.Join(ho.StringifyIPAddresses(), ",")
+	return strings.Join(ho.StringifyIPAddresses(), hostOverrideIPAddressesSep)
 }
 
 func (ho HostOverride) FQDN() string {
@@ -175,7 +179,7 @@ func (pf *Client) getDNSResolverHostOverrides(ctx context.Context) (*HostOverrid
 			return nil, fmt.Errorf("%w host override response, %w", ErrUnableToParse, err)
 		}
 
-		err = hostOverride.SetIPAddresses(strings.Split(resp.IPAddresses, ","))
+		err = hostOverride.SetIPAddresses(safeSplit(resp.IPAddresses, hostOverrideIPAddressesSep))
 		if err != nil {
 			return nil, fmt.Errorf("%w host override response, %w", ErrUnableToParse, err)
 		}

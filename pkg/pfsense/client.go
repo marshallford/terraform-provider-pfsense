@@ -41,7 +41,10 @@ type mutexes struct {
 	DNSResolverApply          sync.Mutex
 	DNSResolverHostOverride   sync.Mutex
 	DNSResolverDomainOverride sync.Mutex
+	FirewallFilterReload      sync.Mutex
 	FirewallAlias             sync.Mutex
+	DHCPDV4Apply              sync.Mutex // TODO one per iface
+	DHCPDV4StaticMapping      sync.Mutex // TODO one per iface
 }
 
 type Client struct {
@@ -183,8 +186,8 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	return pfsense, nil
 }
 
-func (pf *Client) callHTML(ctx context.Context, method string, relativeURL url.URL, values *url.Values) (*goquery.Document, error) {
-	resp, err := pf.call(ctx, method, relativeURL, values)
+func (pf *Client) callHTML(ctx context.Context, method string, relativeURL url.URL, formValues *url.Values) (*goquery.Document, error) {
+	resp, err := pf.call(ctx, method, relativeURL, formValues)
 	if err != nil {
 		return nil, err
 	}
@@ -242,4 +245,33 @@ func removeEmptyStrings(s []string) []string {
 	}
 
 	return results
+}
+
+func durationSeconds(s string) string {
+	if s == "" {
+		return "0s"
+	}
+
+	return fmt.Sprintf("%ss", s)
+}
+
+type ValidAddrStringer interface {
+	String() string
+	IsValid() bool
+}
+
+func safeAddrString(v ValidAddrStringer) string {
+	if v.IsValid() {
+		return v.String()
+	}
+
+	return ""
+}
+
+func safeSplit(s string, sep string) []string {
+	if s == "" {
+		return []string{}
+	}
+
+	return strings.Split(s, sep)
 }

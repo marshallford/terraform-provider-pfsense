@@ -1,3 +1,4 @@
+# simple
 resource "pfsense_dnsresolver_hostoverride" "example" {
   host         = "foobar"
   domain       = "example.com"
@@ -5,7 +6,8 @@ resource "pfsense_dnsresolver_hostoverride" "example" {
   description  = "an example"
 }
 
-resource "pfsense_dnsresolver_hostoverride" "multi_example" {
+# additional aliases example
+resource "pfsense_dnsresolver_hostoverride" "aliases_example" {
   host         = "multi"
   domain       = "example.com"
   ip_addresses = ["2.2.2.2"]

@@ -13,6 +13,7 @@ DNS resolver [host override](https://docs.netgate.com/pfsense/en/latest/services
 ## Example Usage
 
 ```terraform
+# simple
 resource "pfsense_dnsresolver_hostoverride" "example" {
   host         = "foobar"
   domain       = "example.com"
@@ -20,7 +21,8 @@ resource "pfsense_dnsresolver_hostoverride" "example" {
   description  = "an example"
 }
 
-resource "pfsense_dnsresolver_hostoverride" "multi_example" {
+# additional aliases example
+resource "pfsense_dnsresolver_hostoverride" "aliases_example" {
   host         = "multi"
   domain       = "example.com"
   ip_addresses = ["2.2.2.2"]
@@ -47,7 +49,7 @@ resource "pfsense_dnsresolver_hostoverride" "multi_example" {
 
 ### Optional
 
-- `aliases` (Attributes List) List of additional names for this host, defaults to `[]`. (see [below for nested schema](#nestedatt--aliases))
+- `aliases` (Attributes List) List of additional names for this host. (see [below for nested schema](#nestedatt--aliases))
 - `apply` (Boolean) Apply change, defaults to `true`.
 - `description` (String) For administrative reference (not parsed).
 - `host` (String) Name of the host, without the domain part.

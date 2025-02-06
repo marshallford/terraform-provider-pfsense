@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 )
 
 type firewallIPAliasResponse struct {
@@ -132,8 +131,8 @@ func (pf *Client) getFirewallIPAliases(ctx context.Context) (*FirewallIPAliases,
 			continue
 		}
 
-		addresses := strings.Split(resp.Addresses, " ")
-		details := strings.Split(resp.Details, "||")
+		addresses := safeSplit(resp.Addresses, " ")
+		details := safeSplit(resp.Details, "||")
 
 		if len(addresses) != len(details) {
 			return nil, fmt.Errorf("%w firewall IP alias response, addresses and descriptions do not match", ErrUnableToParse)

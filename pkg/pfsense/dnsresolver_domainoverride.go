@@ -14,8 +14,9 @@ import (
 // TODO pfSense allows for more than one domain override entry with the same domain
 
 const (
-	DefaultDNSPort    = 53
-	DefaultTLSDNSPort = 853
+	domainOverrideIPPortSep = "@"
+	DefaultDNSPort          = 53
+	DefaultTLSDNSPort       = 853
 )
 
 type domainOverrideResponse struct {
@@ -34,11 +35,19 @@ type DomainOverride struct {
 	Description string
 }
 
+func (do DomainOverride) StringifyIPAddress() string {
+	return safeAddrString(do.IPAddress)
+}
+
 func (do DomainOverride) formatIPAddress() string {
+	if !do.IPAddress.IsValid() {
+		return ""
+	}
+
 	addr := do.IPAddress.Addr().String()
 	port := strconv.Itoa(int(do.IPAddress.Port()))
 
-	return strings.Join([]string{addr, port}, "@")
+	return strings.Join([]string{addr, port}, domainOverrideIPPortSep)
 }
 
 func (do *DomainOverride) SetDomain(domain string) error {
@@ -49,6 +58,10 @@ func (do *DomainOverride) SetDomain(domain string) error {
 
 // TODO support address without port specified (default to 53/853).
 func (do *DomainOverride) SetIPAddress(ipAddress string) error {
+	if ipAddress == "" {
+		return nil
+	}
+
 	addr, err := netip.ParseAddrPort(ipAddress)
 	if err != nil {
 		return err
@@ -127,7 +140,7 @@ func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 			port = strconv.Itoa(DefaultTLSDNSPort)
 		}
 
-		index := strings.LastIndex(resp.IPAddress, "@")
+		index := strings.LastIndex(resp.IPAddress, domainOverrideIPPortSep)
 		if index != -1 {
 			addr = resp.IPAddress[:index]
 			port = resp.IPAddress[index+1:]

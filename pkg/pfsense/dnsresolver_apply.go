@@ -2,14 +2,11 @@ package pfsense
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 )
-
-var ErrApplyDNSResolverChange = errors.New("failed to apply DNS resolver changes")
 
 func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) error {
 	pf.mutexes.DNSResolverApply.Lock()
@@ -22,7 +19,7 @@ func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) error {
 
 	resp, err := pf.call(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return fmt.Errorf("%w, %w", ErrApplyDNSResolverChange, err)
+		return fmt.Errorf("%w dns resolver changes, %w", ErrApplyOperationFailed, err)
 	}
 
 	defer resp.Body.Close()
