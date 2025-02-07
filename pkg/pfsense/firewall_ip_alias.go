@@ -31,6 +31,10 @@ type FirewallIPAliasEntry struct {
 	Description string
 }
 
+func (FirewallIPAlias) Types() []string {
+	return []string{"host", "network"}
+}
+
 func (ipAlias *FirewallIPAlias) SetName(name string) error {
 	ipAlias.Name = name
 
@@ -50,7 +54,6 @@ func (ipAlias *FirewallIPAlias) SetType(t string) error {
 }
 
 func (entry *FirewallIPAliasEntry) SetAddress(addr string) error {
-	// TODO can be a IP, CIDR, FQDN, or Alias -- how to validate?
 	entry.Address = addr
 
 	return nil

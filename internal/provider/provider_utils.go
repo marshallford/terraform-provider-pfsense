@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -111,15 +112,15 @@ func addWarning(diags *diag.Diagnostics, summary string, err error) bool { //nol
 	return false
 }
 
-// func wrapElements(input []string, wrap string) []string {
-// 	output := make([]string, 0, len(input))
-// 	for _, element := range input {
-// 		output = append(output, fmt.Sprintf("%s%s%s", wrap, element, wrap))
-// 	}
+func wrapElements(input []string, wrap string) []string {
+	output := make([]string, 0, len(input))
+	for _, element := range input {
+		output = append(output, fmt.Sprintf("%s%s%s", wrap, element, wrap))
+	}
 
-// 	return output
-// }
+	return output
+}
 
-// func wrapElementsJoin(input []string, wrap string) string {
-// 	return strings.Join(wrapElements(input, wrap), ", ")
-// }
+func wrapElementsJoin(input []string, wrap string) string {
+	return strings.Join(wrapElements(input, wrap), ", ")
+}

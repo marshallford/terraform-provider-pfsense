@@ -54,7 +54,7 @@ resource "pfsense_firewall_ip_alias" "advanced_example" {
 ### Required
 
 - `name` (String) Name of IP alias.
-- `type` (String) Type of alias.
+- `type` (String) Type of alias. Options: `host`, `network`.
 
 ### Optional
 

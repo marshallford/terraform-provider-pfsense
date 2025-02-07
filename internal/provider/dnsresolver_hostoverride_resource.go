@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
@@ -50,6 +53,9 @@ func (r *DNSResolverHostOverrideResource) Schema(_ context.Context, _ resource.S
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsDNSLabel(),
+				},
 			},
 			"domain": schema.StringAttribute{
 				Description: DNSResolverHostOverrideModel{}.descriptions()["domain"].Description,
@@ -57,15 +63,24 @@ func (r *DNSResolverHostOverrideResource) Schema(_ context.Context, _ resource.S
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsDomain(),
+				},
 			},
 			"ip_addresses": schema.ListAttribute{
 				Description: DNSResolverHostOverrideModel{}.descriptions()["ip_addresses"].Description,
 				Required:    true,
 				ElementType: types.StringType,
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(stringIsIPAddress("any")),
+				},
 			},
 			"description": schema.StringAttribute{
 				Description: DNSResolverHostOverrideModel{}.descriptions()["description"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"apply": schema.BoolAttribute{
 				Description:         applyDescription,
@@ -91,14 +106,23 @@ func (r *DNSResolverHostOverrideResource) Schema(_ context.Context, _ resource.S
 						"host": schema.StringAttribute{
 							Description: DNSResolverHostOverrideAliasModel{}.descriptions()["host"].Description,
 							Optional:    true,
+							Validators: []validator.String{
+								stringIsDNSLabel(),
+							},
 						},
 						"domain": schema.StringAttribute{
 							Description: DNSResolverHostOverrideAliasModel{}.descriptions()["domain"].Description,
 							Required:    true,
+							Validators: []validator.String{
+								stringIsDomain(),
+							},
 						},
 						"description": schema.StringAttribute{
 							Description: DNSResolverHostOverrideAliasModel{}.descriptions()["description"].Description,
 							Optional:    true,
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+							},
 						},
 					},
 				},

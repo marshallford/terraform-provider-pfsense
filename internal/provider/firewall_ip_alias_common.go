@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -31,7 +32,8 @@ func (FirewallIPAliasModel) descriptions() map[string]attrDescription {
 			Description: descriptionDescription,
 		},
 		"type": {
-			Description: "Type of alias.",
+			Description:         fmt.Sprintf("Type of alias. Options: %s.", wrapElementsJoin(pfsense.FirewallIPAlias{}.Types(), "'")),
+			MarkdownDescription: fmt.Sprintf("Type of alias. Options: %s.", wrapElementsJoin(pfsense.FirewallIPAlias{}.Types(), "`")),
 		},
 		"entries": {
 			Description: "Host(s) or network(s).",

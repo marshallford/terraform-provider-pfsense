@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
@@ -52,6 +55,9 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsInterface(),
+				},
 			},
 			"mac_address": schema.StringAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["mac_address"].Description,
@@ -60,14 +66,23 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsMACAddress(),
+				},
 			},
 			"client_identifier": schema.StringAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["client_identifier"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"ip_address": schema.StringAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["ip_address"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringIsIPAddress("ipv4"),
+				},
 			},
 			"arp_table_static_entry": schema.BoolAttribute{
 				Description:         DHCPDV4StaticMappingModel{}.descriptions()["arp_table_static_entry"].Description,
@@ -79,10 +94,16 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 			"hostname": schema.StringAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["hostname"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringIsDNSLabel(),
+				},
 			},
 			"description": schema.StringAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["description"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"wins_servers": schema.ListAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["wins_servers"].Description,
@@ -90,6 +111,10 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				Optional:    true,
 				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 				ElementType: types.StringType,
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(stringIsIPAddress("ipv4")),
+					listvalidator.SizeAtMost(pfsense.StaticMappingMaxWINSServers),
+				},
 			},
 			"dns_servers": schema.ListAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["dns_servers"].Description,
@@ -97,14 +122,24 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				Optional:    true,
 				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 				ElementType: types.StringType,
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(stringIsIPAddress("ipv4")),
+					listvalidator.SizeAtMost(pfsense.StaticMappingMaxDNSServers),
+				},
 			},
 			"gateway": schema.StringAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["gateway"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringIsIPAddress("ipv4"),
+				},
 			},
 			"domain_name": schema.StringAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["domain_name"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringIsDomain(),
+				},
 			},
 			"domain_search_list": schema.ListAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["domain_search_list"].Description,
@@ -112,6 +147,9 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				Optional:    true,
 				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 				ElementType: types.StringType,
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(stringIsDomain()),
+				},
 			},
 			"default_lease_time": schema.StringAttribute{
 				Description: DHCPDV4StaticMappingModel{}.descriptions()["default_lease_time"].Description,

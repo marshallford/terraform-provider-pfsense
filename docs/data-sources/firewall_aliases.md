@@ -40,7 +40,7 @@ Read-Only:
 - `description` (String) For administrative reference (not parsed).
 - `entries` (Attributes List) Host(s) or network(s). (see [below for nested schema](#nestedatt--ip--entries))
 - `name` (String) Name of IP alias.
-- `type` (String) Type of alias.
+- `type` (String) Type of alias. Options: `host`, `network`.
 
 <a id="nestedatt--ip--entries"></a>
 ### Nested Schema for `ip.entries`
