@@ -113,6 +113,7 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				ElementType: types.StringType,
 				Validators: []validator.List{
 					listvalidator.ValueStringsAre(stringIsIPAddress("ipv4")),
+					listvalidator.SizeAtMost(pfsense.StaticMappingMaxWINSServers),
 				},
 			},
 			"dns_servers": schema.ListAttribute{
@@ -123,6 +124,7 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				ElementType: types.StringType,
 				Validators: []validator.List{
 					listvalidator.ValueStringsAre(stringIsIPAddress("ipv4")),
+					listvalidator.SizeAtMost(pfsense.StaticMappingMaxDNSServers),
 				},
 			},
 			"gateway": schema.StringAttribute{

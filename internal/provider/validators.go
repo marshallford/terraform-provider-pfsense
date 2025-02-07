@@ -34,7 +34,7 @@ func stringIsDNSLabel() stringIsDNSLabelValidator {
 type stringIsDomainValidator struct{}
 
 func (v stringIsDomainValidator) Description(_ context.Context) string {
-	return "string must be a domain" // TODO improve
+	return "string must be a domain"
 }
 
 func (v stringIsDomainValidator) MarkdownDescription(ctx context.Context) string {
@@ -47,7 +47,7 @@ func (v stringIsDomainValidator) ValidateString(_ context.Context, req validator
 	}
 
 	err := pfsense.ValidateDomain(req.ConfigValue.ValueString())
-	addPathError(&resp.Diagnostics, req.Path, "Not a valid domain", err) // TODO improve
+	addPathError(&resp.Diagnostics, req.Path, "Not a valid domain", err)
 }
 
 func stringIsDomain() stringIsDomainValidator {

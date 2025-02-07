@@ -186,7 +186,6 @@ func ValidateIPAddress(addr string, addrFamily string) error {
 	return nil
 }
 
-// starting place
 func ValidateIPAddressPort(addrPort string) error {
 	if len(addrPort) == 0 {
 		return fmt.Errorf("%w, address and port cannot be empty", ErrClientValidation)

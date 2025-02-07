@@ -43,7 +43,6 @@ func (portAlias *FirewallPortAlias) SetDescription(description string) error {
 }
 
 func (entry *FirewallPortAliasEntry) SetPort(port string) error {
-	// TODO can be a Port, Port Range, or Alias -- how to validate?
 	entry.Port = port
 
 	return nil

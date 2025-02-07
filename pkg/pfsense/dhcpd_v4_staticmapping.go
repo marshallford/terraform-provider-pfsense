@@ -14,8 +14,8 @@ import (
 
 const (
 	staticMappingDomainSearchListSep = ";"
-	// staticMappingMaxWINSServers = 2
-	// staticMappingMaxDNSServers  = 4
+	StaticMappingMaxWINSServers      = 2
+	StaticMappingMaxDNSServers       = 4
 )
 
 type dhcpdV4StaticMappingResponse struct {

@@ -80,7 +80,7 @@ func (r *FirewallPortAliasResource) Schema(_ context.Context, _ resource.SchemaR
 							Description: FirewallPortAliasEntryModel{}.descriptions()["port"].Description,
 							Required:    true,
 							Validators: []validator.String{
-								// TODO allowing aliases effectively disables the port validation
+								// TODO aliases effectively disables the port validation
 								stringvalidator.Any(stringIsPort(), stringIsPortRange(), stringIsAlias()),
 							},
 						},
@@ -90,6 +90,9 @@ func (r *FirewallPortAliasResource) Schema(_ context.Context, _ resource.SchemaR
 							Optional:    true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
+							},
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
 							},
 						},
 					},
