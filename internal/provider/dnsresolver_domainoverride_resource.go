@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
@@ -48,10 +50,16 @@ func (r *DNSResolverDomainOverrideResource) Schema(_ context.Context, _ resource
 					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsDomain(),
+				},
 			},
 			"ip_address": schema.StringAttribute{
 				Description: DNSResolverDomainOverrideModel{}.descriptions()["ip_address"].Description,
 				Required:    true,
+				Validators: []validator.String{
+					stringIsIPAddressPort(),
+				},
 			},
 			"tls_queries": schema.BoolAttribute{
 				Description:         DNSResolverDomainOverrideModel{}.descriptions()["tls_queries"].Description,
@@ -63,10 +71,16 @@ func (r *DNSResolverDomainOverrideResource) Schema(_ context.Context, _ resource
 			"tls_hostname": schema.StringAttribute{
 				Description: DNSResolverDomainOverrideModel{}.descriptions()["tls_hostname"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringIsDomain(),
+				},
 			},
 			"description": schema.StringAttribute{
 				Description: DNSResolverDomainOverrideModel{}.descriptions()["description"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"apply": schema.BoolAttribute{
 				Description:         applyDescription,

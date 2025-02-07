@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
@@ -36,6 +37,9 @@ func (d *DHCPDV4StaticMappingsDataSource) Schema(_ context.Context, _ datasource
 			"interface": schema.StringAttribute{
 				Description: "Network interface.",
 				Required:    true,
+				Validators: []validator.String{
+					stringIsInterface(),
+				},
 			},
 			"all": schema.ListNestedAttribute{
 				Description: "All static mappings.",

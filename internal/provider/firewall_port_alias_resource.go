@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
@@ -49,10 +51,16 @@ func (r *FirewallPortAliasResource) Schema(_ context.Context, _ resource.SchemaR
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsAlias(),
+				},
 			},
 			"description": schema.StringAttribute{
 				Description: FirewallPortAliasModel{}.descriptions()["description"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"apply": schema.BoolAttribute{
 				Description:         applyDescription,
@@ -71,6 +79,10 @@ func (r *FirewallPortAliasResource) Schema(_ context.Context, _ resource.SchemaR
 						"port": schema.StringAttribute{
 							Description: FirewallPortAliasEntryModel{}.descriptions()["port"].Description,
 							Required:    true,
+							Validators: []validator.String{
+								// TODO allowing aliases effectively disables the port validation
+								stringvalidator.Any(stringIsPort(), stringIsPortRange(), stringIsAlias()),
+							},
 						},
 						"description": schema.StringAttribute{
 							Description: FirewallPortAliasEntryModel{}.descriptions()["description"].Description,

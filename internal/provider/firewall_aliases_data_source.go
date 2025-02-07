@@ -80,8 +80,9 @@ func (d *FirewallAliasesDataSource) Schema(_ context.Context, _ datasource.Schem
 							Computed:    true,
 						},
 						"type": schema.StringAttribute{
-							Description: FirewallIPAliasModel{}.descriptions()["type"].Description,
-							Computed:    true,
+							Description:         FirewallIPAliasModel{}.descriptions()["type"].Description,
+							MarkdownDescription: FirewallIPAliasModel{}.descriptions()["type"].MarkdownDescription,
+							Computed:            true,
 						},
 						"entries": schema.ListNestedAttribute{
 							Description: FirewallIPAliasModel{}.descriptions()["entries"].Description,

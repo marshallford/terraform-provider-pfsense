@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 )
 
@@ -36,11 +35,6 @@ func (cf ConfigFile) formatContent() string {
 }
 
 func (cf *ConfigFile) SetName(name string) error {
-	isValidName := regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`).MatchString
-	if !isValidName(name) {
-		return fmt.Errorf("%w, config file name must only consist of lowercase alphanumeric characters (with dashes)", ErrClientValidation)
-	}
-
 	cf.Name = name
 
 	return nil

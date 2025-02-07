@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
@@ -49,16 +51,26 @@ func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaReq
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsAlias(),
+				},
 			},
 			"description": schema.StringAttribute{
 				Description: FirewallIPAliasModel{}.descriptions()["description"].Description,
 				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"type": schema.StringAttribute{
-				Description: FirewallIPAliasModel{}.descriptions()["type"].Description,
-				Required:    true,
+				Description:         FirewallIPAliasModel{}.descriptions()["type"].Description,
+				MarkdownDescription: FirewallIPAliasModel{}.descriptions()["type"].MarkdownDescription,
+				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf(pfsense.FirewallIPAlias{}.Types()...),
 				},
 			},
 			"apply": schema.BoolAttribute{
@@ -78,6 +90,10 @@ func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaReq
 						"address": schema.StringAttribute{
 							Description: FirewallIPAliasEntryModel{}.descriptions()["address"].Description,
 							Required:    true,
+							Validators: []validator.String{
+								// https://github.com/hashicorp/terraform-plugin-framework-validators/issues/113
+								stringvalidator.Any(stringIsNetwork(), stringIsIPAddress("any"), stringIsDomain(), stringIsAlias()),
+							},
 						},
 						"description": schema.StringAttribute{
 							Description: FirewallIPAliasEntryModel{}.descriptions()["description"].Description,
@@ -85,6 +101,9 @@ func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaReq
 							Optional:    true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
+							},
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
 							},
 						},
 					},
