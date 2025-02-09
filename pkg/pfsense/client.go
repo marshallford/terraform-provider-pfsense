@@ -19,12 +19,15 @@ import (
 )
 
 const (
-	DefaultURL           = "https://192.168.1.1"
-	DefaultUsername      = "admin"
-	DefaultTLSSkipVerify = false
-	DefaultRetryMinWait  = time.Second
-	DefaultRetryMaxWait  = 5 * time.Second
-	DefaultMaxAttempts   = 3
+	DefaultURL                       = "https://192.168.1.1"
+	DefaultUsername                  = "admin"
+	DefaultTLSSkipVerify             = false
+	DefaultRetryMinWait              = time.Second
+	DefaultRetryMaxWait              = 5 * time.Second
+	DefaultMaxAttempts               = 3
+	staticMappingDomainSearchListSep = ";"
+	StaticMappingMaxWINSServers      = 2
+	StaticMappingMaxDNSServers       = 4
 )
 
 type Options struct {
@@ -75,7 +78,7 @@ func (opts Options) newHTTPClient() *http.Client {
 func (pf *Client) updateToken(doc *goquery.Document) error {
 	head := doc.FindMatcher(goquery.Single("head")).Text()
 	if head == "" {
-		return ErrUnableToScrapeHTML
+		return fmt.Errorf("%w, html head not found", ErrUnableToScrapeHTML)
 	}
 	tokenKey := regexp.MustCompile(`var csrfMagicName = "([^"]+)";`)
 	token := regexp.MustCompile(`var csrfMagicToken = "([^"]+)";`)
@@ -83,13 +86,13 @@ func (pf *Client) updateToken(doc *goquery.Document) error {
 	tokenMatches := token.FindStringSubmatch(head)
 
 	if len(tokenKeyMatches) < 1 {
-		return fmt.Errorf("%w, token key not found", ErrLoginFailed)
+		return fmt.Errorf("%w, token key not found", ErrUnableToScrapeHTML)
 	}
 
 	pf.tokenKey = tokenKeyMatches[1]
 
 	if len(tokenMatches) < 1 {
-		return fmt.Errorf("%w, token not found", ErrLoginFailed)
+		return fmt.Errorf("%w, token not found", ErrUnableToScrapeHTML)
 	}
 
 	pf.token = tokenMatches[1]
@@ -171,7 +174,7 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	body := doc.FindMatcher(goquery.Single("body"))
 
 	if body.Length() != 1 {
-		return nil, fmt.Errorf("%w, %w", ErrLoginFailed, ErrUnableToScrapeHTML)
+		return nil, fmt.Errorf("%w, html body", ErrUnableToScrapeHTML)
 	}
 
 	if strings.Contains(body.Text(), "Username or Password incorrect") {

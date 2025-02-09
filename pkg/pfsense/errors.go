@@ -6,7 +6,7 @@ import (
 
 var (
 	ErrFailedRequest         = errors.New("failed request")
-	ErrHTTPStatus            = errors.New("HTTP status")
+	ErrHTTPStatus            = errors.New("http status")
 	ErrLoginFailed           = errors.New("login failed")
 	ErrNotFound              = errors.New("not found")
 	ErrUnableToParse         = errors.New("unable to parse")
