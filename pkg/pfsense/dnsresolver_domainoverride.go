@@ -113,6 +113,7 @@ func (dos DomainOverrides) GetControlIDByDomain(domain string) (*int, error) {
 }
 
 func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOverrides, error) {
+	unableToParseResErr := fmt.Errorf("%w domain override response", ErrUnableToParse)
 	bytes, err := pf.getConfigJSON(ctx, "['unbound']['domainoverrides']")
 	if err != nil {
 		return nil, err
@@ -121,7 +122,7 @@ func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 	var doResp []domainOverrideResponse
 	err = json.Unmarshal(bytes, &doResp)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %w", ErrUnableToParse, err)
+		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 	}
 
 	domainOverrides := make(DomainOverrides, 0, len(doResp))
@@ -131,7 +132,7 @@ func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 
 		err = domainOverride.SetDomain(resp.Domain)
 		if err != nil {
-			return nil, fmt.Errorf("%w domain override response, %w", ErrUnableToParse, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		addr := resp.IPAddress
@@ -148,7 +149,7 @@ func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 
 		err = domainOverride.SetIPAddress(strings.Join([]string{addr, port}, ":"))
 		if err != nil {
-			return nil, fmt.Errorf("%w domain override response, %w", ErrUnableToParse, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		if resp.TLSQueries != nil {
@@ -160,12 +161,12 @@ func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 
 		err = domainOverride.SetTLSHostname(resp.TLSHostname)
 		if err != nil {
-			return nil, fmt.Errorf("%w domain override response, %w", ErrUnableToParse, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		err = domainOverride.SetDescription(resp.Description)
 		if err != nil {
-			return nil, fmt.Errorf("%w domain override response, %w", ErrUnableToParse, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		domainOverrides = append(domainOverrides, domainOverride)
@@ -192,13 +193,18 @@ func (pf *Client) GetDNSResolverDomainOverride(ctx context.Context, domain strin
 
 	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w domain override (domain '%s'), %w", ErrGetOperationFailed, domain, err)
+		return nil, fmt.Errorf("%w domain overrides, %w", ErrGetOperationFailed, err)
 	}
 
-	return domainOverrides.GetByDomain(domain)
+	domainOverride, err := domainOverrides.GetByDomain(domain)
+	if err != nil {
+		return nil, fmt.Errorf("%w domain override, %w", ErrGetOperationFailed, err)
+	}
+
+	return domainOverride, nil
 }
 
-func (pf *Client) createOrUpdateDNSResolverDomainOverride(ctx context.Context, domainOverrideReq DomainOverride, controlID *int) (*DomainOverride, error) {
+func (pf *Client) createOrUpdateDNSResolverDomainOverride(ctx context.Context, domainOverrideReq DomainOverride, controlID *int) error {
 	relativeURL := url.URL{Path: "services_unbound_domainoverride_edit.php"}
 	values := url.Values{
 		"domain":       {domainOverrideReq.Domain},
@@ -220,34 +226,28 @@ func (pf *Client) createOrUpdateDNSResolverDomainOverride(ctx context.Context, d
 
 	doc, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = scrapeHTMLValidationErrors(doc)
-	if err != nil {
-		return nil, err
-	}
-
-	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	domainOverride, err := domainOverrides.GetByDomain(domainOverrideReq.Domain)
-	if err != nil {
-		return nil, err
-	}
-
-	return domainOverride, nil
+	return scrapeHTMLValidationErrors(doc)
 }
 
 func (pf *Client) CreateDNSResolverDomainOverride(ctx context.Context, domainOverrideReq DomainOverride) (*DomainOverride, error) {
 	pf.mutexes.DNSResolverDomainOverride.Lock()
 	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
 
-	domainOverride, err := pf.createOrUpdateDNSResolverDomainOverride(ctx, domainOverrideReq, nil)
-	if err != nil {
+	if err := pf.createOrUpdateDNSResolverDomainOverride(ctx, domainOverrideReq, nil); err != nil {
 		return nil, fmt.Errorf("%w domain override, %w", ErrCreateOperationFailed, err)
+	}
+
+	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w domain overrides after creating, %w", ErrGetOperationFailed, err)
+	}
+
+	domainOverride, err := domainOverrides.GetByDomain(domainOverrideReq.Domain)
+	if err != nil {
+		return nil, fmt.Errorf("%w domain override after creating, %w", ErrGetOperationFailed, err)
 	}
 
 	return domainOverride, nil
@@ -259,20 +259,43 @@ func (pf *Client) UpdateDNSResolverDomainOverride(ctx context.Context, domainOve
 
 	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w domain override, %w", ErrUpdateOperationFailed, err)
+		return nil, fmt.Errorf("%w domain overrides, %w", ErrGetOperationFailed, err)
 	}
 
 	controlID, err := domainOverrides.GetControlIDByDomain(domainOverrideReq.Domain)
 	if err != nil {
+		return nil, fmt.Errorf("%w domain override, %w", ErrGetOperationFailed, err)
+	}
+
+	if err := pf.createOrUpdateDNSResolverDomainOverride(ctx, domainOverrideReq, controlID); err != nil {
 		return nil, fmt.Errorf("%w domain override, %w", ErrUpdateOperationFailed, err)
 	}
 
-	domainOverride, err := pf.createOrUpdateDNSResolverDomainOverride(ctx, domainOverrideReq, controlID)
+	domainOverrides, err = pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w domain override, %w", ErrUpdateOperationFailed, err)
+		return nil, fmt.Errorf("%w domain overrides after updating, %w", ErrGetOperationFailed, err)
 	}
 
+	domainOverride, err := domainOverrides.GetByDomain(domainOverrideReq.Domain)
+	if err != nil {
+		return nil, fmt.Errorf("%w domain override after updating, %w", ErrGetOperationFailed, err)
+	}
+
+	// TODO equality check
 	return domainOverride, nil
+}
+
+func (pf *Client) deleteDNSResolverDomainOverride(ctx context.Context, controlID int) error {
+	relativeURL := url.URL{Path: "services_unbound.php"}
+	values := url.Values{
+		"type": {"doverride"},
+		"act":  {"del"},
+		"id":   {strconv.Itoa(controlID)},
+	}
+
+	_, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
+
+	return err
 }
 
 func (pf *Client) DeleteDNSResolverDomainOverride(ctx context.Context, domain string) error {
@@ -281,24 +304,25 @@ func (pf *Client) DeleteDNSResolverDomainOverride(ctx context.Context, domain st
 
 	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
-		return fmt.Errorf("%w domain override, %w", ErrDeleteOperationFailed, err)
+		return fmt.Errorf("%w domain overrides, %w", ErrGetOperationFailed, err)
 	}
 
 	controlID, err := domainOverrides.GetControlIDByDomain(domain)
 	if err != nil {
+		return fmt.Errorf("%w domain override, %w", ErrGetOperationFailed, err)
+	}
+
+	if err := pf.deleteDNSResolverDomainOverride(ctx, *controlID); err != nil {
 		return fmt.Errorf("%w domain override, %w", ErrDeleteOperationFailed, err)
 	}
 
-	relativeURL := url.URL{Path: "services_unbound.php"}
-	values := url.Values{
-		"type": {"doverride"},
-		"act":  {"del"},
-		"id":   {strconv.Itoa(*controlID)},
-	}
-
-	_, err = pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
+	domainOverrides, err = pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
-		return fmt.Errorf("%w domain override, %w", ErrDeleteOperationFailed, err)
+		return fmt.Errorf("%w domain overrides after deleting, %w", ErrGetOperationFailed, err)
+	}
+
+	if _, err := domainOverrides.GetByDomain(domain); err == nil {
+		return fmt.Errorf("%w domain override, still exists", ErrDeleteOperationFailed)
 	}
 
 	return nil

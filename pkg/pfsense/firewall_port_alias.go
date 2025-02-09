@@ -63,7 +63,7 @@ func (portAliases FirewallPortAliases) GetByName(name string) (*FirewallPortAlia
 		}
 	}
 
-	return nil, fmt.Errorf("firewall port alias %w with name '%s'", ErrNotFound, name)
+	return nil, fmt.Errorf("port alias %w with name '%s'", ErrNotFound, name)
 }
 
 func (portAliases FirewallPortAliases) GetControlIDByName(name string) (*int, error) {
@@ -73,10 +73,11 @@ func (portAliases FirewallPortAliases) GetControlIDByName(name string) (*int, er
 		}
 	}
 
-	return nil, fmt.Errorf("firewall port alias %w with name '%s'", ErrNotFound, name)
+	return nil, fmt.Errorf("port alias %w with name '%s'", ErrNotFound, name)
 }
 
 func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAliases, error) {
+	unableToParseResErr := fmt.Errorf("%w port alias response", ErrUnableToParse)
 	command := "$output = array();" +
 		"array_walk($config['aliases']['alias'], function(&$v, $k) use (&$output) {" +
 		"if (in_array($v['type'], array('port'))) {" +
@@ -92,7 +93,7 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 	var portAliasResp []firewallPortAliasResponse
 	err = json.Unmarshal(bytes, &portAliasResp)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %w", ErrUnableToParse, err)
+		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 	}
 
 	portAliases := make(FirewallPortAliases, 0, len(portAliasResp))
@@ -102,12 +103,12 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 
 		err = portAlias.SetName(resp.Name)
 		if err != nil {
-			return nil, fmt.Errorf("%w firewall port alias response, %w", ErrUnableToParse, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		err = portAlias.SetDescription(resp.Description)
 		if err != nil {
-			return nil, fmt.Errorf("%w firewall port alias response, %w", ErrUnableToParse, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		portAlias.controlID = resp.ControlID
@@ -118,11 +119,11 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 			continue
 		}
 
-		addresses := safeSplit(resp.Addresses, " ")
-		details := safeSplit(resp.Details, "||")
+		addresses := safeSplit(resp.Addresses, aliasEntryAddressSep)
+		details := safeSplit(resp.Details, aliasEntryDescriptionSep)
 
 		if len(addresses) != len(details) {
-			return nil, fmt.Errorf("%w firewall port alias response, addresses and descriptions do not match", ErrUnableToParse)
+			return nil, fmt.Errorf("%w, addresses and descriptions do not match", unableToParseResErr)
 		}
 
 		for index := range addresses {
@@ -131,12 +132,12 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 
 			err = entry.SetPort(addresses[index])
 			if err != nil {
-				return nil, fmt.Errorf("%w firewall port alias response, %w", ErrUnableToParse, err)
+				return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 			}
 
 			err = entry.SetDescription(details[index])
 			if err != nil {
-				return nil, fmt.Errorf("%w firewall port alias response, %w", ErrUnableToParse, err)
+				return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 			}
 
 			portAlias.Entries = append(portAlias.Entries, entry)
@@ -154,7 +155,7 @@ func (pf *Client) GetFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 
 	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w firewall port aliases, %w", ErrGetOperationFailed, err)
+		return nil, fmt.Errorf("%w port aliases, %w", ErrGetOperationFailed, err)
 	}
 
 	return portAliases, nil
@@ -166,13 +167,18 @@ func (pf *Client) GetFirewallPortAlias(ctx context.Context, name string) (*Firew
 
 	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w firewall port alias (name '%s'), %w", ErrGetOperationFailed, name, err)
+		return nil, fmt.Errorf("%w port aliases, %w", ErrGetOperationFailed, err)
 	}
 
-	return portAliases.GetByName(name)
+	portAlias, err := portAliases.GetByName(name)
+	if err != nil {
+		return nil, fmt.Errorf("%w port alias, %w", ErrGetOperationFailed, err)
+	}
+
+	return portAlias, nil
 }
 
-func (pf *Client) createOrUpdateFirewallPortAlias(ctx context.Context, portAliasReq FirewallPortAlias, controlID *int) (*FirewallPortAlias, error) {
+func (pf *Client) createOrUpdateFirewallPortAlias(ctx context.Context, portAliasReq FirewallPortAlias, controlID *int) error {
 	relativeURL := url.URL{Path: "firewall_aliases_edit.php"}
 	values := url.Values{
 		"name":  {portAliasReq.Name},
@@ -194,34 +200,28 @@ func (pf *Client) createOrUpdateFirewallPortAlias(ctx context.Context, portAlias
 
 	doc, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = scrapeHTMLValidationErrors(doc)
-	if err != nil {
-		return nil, err
-	}
-
-	portAliases, err := pf.getFirewallPortAliases(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	portAlias, err := portAliases.GetByName(portAliasReq.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	return portAlias, nil
+	return scrapeHTMLValidationErrors(doc)
 }
 
 func (pf *Client) CreateFirewallPortAlias(ctx context.Context, portAliasReq FirewallPortAlias) (*FirewallPortAlias, error) {
 	pf.mutexes.FirewallAlias.Lock()
 	defer pf.mutexes.FirewallAlias.Unlock()
 
-	portAlias, err := pf.createOrUpdateFirewallPortAlias(ctx, portAliasReq, nil)
+	if err := pf.createOrUpdateFirewallPortAlias(ctx, portAliasReq, nil); err != nil {
+		return nil, fmt.Errorf("%w port alias, %w", ErrCreateOperationFailed, err)
+	}
+
+	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w firewall port alias, %w", ErrCreateOperationFailed, err)
+		return nil, fmt.Errorf("%w port aliases after creating, %w", ErrGetOperationFailed, err)
+	}
+
+	portAlias, err := portAliases.GetByName(portAliasReq.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%w port alias after creating, %w", ErrGetOperationFailed, err)
 	}
 
 	return portAlias, nil
@@ -233,17 +233,26 @@ func (pf *Client) UpdateFirewallPortAlias(ctx context.Context, portAliasReq Fire
 
 	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w firewall port alias, %w", ErrUpdateOperationFailed, err)
+		return nil, fmt.Errorf("%w port aliases, %w", ErrGetOperationFailed, err)
 	}
 
 	controlID, err := portAliases.GetControlIDByName(portAliasReq.Name)
 	if err != nil {
-		return nil, fmt.Errorf("%w firewall port alias, %w", ErrUpdateOperationFailed, err)
+		return nil, fmt.Errorf("%w port alias, %w", ErrGetOperationFailed, err)
 	}
 
-	portAlias, err := pf.createOrUpdateFirewallPortAlias(ctx, portAliasReq, controlID)
+	if err := pf.createOrUpdateFirewallPortAlias(ctx, portAliasReq, controlID); err != nil {
+		return nil, fmt.Errorf("%w port alias, %w", ErrUpdateOperationFailed, err)
+	}
+
+	portAliases, err = pf.getFirewallPortAliases(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w firewall port alias, %w", ErrUpdateOperationFailed, err)
+		return nil, fmt.Errorf("%w port aliases after updating, %w", ErrGetOperationFailed, err)
+	}
+
+	portAlias, err := portAliases.GetByName(portAliasReq.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%w port alias after updating, %w", ErrGetOperationFailed, err)
 	}
 
 	return portAlias, nil
@@ -255,23 +264,25 @@ func (pf *Client) DeleteFirewallPortAlias(ctx context.Context, name string) erro
 
 	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {
-		return fmt.Errorf("%w firewall port alias, %w", ErrDeleteOperationFailed, err)
+		return fmt.Errorf("%w port aliases, %w", ErrGetOperationFailed, err)
 	}
 
 	controlID, err := portAliases.GetControlIDByName(name)
 	if err != nil {
-		return fmt.Errorf("%w firewall port alias, %w", ErrDeleteOperationFailed, err)
+		return fmt.Errorf("%w port alias, %w", ErrGetOperationFailed, err)
 	}
 
-	relativeURL := url.URL{Path: "firewall_aliases.php"}
-	values := url.Values{
-		"act": {"del"},
-		"id":  {strconv.Itoa(*controlID)},
+	if err := pf.deleteFirewallAlias(ctx, *controlID); err != nil {
+		return fmt.Errorf("%w port alias, %w", ErrDeleteOperationFailed, err)
 	}
 
-	_, err = pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
+	portAliases, err = pf.getFirewallPortAliases(ctx)
 	if err != nil {
-		return fmt.Errorf("%w firewall port alias, %w", ErrDeleteOperationFailed, err)
+		return fmt.Errorf("%w port aliases after deleting, %w", ErrGetOperationFailed, err)
+	}
+
+	if _, err := portAliases.GetByName(name); err == nil {
+		return fmt.Errorf("%w port alias, still exists", ErrDeleteOperationFailed)
 	}
 
 	return nil

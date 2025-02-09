@@ -26,7 +26,7 @@ type ConfigFile struct {
 	Content string
 }
 
-func (cf ConfigFile) formatFileName() string {
+func (cf ConfigFile) formatName() string {
 	return fmt.Sprintf("%s/%s.%s", dnsResolverConfigFileDir, cf.Name, dnsResolverConfigFileExt)
 }
 
@@ -59,6 +59,7 @@ func (cfs ConfigFiles) GetByName(name string) (*ConfigFile, error) {
 }
 
 func (pf *Client) getDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, error) {
+	unableToParseResErr := fmt.Errorf("%w config file response", ErrUnableToParse)
 	command := "print_r(json_encode(array_map(function ($filename) {" +
 		fmt.Sprintf("$configs['name'] = basename($filename, '.%s');", dnsResolverConfigFileExt) +
 		"$configs['content'] = file_get_contents($filename);" +
@@ -73,7 +74,7 @@ func (pf *Client) getDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, 
 	var cfResp []configFileResponse
 	err = json.Unmarshal(bytes, &cfResp)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %w", ErrUnableToParse, err)
+		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 	}
 
 	configFiles := make(ConfigFiles, 0, len(cfResp))
@@ -83,12 +84,12 @@ func (pf *Client) getDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, 
 
 		err = configFile.SetName(resp.Name)
 		if err != nil {
-			return nil, fmt.Errorf("%w config file response, %w", ErrUnableToParse, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		err = configFile.SetContent(resp.Content)
 		if err != nil {
-			return nil, fmt.Errorf("%w config file response, %w", ErrUnableToParse, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		configFiles = append(configFiles, configFile)
@@ -109,23 +110,28 @@ func (pf *Client) GetDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, 
 func (pf *Client) GetDNSResolverConfigFile(ctx context.Context, name string) (*ConfigFile, error) {
 	configFiles, err := pf.getDNSResolverConfigFiles(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w config file (name '%s'), %w", ErrGetOperationFailed, name, err)
+		return nil, fmt.Errorf("%w config files, %w", ErrGetOperationFailed, err)
 	}
 
-	return configFiles.GetByName(name)
+	configFile, err := configFiles.GetByName(name)
+	if err != nil {
+		return nil, fmt.Errorf("%w config file, %w", ErrGetOperationFailed, err)
+	}
+
+	return configFile, nil
 }
 
-func (pf *Client) createOrUpdateDNSResolverConfigFile(ctx context.Context, configFileReq ConfigFile) (*ConfigFile, error) {
+func (pf *Client) createOrUpdateDNSResolverConfigFile(ctx context.Context, configFileReq ConfigFile) error {
 	relativeURL := url.URL{Path: "diag_edit.php"}
 	values := url.Values{
-		"file":   {configFileReq.formatFileName()},
+		"file":   {configFileReq.formatName()},
 		"action": {"save"},
 		"data":   {configFileReq.formatContent()},
 	}
 
 	resp, err := pf.call(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer resp.Body.Close()
@@ -133,47 +139,68 @@ func (pf *Client) createOrUpdateDNSResolverConfigFile(ctx context.Context, confi
 	bytes, err := io.ReadAll(resp.Body)
 	_, _ = io.Copy(io.Discard, resp.Body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	message, err := sanitizeHTMLMessage(strings.Trim(string(bytes), "|"))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if !strings.Contains(message, "success") {
-		return nil, fmt.Errorf("%w '%s'", ErrServerValidation, message)
+		return fmt.Errorf("%w '%s'", ErrServerValidation, message)
+	}
+
+	return nil
+}
+
+func (pf *Client) CreateDNSResolverConfigFile(ctx context.Context, configFileReq ConfigFile) (*ConfigFile, error) {
+	if err := pf.createOrUpdateDNSResolverConfigFile(ctx, configFileReq); err != nil {
+		return nil, fmt.Errorf("%w config file, %w", ErrCreateOperationFailed, err)
 	}
 
 	configFiles, err := pf.getDNSResolverConfigFiles(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w config files after creating, %w", ErrGetOperationFailed, err)
 	}
 
 	configFile, err := configFiles.GetByName(configFileReq.Name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w config file after creating, %w", ErrGetOperationFailed, err)
 	}
 
 	return configFile, nil
 }
 
-func (pf *Client) CreateDNSResolverConfigFile(ctx context.Context, configFileReq ConfigFile) (*ConfigFile, error) {
-	cf, err := pf.createOrUpdateDNSResolverConfigFile(ctx, configFileReq)
-	if err != nil {
-		return nil, fmt.Errorf("%w config file, %w", ErrCreateOperationFailed, err)
-	}
-
-	return cf, nil
-}
-
 func (pf *Client) UpdateDNSResolverConfigFile(ctx context.Context, configFileReq ConfigFile) (*ConfigFile, error) {
-	cf, err := pf.createOrUpdateDNSResolverConfigFile(ctx, configFileReq)
-	if err != nil {
+	if err := pf.createOrUpdateDNSResolverConfigFile(ctx, configFileReq); err != nil {
 		return nil, fmt.Errorf("%w config file, %w", ErrUpdateOperationFailed, err)
 	}
 
-	return cf, nil
+	configFiles, err := pf.getDNSResolverConfigFiles(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w config files after updating, %w", ErrGetOperationFailed, err)
+	}
+
+	configFile, err := configFiles.GetByName(configFileReq.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%w config file after updating, %w", ErrGetOperationFailed, err)
+	}
+
+	// TODO equality check
+	return configFile, nil
+}
+
+func (pf *Client) deleteDNSResolverConfigFile(ctx context.Context, formattedName string) error {
+	relativeURL := url.URL{Path: "diag_command.php"}
+	values := url.Values{
+		"txtCommand": {fmt.Sprintf("rm %s", formattedName)},
+		"submit":     {"EXEC"},
+	}
+
+	_, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
+
+	return err
 }
 
 func (pf *Client) DeleteDNSResolverConfigFile(ctx context.Context, name string) error {
@@ -182,15 +209,17 @@ func (pf *Client) DeleteDNSResolverConfigFile(ctx context.Context, name string) 
 		return fmt.Errorf("%w config file, %w", ErrDeleteOperationFailed, err)
 	}
 
-	relativeURL := url.URL{Path: "diag_command.php"}
-	values := url.Values{
-		"txtCommand": {fmt.Sprintf("rm %s", config.formatFileName())},
-		"submit":     {"EXEC"},
+	if err := pf.deleteDNSResolverConfigFile(ctx, config.formatName()); err != nil {
+		return fmt.Errorf("%w config file, %w", ErrDeleteOperationFailed, err)
 	}
 
-	_, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
+	configFiles, err := pf.getDNSResolverConfigFiles(ctx)
 	if err != nil {
-		return fmt.Errorf("%w config file, %w", ErrDeleteOperationFailed, err)
+		return fmt.Errorf("%w config files after deleting, %w", ErrGetOperationFailed, err)
+	}
+
+	if _, err := configFiles.GetByName(name); err == nil {
+		return fmt.Errorf("%w config file, still exists", ErrDeleteOperationFailed)
 	}
 
 	return nil

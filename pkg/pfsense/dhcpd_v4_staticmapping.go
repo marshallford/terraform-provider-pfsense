@@ -12,12 +12,6 @@ import (
 	"time"
 )
 
-const (
-	staticMappingDomainSearchListSep = ";"
-	StaticMappingMaxWINSServers      = 2
-	StaticMappingMaxDNSServers       = 4
-)
-
 type dhcpdV4StaticMappingResponse struct {
 	MACAddress          string   `json:"mac"`
 	ClientIdentifier    string   `json:"cid"`
@@ -230,7 +224,7 @@ func (sms DHCPDV4StaticMappings) GetByMACAddress(macAddress string) (*DHCPDV4Sta
 		}
 	}
 
-	return nil, fmt.Errorf("dhcpd v4 static mapping %w with MAC address '%s'", ErrNotFound, macAddress)
+	return nil, fmt.Errorf("static mapping %w with mac address '%s'", ErrNotFound, macAddress)
 }
 
 func (sms DHCPDV4StaticMappings) GetControlIDByMACAddress(macAddress string) (*int, error) {
@@ -240,7 +234,7 @@ func (sms DHCPDV4StaticMappings) GetControlIDByMACAddress(macAddress string) (*i
 		}
 	}
 
-	return nil, fmt.Errorf("dhcpd v4 static mapping %w with MAC address '%s'", ErrNotFound, macAddress)
+	return nil, fmt.Errorf("static mapping %w with mac address '%s'", ErrNotFound, macAddress)
 }
 
 //nolint:gocognit
@@ -254,7 +248,7 @@ func (pf *Client) getDHCPDV4StaticMappings(ctx context.Context, iface string) (*
 	var smResp []dhcpdV4StaticMappingResponse
 	err = json.Unmarshal(bytes, &smResp)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %w", ErrUnableToParse, err)
+		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 	}
 
 	staticMappings := make(DHCPDV4StaticMappings, 0, len(smResp))
@@ -263,7 +257,7 @@ func (pf *Client) getDHCPDV4StaticMappings(ctx context.Context, iface string) (*
 		var err error
 
 		if err = staticMapping.SetInterface(iface); err != nil {
-			return nil, fmt.Errorf("%w %w", ErrClientValidation, err)
+			return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 		}
 
 		if err = staticMapping.SetMACAddress(resp.MACAddress); err != nil {
@@ -332,7 +326,7 @@ func (pf *Client) GetDHCPDV4StaticMappings(ctx context.Context, iface string) (*
 
 	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, iface)
 	if err != nil {
-		return nil, fmt.Errorf("%w '%s' dhcpd v4 static mappings, %w", ErrGetOperationFailed, iface, err)
+		return nil, fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, iface, err)
 	}
 
 	return staticMappings, nil
@@ -344,13 +338,18 @@ func (pf *Client) GetDHCPDV4StaticMapping(ctx context.Context, iface string, mac
 
 	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, iface)
 	if err != nil {
-		return nil, fmt.Errorf("%w '%s' dhcpd v4 static mapping, %w", ErrGetOperationFailed, iface, err)
+		return nil, fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, iface, err)
 	}
 
-	return staticMappings.GetByMACAddress(macAddress)
+	staticMapping, err := staticMappings.GetByMACAddress(macAddress)
+	if err != nil {
+		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrGetOperationFailed, iface, err)
+	}
+
+	return staticMapping, nil
 }
 
-func (pf *Client) createOrUpdateDHCPDV4StaticMapping(ctx context.Context, staticMappingReq DHCPDV4StaticMapping, controlID *int) (*DHCPDV4StaticMapping, error) {
+func (pf *Client) createOrUpdateDHCPDV4StaticMapping(ctx context.Context, staticMappingReq DHCPDV4StaticMapping, controlID *int) error {
 	relativeURL := url.URL{Path: "services_dhcp_edit.php"}
 	query := relativeURL.Query()
 	query.Set("if", staticMappingReq.Interface)
@@ -389,34 +388,28 @@ func (pf *Client) createOrUpdateDHCPDV4StaticMapping(ctx context.Context, static
 
 	doc, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = scrapeHTMLValidationErrors(doc)
-	if err != nil {
-		return nil, err
-	}
-
-	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, staticMappingReq.Interface)
-	if err != nil {
-		return nil, err
-	}
-
-	staticMapping, err := staticMappings.GetByMACAddress(staticMappingReq.MACAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	return staticMapping, nil
+	return scrapeHTMLValidationErrors(doc)
 }
 
 func (pf *Client) CreateDHCPDV4StaticMapping(ctx context.Context, staticMappingReq DHCPDV4StaticMapping) (*DHCPDV4StaticMapping, error) {
 	pf.mutexes.DHCPDV4StaticMapping.Lock()
 	defer pf.mutexes.DHCPDV4StaticMapping.Unlock()
 
-	staticMapping, err := pf.createOrUpdateDHCPDV4StaticMapping(ctx, staticMappingReq, nil)
+	if err := pf.createOrUpdateDHCPDV4StaticMapping(ctx, staticMappingReq, nil); err != nil {
+		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrCreateOperationFailed, staticMappingReq.Interface, err)
+	}
+
+	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, staticMappingReq.Interface)
 	if err != nil {
-		return nil, fmt.Errorf("%w '%s' dhcpd v4 static mapping, %w", ErrCreateOperationFailed, staticMappingReq.Interface, err)
+		return nil, fmt.Errorf("%w '%s' static mappings after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
+	}
+
+	staticMapping, err := staticMappings.GetByMACAddress(staticMappingReq.MACAddress)
+	if err != nil {
+		return nil, fmt.Errorf("%w '%s' static mapping after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
 	return staticMapping, nil
@@ -428,20 +421,43 @@ func (pf *Client) UpdateDHCPDV4StaticMapping(ctx context.Context, staticMappingR
 
 	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, staticMappingReq.Interface)
 	if err != nil {
-		return nil, fmt.Errorf("%w '%s' dhcpd v4 static mapping, %w", ErrUpdateOperationFailed, staticMappingReq.Interface, err)
+		return nil, fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
 	controlID, err := staticMappings.GetControlIDByMACAddress(staticMappingReq.MACAddress)
 	if err != nil {
-		return nil, fmt.Errorf("%w '%s' dhcpd v4 static mapping, %w", ErrUpdateOperationFailed, staticMappingReq.Interface, err)
+		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
-	staticMapping, err := pf.createOrUpdateDHCPDV4StaticMapping(ctx, staticMappingReq, controlID)
+	if err := pf.createOrUpdateDHCPDV4StaticMapping(ctx, staticMappingReq, controlID); err != nil {
+		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrUpdateOperationFailed, staticMappingReq.Interface, err)
+	}
+
+	staticMappings, err = pf.getDHCPDV4StaticMappings(ctx, staticMappingReq.Interface)
 	if err != nil {
-		return nil, fmt.Errorf("%w '%s' dhcpd v4 static mapping, %w", ErrUpdateOperationFailed, staticMappingReq.Interface, err)
+		return nil, fmt.Errorf("%w '%s' static mappings after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
+	staticMapping, err := staticMappings.GetByMACAddress(staticMappingReq.MACAddress)
+	if err != nil {
+		return nil, fmt.Errorf("%w '%s' static mapping after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
+	}
+
+	// TODO equality check
 	return staticMapping, nil
+}
+
+func (pf *Client) deleteDHCPDV4StaticMapping(ctx context.Context, iface string, controlID int) error {
+	relativeURL := url.URL{Path: "services_dhcp.php"}
+	values := url.Values{
+		"if":  {iface},
+		"act": {"del"},
+		"id":  {strconv.Itoa(controlID)},
+	}
+
+	_, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
+
+	return err
 }
 
 func (pf *Client) DeleteDHCPDV4StaticMapping(ctx context.Context, iface string, macAddress string) error {
@@ -450,24 +466,25 @@ func (pf *Client) DeleteDHCPDV4StaticMapping(ctx context.Context, iface string, 
 
 	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, iface)
 	if err != nil {
-		return fmt.Errorf("%w '%s' dhcpd v4 static mapping, %w", ErrDeleteOperationFailed, iface, err)
+		return fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, iface, err)
 	}
 
 	controlID, err := staticMappings.GetControlIDByMACAddress(macAddress)
 	if err != nil {
-		return fmt.Errorf("%w '%s' dhcpd v4 static mapping, %w", ErrDeleteOperationFailed, iface, err)
+		return fmt.Errorf("%w '%s' static mapping, %w", ErrGetOperationFailed, iface, err)
 	}
 
-	relativeURL := url.URL{Path: "services_dhcp.php"}
-	values := url.Values{
-		"if":  {iface},
-		"act": {"del"},
-		"id":  {strconv.Itoa(*controlID)},
+	if err := pf.deleteDHCPDV4StaticMapping(ctx, iface, *controlID); err != nil {
+		return fmt.Errorf("%w '%s' static mapping, %w", ErrDeleteOperationFailed, iface, err)
 	}
 
-	_, err = pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
+	staticMappings, err = pf.getDHCPDV4StaticMappings(ctx, iface)
 	if err != nil {
-		return fmt.Errorf("%w '%s' dhcpd v4 static mapping, %w", ErrDeleteOperationFailed, iface, err)
+		return fmt.Errorf("%w '%s' static mappings after deleting, %w", ErrGetOperationFailed, iface, err)
+	}
+
+	if _, err := staticMappings.GetByMACAddress(macAddress); err == nil {
+		return fmt.Errorf("%w '%s' static mapping, still exists", ErrDeleteOperationFailed, iface)
 	}
 
 	return nil
