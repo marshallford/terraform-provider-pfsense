@@ -8,6 +8,7 @@
 - [ ] Add provider docs to explain concurrency errors
 - [ ] Add provider option to make all requests serial to minimize errors
 - [ ] Command data source
+- [ ] Add struct equality checks to confirm update calls are successful
 - [ ] Support apply/reload on destroy
 - [ ] Firewall Alias entry resources (non-authoritative)
 - [ ] Add timeouts

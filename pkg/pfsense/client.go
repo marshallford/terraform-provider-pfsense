@@ -174,7 +174,7 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	body := doc.FindMatcher(goquery.Single("body"))
 
 	if body.Length() != 1 {
-		return nil, fmt.Errorf("%w, html body", ErrUnableToScrapeHTML)
+		return nil, fmt.Errorf("%w, html body not found", ErrUnableToScrapeHTML)
 	}
 
 	if strings.Contains(body.Text(), "Username or Password incorrect") {
