@@ -212,7 +212,7 @@ func (m DNSResolverHostOverrideAliasModel) Value(_ context.Context, hostOverride
 			&diags,
 			attrPath.AtName("host"),
 			"Alias host cannot be parsed",
-			hostOverrideAlias.SetDomain(m.Domain.ValueString()),
+			hostOverrideAlias.SetHost(m.Host.ValueString()),
 		)
 	}
 

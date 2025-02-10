@@ -35,10 +35,12 @@ func (DNSResolverConfigFileModel) AttrTypes() map[string]attr.Type {
 }
 
 func (r *DNSResolverConfigFileModel) Set(_ context.Context, configFile pfsense.ConfigFile) diag.Diagnostics {
+	var diags diag.Diagnostics
+
 	r.Name = types.StringValue(configFile.Name)
 	r.Content = types.StringValue(configFile.Content)
 
-	return nil
+	return diags
 }
 
 func (r DNSResolverConfigFileModel) Value(_ context.Context, configFile *pfsense.ConfigFile) diag.Diagnostics {
