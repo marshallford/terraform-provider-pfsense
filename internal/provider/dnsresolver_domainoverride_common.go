@@ -72,6 +72,8 @@ func (m *DNSResolverDomainOverridesModel) Set(ctx context.Context, domainOverrid
 }
 
 func (m *DNSResolverDomainOverrideModel) Set(_ context.Context, domainOverride pfsense.DomainOverride) diag.Diagnostics {
+	var diags diag.Diagnostics
+
 	m.Domain = types.StringValue(domainOverride.Domain)
 	m.IPAddress = types.StringValue(domainOverride.StringifyIPAddress())
 	m.TLSQueries = types.BoolValue(domainOverride.TLSQueries)
@@ -84,7 +86,7 @@ func (m *DNSResolverDomainOverrideModel) Set(_ context.Context, domainOverride p
 		m.Description = types.StringValue(domainOverride.Description)
 	}
 
-	return nil
+	return diags
 }
 
 func (m DNSResolverDomainOverrideModel) Value(_ context.Context, domainOverride *pfsense.DomainOverride) diag.Diagnostics {
