@@ -1,6 +1,7 @@
 # TODO list
 
-- [ ] Use HardwareAddr type for Static Mapping MAC Address
+- [X] Use HardwareAddr type for Static Mapping MAC Address
+- [ ] Add interfaces data source
 - [ ] Refactor Domain Override to consider domain and IP together
 - [ ] Rename IP Alias Entry "address" to "ip"
 - [ ] Rename "DHCPD" to "DHCP"

@@ -130,7 +130,7 @@ func (m *DHCPDV4StaticMappingModel) Set(ctx context.Context, staticMapping pfsen
 	var diags diag.Diagnostics
 
 	m.Interface = types.StringValue(staticMapping.Interface)
-	m.MACAddress = types.StringValue(staticMapping.MACAddress)
+	m.MACAddress = types.StringValue(staticMapping.MACAddress.String())
 
 	if staticMapping.ClientIdentifier != "" {
 		m.ClientIdentifier = types.StringValue(staticMapping.ClientIdentifier)
