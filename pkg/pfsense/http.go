@@ -17,7 +17,7 @@ func shouldRetry(ctx context.Context, resp *http.Response, err error) (bool, err
 	}
 
 	if err != nil {
-		return true, nil //lint:ignore nilerr httpDoErr handled elsewhere
+		return true, nil //nolint:nilerr
 	}
 
 	if resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented) {
