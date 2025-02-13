@@ -22,34 +22,34 @@ import (
 )
 
 var (
-	_ resource.Resource                = &DHCPDV4StaticMappingResource{}
-	_ resource.ResourceWithImportState = &DHCPDV4StaticMappingResource{}
+	_ resource.Resource                = &DHCPv4StaticMappingResource{}
+	_ resource.ResourceWithImportState = &DHCPv4StaticMappingResource{}
 )
 
-type DHCPDV4StaticMappingResourceModel struct {
-	DHCPDV4StaticMappingModel
+type DHCPv4StaticMappingResourceModel struct {
+	DHCPv4StaticMappingModel
 	Apply types.Bool `tfsdk:"apply"`
 }
 
-func NewDHCPDV4StaticMappingResource() resource.Resource { //nolint:ireturn
-	return &DHCPDV4StaticMappingResource{}
+func NewDHCPv4StaticMappingResource() resource.Resource { //nolint:ireturn
+	return &DHCPv4StaticMappingResource{}
 }
 
-type DHCPDV4StaticMappingResource struct {
+type DHCPv4StaticMappingResource struct {
 	client *pfsense.Client
 }
 
-func (r *DHCPDV4StaticMappingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_dhcpdv4_staticmapping", req.ProviderTypeName)
+func (r *DHCPv4StaticMappingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = fmt.Sprintf("%s_dhcpv4_staticmapping", req.ProviderTypeName)
 }
 
-func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DHCPv4StaticMappingResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "DHCPD v4 static mapping. Static DHCP mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries.",
-		MarkdownDescription: "DHCPD v4 [static mapping](https://docs.netgate.com/pfsense/en/latest/services/dhcp/ipv4.html#static-mappings). Static DHCP mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries.",
+		Description:         "DHCPv4 static mapping. Static mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries.",
+		MarkdownDescription: "DHCPv4 [static mapping](https://docs.netgate.com/pfsense/en/latest/services/dhcp/ipv4.html#static-mappings). Static mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries.",
 		Attributes: map[string]schema.Attribute{
 			"interface": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["interface"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["interface"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -60,7 +60,7 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"mac_address": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["mac_address"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["mac_address"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -71,42 +71,42 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"client_identifier": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["client_identifier"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["client_identifier"].Description,
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
 			},
 			"ip_address": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["ip_address"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["ip_address"].Description,
 				Optional:    true,
 				Validators: []validator.String{
 					stringIsIPAddress("ipv4"),
 				},
 			},
 			"arp_table_static_entry": schema.BoolAttribute{
-				Description:         DHCPDV4StaticMappingModel{}.descriptions()["arp_table_static_entry"].Description,
-				MarkdownDescription: DHCPDV4StaticMappingModel{}.descriptions()["arp_table_static_entry"].MarkdownDescription,
+				Description:         DHCPv4StaticMappingModel{}.descriptions()["arp_table_static_entry"].Description,
+				MarkdownDescription: DHCPv4StaticMappingModel{}.descriptions()["arp_table_static_entry"].MarkdownDescription,
 				Computed:            true,
 				Optional:            true,
 				Default:             booldefault.StaticBool(defaultStaticMappingARPTableStaticEntry),
 			},
 			"hostname": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["hostname"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["hostname"].Description,
 				Optional:    true,
 				Validators: []validator.String{
 					stringIsDNSLabel(),
 				},
 			},
 			"description": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["description"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["description"].Description,
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
 			},
 			"wins_servers": schema.ListAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["wins_servers"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["wins_servers"].Description,
 				Computed:    true,
 				Optional:    true,
 				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
@@ -117,7 +117,7 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"dns_servers": schema.ListAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["dns_servers"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["dns_servers"].Description,
 				Computed:    true,
 				Optional:    true,
 				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
@@ -128,21 +128,21 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"gateway": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["gateway"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["gateway"].Description,
 				Optional:    true,
 				Validators: []validator.String{
 					stringIsIPAddress("ipv4"),
 				},
 			},
 			"domain_name": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["domain_name"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["domain_name"].Description,
 				Optional:    true,
 				Validators: []validator.String{
 					stringIsDomain(),
 				},
 			},
 			"domain_search_list": schema.ListAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["domain_search_list"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["domain_search_list"].Description,
 				Computed:    true,
 				Optional:    true,
 				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
@@ -152,12 +152,12 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 				},
 			},
 			"default_lease_time": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["default_lease_time"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["default_lease_time"].Description,
 				Optional:    true,
 				CustomType:  timetypes.GoDurationType{},
 			},
 			"maximum_lease_time": schema.StringAttribute{
-				Description: DHCPDV4StaticMappingModel{}.descriptions()["maximum_lease_time"].Description,
+				Description: DHCPv4StaticMappingModel{}.descriptions()["maximum_lease_time"].Description,
 				Optional:    true,
 				CustomType:  timetypes.GoDurationType{},
 			},
@@ -172,7 +172,7 @@ func (r *DHCPDV4StaticMappingResource) Schema(_ context.Context, _ resource.Sche
 	}
 }
 
-func (r *DHCPDV4StaticMappingResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DHCPv4StaticMappingResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
 	if !ok {
 		return
@@ -181,22 +181,22 @@ func (r *DHCPDV4StaticMappingResource) Configure(_ context.Context, req resource
 	r.client = client
 }
 
-func (r *DHCPDV4StaticMappingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DHCPDV4StaticMappingResourceModel
+func (r *DHCPv4StaticMappingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *DHCPv4StaticMappingResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var staticMappingReq pfsense.DHCPDV4StaticMapping
+	var staticMappingReq pfsense.DHCPv4StaticMapping
 	resp.Diagnostics.Append(data.Value(ctx, &staticMappingReq)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	staticMapping, err := r.client.CreateDHCPDV4StaticMapping(ctx, staticMappingReq)
+	staticMapping, err := r.client.CreateDHCPv4StaticMapping(ctx, staticMappingReq)
 	if addError(&resp.Diagnostics, "Error creating static mapping", err) {
 		return
 	}
@@ -210,20 +210,20 @@ func (r *DHCPDV4StaticMappingResource) Create(ctx context.Context, req resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	if data.Apply.ValueBool() {
-		err = r.client.ApplyDHCPDV4Changes(ctx, data.Interface.ValueString())
+		err = r.client.ApplyDHCPv4Changes(ctx, data.Interface.ValueString())
 		addWarning(&resp.Diagnostics, "Error applying static mapping", err)
 	}
 }
 
-func (r *DHCPDV4StaticMappingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DHCPDV4StaticMappingResourceModel
+func (r *DHCPv4StaticMappingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *DHCPv4StaticMappingResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	staticMapping, err := r.client.GetDHCPDV4StaticMapping(ctx, data.Interface.ValueString(), data.MACAddress.ValueString())
+	staticMapping, err := r.client.GetDHCPv4StaticMapping(ctx, data.Interface.ValueString(), data.MACAddress.ValueString())
 	if addError(&resp.Diagnostics, "Error reading static mapping", err) {
 		return
 	}
@@ -237,22 +237,22 @@ func (r *DHCPDV4StaticMappingResource) Read(ctx context.Context, req resource.Re
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *DHCPDV4StaticMappingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *DHCPDV4StaticMappingResourceModel
+func (r *DHCPv4StaticMappingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *DHCPv4StaticMappingResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var staticMappingReq pfsense.DHCPDV4StaticMapping
+	var staticMappingReq pfsense.DHCPv4StaticMapping
 	resp.Diagnostics.Append(data.Value(ctx, &staticMappingReq)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	staticMapping, err := r.client.UpdateDHCPDV4StaticMapping(ctx, staticMappingReq)
+	staticMapping, err := r.client.UpdateDHCPv4StaticMapping(ctx, staticMappingReq)
 	if addError(&resp.Diagnostics, "Error updating static mapping", err) {
 		return
 	}
@@ -266,20 +266,20 @@ func (r *DHCPDV4StaticMappingResource) Update(ctx context.Context, req resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	if data.Apply.ValueBool() {
-		err = r.client.ApplyDHCPDV4Changes(ctx, data.Interface.ValueString())
+		err = r.client.ApplyDHCPv4Changes(ctx, data.Interface.ValueString())
 		addWarning(&resp.Diagnostics, "Error applying static mapping", err)
 	}
 }
 
-func (r *DHCPDV4StaticMappingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DHCPDV4StaticMappingResourceModel
+func (r *DHCPv4StaticMappingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *DHCPv4StaticMappingResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err := r.client.DeleteDHCPDV4StaticMapping(ctx, data.Interface.ValueString(), data.MACAddress.ValueString())
+	err := r.client.DeleteDHCPv4StaticMapping(ctx, data.Interface.ValueString(), data.MACAddress.ValueString())
 	if addError(&resp.Diagnostics, "Error deleting static mapping", err) {
 		return
 	}
@@ -287,12 +287,12 @@ func (r *DHCPDV4StaticMappingResource) Delete(ctx context.Context, req resource.
 	resp.State.RemoveResource(ctx)
 
 	if data.Apply.ValueBool() {
-		err = r.client.ApplyDHCPDV4Changes(ctx, data.Interface.ValueString())
+		err = r.client.ApplyDHCPv4Changes(ctx, data.Interface.ValueString())
 		addWarning(&resp.Diagnostics, "Error applying static mapping", err)
 	}
 }
 
-func (r *DHCPDV4StaticMappingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DHCPv4StaticMappingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, ",")
 
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
@@ -304,7 +304,7 @@ func (r *DHCPDV4StaticMappingResource) ImportState(ctx context.Context, req reso
 		return
 	}
 
-	var staticMapping pfsense.DHCPDV4StaticMapping
+	var staticMapping pfsense.DHCPv4StaticMapping
 
 	if addError(&resp.Diagnostics, "Interface cannot be parsed", staticMapping.SetInterface(idParts[0])) {
 		return

@@ -20,12 +20,12 @@ import (
 // In addition, the client pkg would need to include an extra func to get all these values
 // and the provider pkg would need to merge the result and mark these attributes as computed
 
-type DHCPDV4StaticMappingsModel struct {
+type DHCPv4StaticMappingsModel struct {
 	Interface types.String `tfsdk:"interface"`
 	All       types.List   `tfsdk:"all"`
 }
 
-type DHCPDV4StaticMappingModel struct {
+type DHCPv4StaticMappingModel struct {
 	Interface           types.String         `tfsdk:"interface"`
 	MACAddress          types.String         `tfsdk:"mac_address"`
 	ClientIdentifier    types.String         `tfsdk:"client_identifier"`
@@ -42,7 +42,7 @@ type DHCPDV4StaticMappingModel struct {
 	MaximumLeaseTime    timetypes.GoDuration `tfsdk:"maximum_lease_time"`
 }
 
-func (DHCPDV4StaticMappingModel) descriptions() map[string]attrDescription {
+func (DHCPv4StaticMappingModel) descriptions() map[string]attrDescription {
 	return map[string]attrDescription{
 		"interface": {
 			Description: "Network interface. Each interface has its own separate DHCP configuration (including static mappings).",
@@ -90,7 +90,7 @@ func (DHCPDV4StaticMappingModel) descriptions() map[string]attrDescription {
 	}
 }
 
-func (DHCPDV4StaticMappingModel) AttrTypes() map[string]attr.Type {
+func (DHCPv4StaticMappingModel) AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"interface":              types.StringType,
 		"mac_address":            types.StringType,
@@ -109,24 +109,24 @@ func (DHCPDV4StaticMappingModel) AttrTypes() map[string]attr.Type {
 	}
 }
 
-func (m *DHCPDV4StaticMappingsModel) Set(ctx context.Context, staticMappings pfsense.DHCPDV4StaticMappings) diag.Diagnostics {
+func (m *DHCPv4StaticMappingsModel) Set(ctx context.Context, staticMappings pfsense.DHCPv4StaticMappings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	staticMappingModels := []DHCPDV4StaticMappingModel{}
+	staticMappingModels := []DHCPv4StaticMappingModel{}
 	for _, staticMapping := range staticMappings {
-		var staticMappingModel DHCPDV4StaticMappingModel
+		var staticMappingModel DHCPv4StaticMappingModel
 		diags.Append(staticMappingModel.Set(ctx, staticMapping)...)
 		staticMappingModels = append(staticMappingModels, staticMappingModel)
 	}
 
-	staticMappingsValue, newDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: DHCPDV4StaticMappingModel{}.AttrTypes()}, staticMappingModels)
+	staticMappingsValue, newDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: DHCPv4StaticMappingModel{}.AttrTypes()}, staticMappingModels)
 	diags.Append(newDiags...)
 	m.All = staticMappingsValue
 
 	return diags
 }
 
-func (m *DHCPDV4StaticMappingModel) Set(ctx context.Context, staticMapping pfsense.DHCPDV4StaticMapping) diag.Diagnostics {
+func (m *DHCPv4StaticMappingModel) Set(ctx context.Context, staticMapping pfsense.DHCPv4StaticMapping) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	m.Interface = types.StringValue(staticMapping.Interface)
@@ -182,7 +182,7 @@ func (m *DHCPDV4StaticMappingModel) Set(ctx context.Context, staticMapping pfsen
 	return diags
 }
 
-func (m DHCPDV4StaticMappingModel) Value(ctx context.Context, staticMapping *pfsense.DHCPDV4StaticMapping) diag.Diagnostics {
+func (m DHCPv4StaticMappingModel) Value(ctx context.Context, staticMapping *pfsense.DHCPv4StaticMapping) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	addPathError(

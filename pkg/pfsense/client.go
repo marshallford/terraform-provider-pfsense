@@ -46,8 +46,8 @@ type mutexes struct {
 	DNSResolverDomainOverride sync.Mutex
 	FirewallFilterReload      sync.Mutex
 	FirewallAlias             sync.Mutex
-	DHCPDV4Apply              sync.Mutex // TODO one per iface
-	DHCPDV4StaticMapping      sync.Mutex // TODO one per iface
+	DHCPv4Apply               sync.Mutex // TODO one per iface
+	DHCPv4StaticMapping       sync.Mutex // TODO one per iface
 }
 
 type Client struct {
