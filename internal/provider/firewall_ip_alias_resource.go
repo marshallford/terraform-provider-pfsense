@@ -87,8 +87,8 @@ func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaReq
 				Default:     listdefault.StaticValue(types.ListValueMust(types.ObjectType{AttrTypes: FirewallIPAliasEntryModel{}.AttrTypes()}, []attr.Value{})),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"address": schema.StringAttribute{
-							Description: FirewallIPAliasEntryModel{}.descriptions()["address"].Description,
+						"ip": schema.StringAttribute{
+							Description: FirewallIPAliasEntryModel{}.descriptions()["ip"].Description,
 							Required:    true,
 							Validators: []validator.String{
 								// https://github.com/hashicorp/terraform-plugin-framework-validators/issues/113

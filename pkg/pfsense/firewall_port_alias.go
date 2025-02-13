@@ -119,23 +119,23 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 			continue
 		}
 
-		addresses := safeSplit(resp.Addresses, aliasEntryAddressSep)
-		details := safeSplit(resp.Details, aliasEntryDescriptionSep)
+		ports := safeSplit(resp.Addresses, aliasEntryAddressSep)
+		descriptions := safeSplit(resp.Details, aliasEntryDescriptionSep)
 
-		if len(addresses) != len(details) {
-			return nil, fmt.Errorf("%w, addresses and descriptions do not match", unableToParseResErr)
+		if len(ports) != len(descriptions) {
+			return nil, fmt.Errorf("%w, ports and descriptions do not match", unableToParseResErr)
 		}
 
-		for index := range addresses {
+		for index := range ports {
 			var entry FirewallPortAliasEntry
 			var err error
 
-			err = entry.SetPort(addresses[index])
+			err = entry.SetPort(ports[index])
 			if err != nil {
 				return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 			}
 
-			err = entry.SetDescription(details[index])
+			err = entry.SetDescription(descriptions[index])
 			if err != nil {
 				return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 			}

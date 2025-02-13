@@ -89,8 +89,8 @@ func (d *FirewallAliasesDataSource) Schema(_ context.Context, _ datasource.Schem
 							Computed:    true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"address": schema.StringAttribute{
-										Description: FirewallIPAliasEntryModel{}.descriptions()["address"].Description,
+									"ip": schema.StringAttribute{
+										Description: FirewallIPAliasEntryModel{}.descriptions()["ip"].Description,
 										Computed:    true,
 									},
 									"description": schema.StringAttribute{
