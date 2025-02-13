@@ -24,6 +24,8 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_wrapper: false
+    - name: Pull
+      run: make -j pull
     - name: Lint
       run: make lint
 

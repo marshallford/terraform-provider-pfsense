@@ -7,22 +7,43 @@ endif
 
 DOCKER := docker
 DOCKER_RUN := $(DOCKER) run $(DOCKER_FLAGS)
+DOCKER_PULL := $(DOCKER) pull -q
 
 TERRAFORM_VERSION ?= 1.10.5
 
-EDITORCONFIG_CHECKER_VERSION ?= 3.0.3
-EDITORCONFIG_CHECKER := $(DOCKER_RUN) -v=$(CURDIR):/check docker.io/mstruebing/editorconfig-checker:v$(EDITORCONFIG_CHECKER_VERSION)
+EDITORCONFIG_CHECKER_VERSION ?= 3.2.0
+EDITORCONFIG_CHECKER_IMAGE ?= docker.io/mstruebing/editorconfig-checker:v$(EDITORCONFIG_CHECKER_VERSION)
+EDITORCONFIG_CHECKER := $(DOCKER_RUN) -v=$(CURDIR):/check $(EDITORCONFIG_CHECKER_IMAGE)
 
 SHELLCHECK_VERSION ?= 0.10.0
-SHELLCHECK := $(DOCKER_RUN) -v=$(CURDIR):/mnt docker.io/koalaman/shellcheck:v$(SHELLCHECK_VERSION)
+SHELLCHECK_IMAGE ?= docker.io/koalaman/shellcheck:v$(SHELLCHECK_VERSION)
+SHELLCHECK := $(DOCKER_RUN) -v=$(CURDIR):/mnt $(SHELLCHECK_IMAGE)
 
 YAMLLINT_VERSION ?= 0.33.0
-YAMLLINT := $(DOCKER_RUN) -v=$(CURDIR):/code docker.io/pipelinecomponents/yamllint:$(YAMLLINT_VERSION) yamllint
+YAMLLINT_IMAGE ?= docker.io/pipelinecomponents/yamllint:$(YAMLLINT_VERSION)
+YAMLLINT := $(DOCKER_RUN) -v=$(CURDIR):/code $(YAMLLINT_IMAGE) yamllint
 
-GOLANGCI_LINT_VERSION ?= 1.63.4
-GOLANGCI_LINT := $(DOCKER_RUN) -v=$(CURDIR):/code -w /code docker.io/golangci/golangci-lint:v$(GOLANGCI_LINT_VERSION) golangci-lint run
+GOLANGCI_VERSION ?= 1.64.2
+GOLANGCI_IMAGE ?= docker.io/golangci/golangci-lint:v$(GOLANGCI_VERSION)
+GOLANGCI := $(DOCKER_RUN) -v=$(CURDIR):/code -w /code $(GOLANGCI_IMAGE) golangci-lint run
 
-lint: lint/terraform lint/editorconfig lint/shellcheck lint/yamllint lint/go
+.PHONY: pull pull/editorconfig pull/shellcheck pull/yamllint pull/golangci
+pull: pull/editorconfig pull/shellcheck pull/yamllint pull/golangci
+
+pull/editorconfig:
+	$(DOCKER_PULL) $(EDITORCONFIG_CHECKER_IMAGE)
+
+pull/shellcheck:
+	$(DOCKER_PULL) $(SHELLCHECK_IMAGE)
+
+pull/yamllint:
+	$(DOCKER_PULL) $(YAMLLINT_IMAGE)
+
+pull/golangci:
+	$(DOCKER_PULL) $(GOLANGCI_IMAGE)
+
+.PHONY: lint lint/terraform lint/editorconfig lint/shellcheck lint/yamllint lint/golangci
+lint: lint/terraform lint/editorconfig lint/shellcheck lint/yamllint lint/golangci
 
 lint/terraform:
 	terraform fmt -recursive -check
@@ -36,8 +57,10 @@ lint/shellcheck:
 lint/yamllint:
 	$(YAMLLINT) .
 
-lint/go:
-	$(GOLANGCI_LINT) --fix
+lint/golangci:
+	$(GOLANGCI)
+
+.PHONY: install cover docs
 
 install:
 	go install
@@ -45,6 +68,10 @@ install:
 cover:
 	go tool cover -html=cover.out
 
+docs:
+	TFENV_TERRAFORM_VERSION=$(TERRAFORM_VERSION) go generate ./...
+
+.PHONY: test test/docs test/pkg test/acc
 test: test/docs test/pkg test/acc
 
 test/docs:
@@ -55,8 +82,3 @@ test/pkg:
 
 test/acc:
 	TF_ACC=1 TFENV_TERRAFORM_VERSION=$(TERRAFORM_VERSION) go test ./internal/provider/... -v -coverprofile=cover.out $(TESTARGS) -timeout 60m
-
-docs:
-	TFENV_TERRAFORM_VERSION=$(TERRAFORM_VERSION) go generate ./...
-
-.PHONY: lint lint/terraform lint/editorconfig lint/shellcheck lint/yamllint lint/go install cover test test/docs test/pkg test/acc docs
