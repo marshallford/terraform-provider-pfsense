@@ -19,7 +19,7 @@ type FirewallIPAliasModel struct {
 }
 
 type FirewallIPAliasEntryModel struct {
-	Address     types.String `tfsdk:"address"`
+	IP          types.String `tfsdk:"ip"`
 	Description types.String `tfsdk:"description"`
 }
 
@@ -43,7 +43,7 @@ func (FirewallIPAliasModel) descriptions() map[string]attrDescription {
 
 func (FirewallIPAliasEntryModel) descriptions() map[string]attrDescription {
 	return map[string]attrDescription{
-		"address": {
+		"ip": {
 			Description: "Hosts must be specified by their IP address or fully qualified domain name (FQDN). Networks are specified in CIDR format.",
 		},
 		"description": {
@@ -63,7 +63,7 @@ func (FirewallIPAliasModel) AttrTypes() map[string]attr.Type {
 
 func (FirewallIPAliasEntryModel) AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"address":     types.StringType,
+		"ip":          types.StringType,
 		"description": types.StringType,
 	}
 }
@@ -96,7 +96,7 @@ func (m *FirewallIPAliasModel) Set(ctx context.Context, ipAlias pfsense.Firewall
 func (m *FirewallIPAliasEntryModel) Set(_ context.Context, ipAliasEntry pfsense.FirewallIPAliasEntry) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	m.Address = types.StringValue(ipAliasEntry.Address)
+	m.IP = types.StringValue(ipAliasEntry.IP)
 
 	if ipAliasEntry.Description != "" {
 		m.Description = types.StringValue(ipAliasEntry.Description)
@@ -152,9 +152,9 @@ func (m FirewallIPAliasEntryModel) Value(_ context.Context, ipAliasEntry *pfsens
 
 	addPathError(
 		&diags,
-		attrPath.AtName("address"),
-		"Entry address cannot be parsed",
-		ipAliasEntry.SetAddress(m.Address.ValueString()),
+		attrPath.AtName("ip"),
+		"Entry ip cannot be parsed",
+		ipAliasEntry.SetIP(m.IP.ValueString()),
 	)
 
 	if !m.Description.IsNull() {

@@ -27,7 +27,7 @@ type FirewallIPAlias struct {
 }
 
 type FirewallIPAliasEntry struct {
-	Address     string
+	IP          string
 	Description string
 }
 
@@ -53,8 +53,8 @@ func (ipAlias *FirewallIPAlias) SetType(t string) error {
 	return nil
 }
 
-func (entry *FirewallIPAliasEntry) SetAddress(addr string) error {
-	entry.Address = addr
+func (entry *FirewallIPAliasEntry) SetIP(ip string) error {
+	entry.IP = ip
 
 	return nil
 }
@@ -135,23 +135,23 @@ func (pf *Client) getFirewallIPAliases(ctx context.Context) (*FirewallIPAliases,
 			continue
 		}
 
-		addresses := safeSplit(resp.Addresses, aliasEntryAddressSep)
-		details := safeSplit(resp.Details, aliasEntryDescriptionSep)
+		ips := safeSplit(resp.Addresses, aliasEntryAddressSep)
+		descriptions := safeSplit(resp.Details, aliasEntryDescriptionSep)
 
-		if len(addresses) != len(details) {
-			return nil, fmt.Errorf("%w, addresses and descriptions do not match", unableToParseResErr)
+		if len(ips) != len(descriptions) {
+			return nil, fmt.Errorf("%w, ips and descriptions do not match", unableToParseResErr)
 		}
 
-		for index := range addresses {
+		for index := range ips {
 			var entry FirewallIPAliasEntry
 			var err error
 
-			err = entry.SetAddress(addresses[index])
+			err = entry.SetIP(ips[index])
 			if err != nil {
 				return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 			}
 
-			err = entry.SetDescription(details[index])
+			err = entry.SetDescription(descriptions[index])
 			if err != nil {
 				return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 			}
@@ -204,7 +204,7 @@ func (pf *Client) createOrUpdateFirewallIPAlias(ctx context.Context, ipAliasReq 
 	}
 
 	for index, entry := range ipAliasReq.Entries {
-		values.Set(fmt.Sprintf("address%d", index), entry.Address)
+		values.Set(fmt.Sprintf("address%d", index), entry.IP)
 		values.Set(fmt.Sprintf("detail%d", index), entry.Description)
 	}
 

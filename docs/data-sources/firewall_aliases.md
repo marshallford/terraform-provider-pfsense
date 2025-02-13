@@ -47,8 +47,8 @@ Read-Only:
 
 Read-Only:
 
-- `address` (String) Hosts must be specified by their IP address or fully qualified domain name (FQDN). Networks are specified in CIDR format.
 - `description` (String) For administrative reference (not parsed).
+- `ip` (String) Hosts must be specified by their IP address or fully qualified domain name (FQDN). Networks are specified in CIDR format.
 
 
 
