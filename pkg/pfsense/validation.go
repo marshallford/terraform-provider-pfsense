@@ -10,6 +10,8 @@ import (
 	"unicode"
 )
 
+const MAC48Length = 6
+
 var dnsLabelRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`)
 
 // TODO implement validation in Set functions
@@ -110,8 +112,17 @@ func ValidateMACAddress(macAddress string) error {
 		return fmt.Errorf("%w, mac address cannot be empty", ErrClientValidation)
 	}
 
-	if _, err := net.ParseMAC(macAddress); err != nil {
+	mac, err := net.ParseMAC(macAddress)
+	if err != nil {
 		return fmt.Errorf("%w, not a valid mac address", ErrClientValidation)
+	}
+
+	if len(mac) != MAC48Length {
+		return fmt.Errorf("%w, not an ieee 802 mac-48 address (6 bytes)", ErrClientValidation)
+	}
+
+	if !strings.Contains(macAddress, ":") {
+		return fmt.Errorf("%w, hex octets must be separated by colons", ErrClientValidation)
 	}
 
 	return nil
