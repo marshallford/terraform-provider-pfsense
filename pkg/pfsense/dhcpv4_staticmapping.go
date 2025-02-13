@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type dhcpdV4StaticMappingResponse struct {
+type dhcpv4StaticMappingResponse struct {
 	MACAddress          string   `json:"mac"`
 	ClientIdentifier    string   `json:"cid"`
 	IPAddress           string   `json:"ipaddr"`
@@ -29,7 +29,7 @@ type dhcpdV4StaticMappingResponse struct {
 	MaximumLeaseTime    string   `json:"maxleasetime"`
 }
 
-type DHCPDV4StaticMapping struct {
+type DHCPv4StaticMapping struct {
 	Interface           string
 	MACAddress          net.HardwareAddr
 	ClientIdentifier    string
@@ -46,11 +46,11 @@ type DHCPDV4StaticMapping struct {
 	MaximumLeaseTime    time.Duration
 }
 
-func (sm DHCPDV4StaticMapping) StringifyIPAddress() string {
+func (sm DHCPv4StaticMapping) StringifyIPAddress() string {
 	return safeAddrString(sm.IPAddress)
 }
 
-func (sm DHCPDV4StaticMapping) StringifyWINSServers() []string {
+func (sm DHCPv4StaticMapping) StringifyWINSServers() []string {
 	winsServers := make([]string, 0, len(sm.WINSServers))
 	for _, winsServer := range sm.WINSServers {
 		winsServers = append(winsServers, safeAddrString(winsServer))
@@ -59,7 +59,7 @@ func (sm DHCPDV4StaticMapping) StringifyWINSServers() []string {
 	return winsServers
 }
 
-func (sm DHCPDV4StaticMapping) StringifyDNSServers() []string {
+func (sm DHCPv4StaticMapping) StringifyDNSServers() []string {
 	dnsServers := make([]string, 0, len(sm.DNSServers))
 	for _, dnsServer := range sm.DNSServers {
 		dnsServers = append(dnsServers, safeAddrString(dnsServer))
@@ -68,15 +68,15 @@ func (sm DHCPDV4StaticMapping) StringifyDNSServers() []string {
 	return dnsServers
 }
 
-func (sm DHCPDV4StaticMapping) StringifyGateway() string {
+func (sm DHCPv4StaticMapping) StringifyGateway() string {
 	return safeAddrString(sm.Gateway)
 }
 
-func (sm DHCPDV4StaticMapping) formatDomainSearchList() string {
+func (sm DHCPv4StaticMapping) formatDomainSearchList() string {
 	return strings.Join(sm.DomainSearchList, staticMappingDomainSearchListSep)
 }
 
-func (sm DHCPDV4StaticMapping) formatDefaultLeaseTime() string {
+func (sm DHCPv4StaticMapping) formatDefaultLeaseTime() string {
 	if sm.DefaultLeaseTime == 0 {
 		return ""
 	}
@@ -84,7 +84,7 @@ func (sm DHCPDV4StaticMapping) formatDefaultLeaseTime() string {
 	return strconv.FormatFloat(sm.DefaultLeaseTime.Seconds(), 'f', 0, 64)
 }
 
-func (sm DHCPDV4StaticMapping) formatMaximumLeaseTime() string {
+func (sm DHCPv4StaticMapping) formatMaximumLeaseTime() string {
 	if sm.MaximumLeaseTime == 0 {
 		return ""
 	}
@@ -92,13 +92,13 @@ func (sm DHCPDV4StaticMapping) formatMaximumLeaseTime() string {
 	return strconv.FormatFloat(sm.MaximumLeaseTime.Seconds(), 'f', 0, 64)
 }
 
-func (sm *DHCPDV4StaticMapping) SetInterface(iface string) error {
+func (sm *DHCPv4StaticMapping) SetInterface(iface string) error {
 	sm.Interface = iface
 
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetMACAddress(macAddress string) error {
+func (sm *DHCPv4StaticMapping) SetMACAddress(macAddress string) error {
 	if macAddress == "" {
 		return nil
 	}
@@ -113,13 +113,13 @@ func (sm *DHCPDV4StaticMapping) SetMACAddress(macAddress string) error {
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetClientIdentifier(clientIdentifier string) error {
+func (sm *DHCPv4StaticMapping) SetClientIdentifier(clientIdentifier string) error {
 	sm.ClientIdentifier = clientIdentifier
 
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetIPAddress(ipAddress string) error {
+func (sm *DHCPv4StaticMapping) SetIPAddress(ipAddress string) error {
 	if ipAddress == "" {
 		return nil
 	}
@@ -134,25 +134,25 @@ func (sm *DHCPDV4StaticMapping) SetIPAddress(ipAddress string) error {
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetARPTableStaticEntry(arpTableStaticEntry bool) error {
+func (sm *DHCPv4StaticMapping) SetARPTableStaticEntry(arpTableStaticEntry bool) error {
 	sm.ARPTableStaticEntry = arpTableStaticEntry
 
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetHostname(hostname string) error {
+func (sm *DHCPv4StaticMapping) SetHostname(hostname string) error {
 	sm.Hostname = hostname
 
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetDescription(description string) error {
+func (sm *DHCPv4StaticMapping) SetDescription(description string) error {
 	sm.Description = description
 
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetWINSServers(winsServers []string) error {
+func (sm *DHCPv4StaticMapping) SetWINSServers(winsServers []string) error {
 	for _, winsServer := range winsServers {
 		addr, err := netip.ParseAddr(winsServer)
 		if err != nil {
@@ -164,7 +164,7 @@ func (sm *DHCPDV4StaticMapping) SetWINSServers(winsServers []string) error {
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetDNSServers(dnsServers []string) error {
+func (sm *DHCPv4StaticMapping) SetDNSServers(dnsServers []string) error {
 	for _, dnsServer := range dnsServers {
 		addr, err := netip.ParseAddr(dnsServer)
 		if err != nil {
@@ -176,7 +176,7 @@ func (sm *DHCPDV4StaticMapping) SetDNSServers(dnsServers []string) error {
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetGateway(gateway string) error {
+func (sm *DHCPv4StaticMapping) SetGateway(gateway string) error {
 	if gateway == "" {
 		return nil
 	}
@@ -191,19 +191,19 @@ func (sm *DHCPDV4StaticMapping) SetGateway(gateway string) error {
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetDomainName(domainName string) error {
+func (sm *DHCPv4StaticMapping) SetDomainName(domainName string) error {
 	sm.DomainName = domainName
 
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetDomainSearchList(domainSearchList []string) error {
+func (sm *DHCPv4StaticMapping) SetDomainSearchList(domainSearchList []string) error {
 	sm.DomainSearchList = domainSearchList
 
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetDefaultLeaseTime(defaultLeaseTime string) error {
+func (sm *DHCPv4StaticMapping) SetDefaultLeaseTime(defaultLeaseTime string) error {
 	duration, err := time.ParseDuration(defaultLeaseTime)
 	if err != nil {
 		return err
@@ -214,7 +214,7 @@ func (sm *DHCPDV4StaticMapping) SetDefaultLeaseTime(defaultLeaseTime string) err
 	return nil
 }
 
-func (sm *DHCPDV4StaticMapping) SetMaximumLeaseTime(maximumLeaseTime string) error {
+func (sm *DHCPv4StaticMapping) SetMaximumLeaseTime(maximumLeaseTime string) error {
 	duration, err := time.ParseDuration(maximumLeaseTime)
 	if err != nil {
 		return err
@@ -225,9 +225,9 @@ func (sm *DHCPDV4StaticMapping) SetMaximumLeaseTime(maximumLeaseTime string) err
 	return nil
 }
 
-type DHCPDV4StaticMappings []DHCPDV4StaticMapping
+type DHCPv4StaticMappings []DHCPv4StaticMapping
 
-func (sms DHCPDV4StaticMappings) GetByMACAddress(macAddress string) (*DHCPDV4StaticMapping, error) {
+func (sms DHCPv4StaticMappings) GetByMACAddress(macAddress string) (*DHCPv4StaticMapping, error) {
 	for _, sm := range sms {
 		if sm.MACAddress.String() == macAddress {
 			return &sm, nil
@@ -237,7 +237,7 @@ func (sms DHCPDV4StaticMappings) GetByMACAddress(macAddress string) (*DHCPDV4Sta
 	return nil, fmt.Errorf("static mapping %w with mac address '%s'", ErrNotFound, macAddress)
 }
 
-func (sms DHCPDV4StaticMappings) GetControlIDByMACAddress(macAddress string) (*int, error) {
+func (sms DHCPv4StaticMappings) GetControlIDByMACAddress(macAddress string) (*int, error) {
 	for index, do := range sms {
 		if do.MACAddress.String() == macAddress {
 			return &index, nil
@@ -248,22 +248,22 @@ func (sms DHCPDV4StaticMappings) GetControlIDByMACAddress(macAddress string) (*i
 }
 
 //nolint:gocognit
-func (pf *Client) getDHCPDV4StaticMappings(ctx context.Context, iface string) (*DHCPDV4StaticMappings, error) {
+func (pf *Client) getDHCPv4StaticMappings(ctx context.Context, iface string) (*DHCPv4StaticMappings, error) {
 	unableToParseResErr := fmt.Errorf("%w static mapping response", ErrUnableToParse)
 	bytes, err := pf.getConfigJSON(ctx, fmt.Sprintf("['dhcpd']['%s']['staticmap']", iface))
 	if err != nil {
 		return nil, err
 	}
 
-	var smResp []dhcpdV4StaticMappingResponse
+	var smResp []dhcpv4StaticMappingResponse
 	err = json.Unmarshal(bytes, &smResp)
 	if err != nil {
 		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
 	}
 
-	staticMappings := make(DHCPDV4StaticMappings, 0, len(smResp))
+	staticMappings := make(DHCPv4StaticMappings, 0, len(smResp))
 	for _, resp := range smResp {
-		var staticMapping DHCPDV4StaticMapping
+		var staticMapping DHCPv4StaticMapping
 		var err error
 
 		if err = staticMapping.SetInterface(iface); err != nil {
@@ -330,11 +330,11 @@ func (pf *Client) getDHCPDV4StaticMappings(ctx context.Context, iface string) (*
 	return &staticMappings, nil
 }
 
-func (pf *Client) GetDHCPDV4StaticMappings(ctx context.Context, iface string) (*DHCPDV4StaticMappings, error) {
-	pf.mutexes.DHCPDV4StaticMapping.Lock()
-	defer pf.mutexes.DHCPDV4StaticMapping.Unlock()
+func (pf *Client) GetDHCPv4StaticMappings(ctx context.Context, iface string) (*DHCPv4StaticMappings, error) {
+	pf.mutexes.DHCPv4StaticMapping.Lock()
+	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
 
-	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, iface)
+	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, iface)
 	if err != nil {
 		return nil, fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, iface, err)
 	}
@@ -342,11 +342,11 @@ func (pf *Client) GetDHCPDV4StaticMappings(ctx context.Context, iface string) (*
 	return staticMappings, nil
 }
 
-func (pf *Client) GetDHCPDV4StaticMapping(ctx context.Context, iface string, macAddress string) (*DHCPDV4StaticMapping, error) {
-	pf.mutexes.DHCPDV4StaticMapping.Lock()
-	defer pf.mutexes.DHCPDV4StaticMapping.Unlock()
+func (pf *Client) GetDHCPv4StaticMapping(ctx context.Context, iface string, macAddress string) (*DHCPv4StaticMapping, error) {
+	pf.mutexes.DHCPv4StaticMapping.Lock()
+	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
 
-	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, iface)
+	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, iface)
 	if err != nil {
 		return nil, fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, iface, err)
 	}
@@ -359,7 +359,7 @@ func (pf *Client) GetDHCPDV4StaticMapping(ctx context.Context, iface string, mac
 	return staticMapping, nil
 }
 
-func (pf *Client) createOrUpdateDHCPDV4StaticMapping(ctx context.Context, staticMappingReq DHCPDV4StaticMapping, controlID *int) error {
+func (pf *Client) createOrUpdateDHCPv4StaticMapping(ctx context.Context, staticMappingReq DHCPv4StaticMapping, controlID *int) error {
 	relativeURL := url.URL{Path: "services_dhcp_edit.php"}
 	query := relativeURL.Query()
 	query.Set("if", staticMappingReq.Interface)
@@ -404,15 +404,15 @@ func (pf *Client) createOrUpdateDHCPDV4StaticMapping(ctx context.Context, static
 	return scrapeHTMLValidationErrors(doc)
 }
 
-func (pf *Client) CreateDHCPDV4StaticMapping(ctx context.Context, staticMappingReq DHCPDV4StaticMapping) (*DHCPDV4StaticMapping, error) {
-	pf.mutexes.DHCPDV4StaticMapping.Lock()
-	defer pf.mutexes.DHCPDV4StaticMapping.Unlock()
+func (pf *Client) CreateDHCPv4StaticMapping(ctx context.Context, staticMappingReq DHCPv4StaticMapping) (*DHCPv4StaticMapping, error) {
+	pf.mutexes.DHCPv4StaticMapping.Lock()
+	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
 
-	if err := pf.createOrUpdateDHCPDV4StaticMapping(ctx, staticMappingReq, nil); err != nil {
+	if err := pf.createOrUpdateDHCPv4StaticMapping(ctx, staticMappingReq, nil); err != nil {
 		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrCreateOperationFailed, staticMappingReq.Interface, err)
 	}
 
-	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, staticMappingReq.Interface)
+	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, staticMappingReq.Interface)
 	if err != nil {
 		return nil, fmt.Errorf("%w '%s' static mappings after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
@@ -425,11 +425,11 @@ func (pf *Client) CreateDHCPDV4StaticMapping(ctx context.Context, staticMappingR
 	return staticMapping, nil
 }
 
-func (pf *Client) UpdateDHCPDV4StaticMapping(ctx context.Context, staticMappingReq DHCPDV4StaticMapping) (*DHCPDV4StaticMapping, error) {
-	pf.mutexes.DHCPDV4StaticMapping.Lock()
-	defer pf.mutexes.DHCPDV4StaticMapping.Unlock()
+func (pf *Client) UpdateDHCPv4StaticMapping(ctx context.Context, staticMappingReq DHCPv4StaticMapping) (*DHCPv4StaticMapping, error) {
+	pf.mutexes.DHCPv4StaticMapping.Lock()
+	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
 
-	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, staticMappingReq.Interface)
+	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, staticMappingReq.Interface)
 	if err != nil {
 		return nil, fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
@@ -439,11 +439,11 @@ func (pf *Client) UpdateDHCPDV4StaticMapping(ctx context.Context, staticMappingR
 		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
-	if err := pf.createOrUpdateDHCPDV4StaticMapping(ctx, staticMappingReq, controlID); err != nil {
+	if err := pf.createOrUpdateDHCPv4StaticMapping(ctx, staticMappingReq, controlID); err != nil {
 		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrUpdateOperationFailed, staticMappingReq.Interface, err)
 	}
 
-	staticMappings, err = pf.getDHCPDV4StaticMappings(ctx, staticMappingReq.Interface)
+	staticMappings, err = pf.getDHCPv4StaticMappings(ctx, staticMappingReq.Interface)
 	if err != nil {
 		return nil, fmt.Errorf("%w '%s' static mappings after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
@@ -457,7 +457,7 @@ func (pf *Client) UpdateDHCPDV4StaticMapping(ctx context.Context, staticMappingR
 	return staticMapping, nil
 }
 
-func (pf *Client) deleteDHCPDV4StaticMapping(ctx context.Context, iface string, controlID int) error {
+func (pf *Client) deleteDHCPv4StaticMapping(ctx context.Context, iface string, controlID int) error {
 	relativeURL := url.URL{Path: "services_dhcp.php"}
 	values := url.Values{
 		"if":  {iface},
@@ -470,11 +470,11 @@ func (pf *Client) deleteDHCPDV4StaticMapping(ctx context.Context, iface string, 
 	return err
 }
 
-func (pf *Client) DeleteDHCPDV4StaticMapping(ctx context.Context, iface string, macAddress string) error {
-	pf.mutexes.DHCPDV4StaticMapping.Lock()
-	defer pf.mutexes.DHCPDV4StaticMapping.Unlock()
+func (pf *Client) DeleteDHCPv4StaticMapping(ctx context.Context, iface string, macAddress string) error {
+	pf.mutexes.DHCPv4StaticMapping.Lock()
+	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
 
-	staticMappings, err := pf.getDHCPDV4StaticMappings(ctx, iface)
+	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, iface)
 	if err != nil {
 		return fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, iface, err)
 	}
@@ -484,11 +484,11 @@ func (pf *Client) DeleteDHCPDV4StaticMapping(ctx context.Context, iface string, 
 		return fmt.Errorf("%w '%s' static mapping, %w", ErrGetOperationFailed, iface, err)
 	}
 
-	if err := pf.deleteDHCPDV4StaticMapping(ctx, iface, *controlID); err != nil {
+	if err := pf.deleteDHCPv4StaticMapping(ctx, iface, *controlID); err != nil {
 		return fmt.Errorf("%w '%s' static mapping, %w", ErrDeleteOperationFailed, iface, err)
 	}
 
-	staticMappings, err = pf.getDHCPDV4StaticMappings(ctx, iface)
+	staticMappings, err = pf.getDHCPv4StaticMappings(ctx, iface)
 	if err != nil {
 		return fmt.Errorf("%w '%s' static mappings after deleting, %w", ErrGetOperationFailed, iface, err)
 	}

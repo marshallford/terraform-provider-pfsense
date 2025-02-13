@@ -4,7 +4,7 @@
 - [ ] Add interfaces data source
 - [ ] Refactor Domain Override to consider domain and IP together
 - [X] Rename IP Alias Entry "address" to "ip"
-- [ ] Rename "DHCPD" to "DHCP"
+- [X] Rename "DHCPD" to "DHCP"
 - [ ] Add provider docs for user permissions/group requirements
 - [ ] Add provider docs to explain concurrency errors
 - [ ] Add provider option to make all requests serial to minimize errors

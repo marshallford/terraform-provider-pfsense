@@ -1,4 +1,4 @@
-resource "pfsense_dhcpdv4_staticmapping" "example" {
+resource "pfsense_dhcpv4_staticmapping" "example" {
   for_each    = toset(["00:00:00:00:00:00", "00:00:00:00:00:01"])
   interface   = "lan"
   mac_address = each.value
@@ -6,11 +6,11 @@ resource "pfsense_dhcpdv4_staticmapping" "example" {
 }
 
 # apply once
-resource "pfsense_dhcpdv4_apply" "example" {
+resource "pfsense_dhcpv4_apply" "example" {
   interface = "lan"
   lifecycle {
     replace_triggered_by = [
-      pfsense_dhcpdv4_staticmapping.example,
+      pfsense_dhcpv4_staticmapping.example,
     ]
   }
 }

@@ -1,12 +1,12 @@
 # simple
-resource "pfsense_dhcpdv4_staticmapping" "example" {
+resource "pfsense_dhcpv4_staticmapping" "example" {
   interface   = "lan"
   mac_address = "00:00:00:00:00:00"
   ip_address  = "192.168.1.10"
 }
 
 # advanced
-resource "pfsense_dhcpdv4_staticmapping" "advanced_example" {
+resource "pfsense_dhcpv4_staticmapping" "advanced_example" {
   interface              = "lan"
   mac_address            = "00:00:00:00:00:00"
   client_identifier      = "server-a"

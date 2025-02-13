@@ -15,29 +15,29 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ resource.Resource = &DHCPDV4ApplyResource{}
+var _ resource.Resource = &DHCPv4ApplyResource{}
 
-func NewDHCPDV4ApplyResource() resource.Resource { //nolint:ireturn
-	return &DHCPDV4ApplyResource{}
+func NewDHCPv4ApplyResource() resource.Resource { //nolint:ireturn
+	return &DHCPv4ApplyResource{}
 }
 
-type DHCPDV4ApplyResource struct {
+type DHCPv4ApplyResource struct {
 	client *pfsense.Client
 }
 
-type DHCPDV4ApplyModel struct {
+type DHCPv4ApplyModel struct {
 	Interface   types.String `tfsdk:"interface"`
 	ID          types.String `tfsdk:"id"`
 	LastUpdated types.String `tfsdk:"last_updated"`
 }
 
-func (r *DHCPDV4ApplyResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_dhcpdv4_apply", req.ProviderTypeName)
+func (r *DHCPv4ApplyResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = fmt.Sprintf("%s_dhcpv4_apply", req.ProviderTypeName)
 }
 
-func (r *DHCPDV4ApplyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DHCPv4ApplyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Apply DHCPD v4 configuration.",
+		Description: "Apply DHCPv4 configuration.",
 		Attributes: map[string]schema.Attribute{
 			"interface": schema.StringAttribute{
 				Description: "Network interface.",
@@ -51,7 +51,7 @@ func (r *DHCPDV4ApplyResource) Schema(_ context.Context, _ resource.SchemaReques
 				},
 			},
 			"id": schema.StringAttribute{
-				Description: "UUID for DHCPD v4 apply.",
+				Description: "UUID for DHCPv4 apply.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -68,7 +68,7 @@ func (r *DHCPDV4ApplyResource) Schema(_ context.Context, _ resource.SchemaReques
 	}
 }
 
-func (r *DHCPDV4ApplyResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DHCPv4ApplyResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := configureResourceClient(req, resp)
 	if !ok {
 		return
@@ -77,16 +77,16 @@ func (r *DHCPDV4ApplyResource) Configure(_ context.Context, req resource.Configu
 	r.client = client
 }
 
-func (r *DHCPDV4ApplyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DHCPDV4ApplyModel
+func (r *DHCPv4ApplyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *DHCPv4ApplyModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err := r.client.ApplyDHCPDV4Changes(ctx, data.Interface.ValueString())
-	if addError(&resp.Diagnostics, "Error applying dhcp v4 changes", err) {
+	err := r.client.ApplyDHCPv4Changes(ctx, data.Interface.ValueString())
+	if addError(&resp.Diagnostics, "Error applying dhcpv4 changes", err) {
 		return
 	}
 
@@ -96,11 +96,11 @@ func (r *DHCPDV4ApplyResource) Create(ctx context.Context, req resource.CreateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *DHCPDV4ApplyResource) Read(_ context.Context, _ resource.ReadRequest, _ *resource.ReadResponse) {
+func (r *DHCPv4ApplyResource) Read(_ context.Context, _ resource.ReadRequest, _ *resource.ReadResponse) {
 }
 
-func (r *DHCPDV4ApplyResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
+func (r *DHCPv4ApplyResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 }
 
-func (r *DHCPDV4ApplyResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
+func (r *DHCPv4ApplyResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
 }
