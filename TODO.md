@@ -6,8 +6,8 @@
 - [X] Rename IP Alias Entry "address" to "ip"
 - [X] Rename "DHCPD" to "DHCP"
 - [ ] Add provider docs for user permissions/group requirements
-- [ ] Add provider docs to explain concurrency errors
-- [ ] Add provider option to make all requests serial to minimize errors
+- [X] Add provider docs to explain concurrency errors
+- [X] Add provider option to make all requests serial to minimize errors
 - [ ] Command data source
 - [ ] Validate DNS resolver config file with `unbound-checkconf` before saving
 - [ ] Add struct equality checks to confirm update calls are successful
