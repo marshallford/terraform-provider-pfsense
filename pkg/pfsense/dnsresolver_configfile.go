@@ -99,6 +99,8 @@ func (pf *Client) getDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, 
 }
 
 func (pf *Client) GetDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, error) {
+	defer pf.read(&pf.mutexes.DNSResolverConfigFile)()
+
 	configFiles, err := pf.getDNSResolverConfigFiles(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w config files, %w", ErrGetOperationFailed, err)
@@ -108,6 +110,8 @@ func (pf *Client) GetDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, 
 }
 
 func (pf *Client) GetDNSResolverConfigFile(ctx context.Context, name string) (*ConfigFile, error) {
+	defer pf.read(&pf.mutexes.DNSResolverConfigFile)()
+
 	configFiles, err := pf.getDNSResolverConfigFiles(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w config files, %w", ErrGetOperationFailed, err)
@@ -155,6 +159,8 @@ func (pf *Client) createOrUpdateDNSResolverConfigFile(ctx context.Context, confi
 }
 
 func (pf *Client) CreateDNSResolverConfigFile(ctx context.Context, configFileReq ConfigFile) (*ConfigFile, error) {
+	defer pf.write(&pf.mutexes.DNSResolverConfigFile)()
+
 	if err := pf.createOrUpdateDNSResolverConfigFile(ctx, configFileReq); err != nil {
 		return nil, fmt.Errorf("%w config file, %w", ErrCreateOperationFailed, err)
 	}
@@ -173,6 +179,8 @@ func (pf *Client) CreateDNSResolverConfigFile(ctx context.Context, configFileReq
 }
 
 func (pf *Client) UpdateDNSResolverConfigFile(ctx context.Context, configFileReq ConfigFile) (*ConfigFile, error) {
+	defer pf.write(&pf.mutexes.DNSResolverConfigFile)()
+
 	if err := pf.createOrUpdateDNSResolverConfigFile(ctx, configFileReq); err != nil {
 		return nil, fmt.Errorf("%w config file, %w", ErrUpdateOperationFailed, err)
 	}
@@ -204,6 +212,8 @@ func (pf *Client) deleteDNSResolverConfigFile(ctx context.Context, formattedName
 }
 
 func (pf *Client) DeleteDNSResolverConfigFile(ctx context.Context, name string) error {
+	defer pf.write(&pf.mutexes.DNSResolverConfigFile)()
+
 	var config ConfigFile
 	if err := config.SetName(name); err != nil {
 		return fmt.Errorf("%w config file, %w", ErrDeleteOperationFailed, err)

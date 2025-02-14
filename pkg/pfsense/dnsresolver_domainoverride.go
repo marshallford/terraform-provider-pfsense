@@ -176,8 +176,7 @@ func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 }
 
 func (pf *Client) GetDNSResolverDomainOverrides(ctx context.Context) (*DomainOverrides, error) {
-	pf.mutexes.DNSResolverDomainOverride.Lock()
-	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
+	defer pf.read(&pf.mutexes.DNSResolverDomainOverride)()
 
 	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
@@ -188,8 +187,7 @@ func (pf *Client) GetDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 }
 
 func (pf *Client) GetDNSResolverDomainOverride(ctx context.Context, domain string) (*DomainOverride, error) {
-	pf.mutexes.DNSResolverDomainOverride.Lock()
-	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
+	defer pf.read(&pf.mutexes.DNSResolverDomainOverride)()
 
 	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
@@ -233,8 +231,7 @@ func (pf *Client) createOrUpdateDNSResolverDomainOverride(ctx context.Context, d
 }
 
 func (pf *Client) CreateDNSResolverDomainOverride(ctx context.Context, domainOverrideReq DomainOverride) (*DomainOverride, error) {
-	pf.mutexes.DNSResolverDomainOverride.Lock()
-	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
+	defer pf.write(&pf.mutexes.DNSResolverDomainOverride)()
 
 	if err := pf.createOrUpdateDNSResolverDomainOverride(ctx, domainOverrideReq, nil); err != nil {
 		return nil, fmt.Errorf("%w domain override, %w", ErrCreateOperationFailed, err)
@@ -254,8 +251,7 @@ func (pf *Client) CreateDNSResolverDomainOverride(ctx context.Context, domainOve
 }
 
 func (pf *Client) UpdateDNSResolverDomainOverride(ctx context.Context, domainOverrideReq DomainOverride) (*DomainOverride, error) {
-	pf.mutexes.DNSResolverDomainOverride.Lock()
-	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
+	defer pf.write(&pf.mutexes.DNSResolverDomainOverride)()
 
 	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {
@@ -299,8 +295,7 @@ func (pf *Client) deleteDNSResolverDomainOverride(ctx context.Context, controlID
 }
 
 func (pf *Client) DeleteDNSResolverDomainOverride(ctx context.Context, domain string) error {
-	pf.mutexes.DNSResolverDomainOverride.Lock()
-	defer pf.mutexes.DNSResolverDomainOverride.Unlock()
+	defer pf.write(&pf.mutexes.DNSResolverDomainOverride)()
 
 	domainOverrides, err := pf.getDNSResolverDomainOverrides(ctx)
 	if err != nil {

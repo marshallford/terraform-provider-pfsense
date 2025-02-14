@@ -219,8 +219,7 @@ func (pf *Client) getDNSResolverHostOverrides(ctx context.Context) (*HostOverrid
 }
 
 func (pf *Client) GetDNSResolverHostOverrides(ctx context.Context) (*HostOverrides, error) {
-	pf.mutexes.DNSResolverHostOverride.Lock()
-	defer pf.mutexes.DNSResolverHostOverride.Unlock()
+	defer pf.read(&pf.mutexes.DNSResolverHostOverride)()
 
 	hostOverrides, err := pf.getDNSResolverHostOverrides(ctx)
 	if err != nil {
@@ -231,8 +230,7 @@ func (pf *Client) GetDNSResolverHostOverrides(ctx context.Context) (*HostOverrid
 }
 
 func (pf *Client) GetDNSResolverHostOverride(ctx context.Context, fqdn string) (*HostOverride, error) {
-	pf.mutexes.DNSResolverHostOverride.Lock()
-	defer pf.mutexes.DNSResolverHostOverride.Unlock()
+	defer pf.read(&pf.mutexes.DNSResolverHostOverride)()
 
 	hostOverrides, err := pf.getDNSResolverHostOverrides(ctx)
 	if err != nil {
@@ -278,8 +276,7 @@ func (pf *Client) createOrUpdateDNSResolverHostOverride(ctx context.Context, hos
 }
 
 func (pf *Client) CreateDNSResolverHostOverride(ctx context.Context, hostOverrideReq HostOverride) (*HostOverride, error) {
-	pf.mutexes.DNSResolverHostOverride.Lock()
-	defer pf.mutexes.DNSResolverHostOverride.Unlock()
+	defer pf.write(&pf.mutexes.DNSResolverHostOverride)()
 
 	if err := pf.createOrUpdateDNSResolverHostOverride(ctx, hostOverrideReq, nil); err != nil {
 		return nil, fmt.Errorf("%w host override, %w", ErrCreateOperationFailed, err)
@@ -299,8 +296,7 @@ func (pf *Client) CreateDNSResolverHostOverride(ctx context.Context, hostOverrid
 }
 
 func (pf *Client) UpdateDNSResolverHostOverride(ctx context.Context, hostOverrideReq HostOverride) (*HostOverride, error) {
-	pf.mutexes.DNSResolverHostOverride.Lock()
-	defer pf.mutexes.DNSResolverHostOverride.Unlock()
+	defer pf.write(&pf.mutexes.DNSResolverHostOverride)()
 
 	hostOverrides, err := pf.getDNSResolverHostOverrides(ctx)
 	if err != nil {
@@ -344,8 +340,7 @@ func (pf *Client) deleteDNSResolverHostOverride(ctx context.Context, controlID i
 }
 
 func (pf *Client) DeleteDNSResolverHostOverride(ctx context.Context, fqdn string) error {
-	pf.mutexes.DNSResolverHostOverride.Lock()
-	defer pf.mutexes.DNSResolverHostOverride.Unlock()
+	defer pf.write(&pf.mutexes.DNSResolverHostOverride)()
 
 	hostOverrides, err := pf.getDNSResolverHostOverrides(ctx)
 	if err != nil {

@@ -166,8 +166,7 @@ func (pf *Client) getFirewallIPAliases(ctx context.Context) (*FirewallIPAliases,
 }
 
 func (pf *Client) GetFirewallIPAliases(ctx context.Context) (*FirewallIPAliases, error) {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.read(&pf.mutexes.FirewallAlias)()
 
 	ipAliases, err := pf.getFirewallIPAliases(ctx)
 	if err != nil {
@@ -178,8 +177,7 @@ func (pf *Client) GetFirewallIPAliases(ctx context.Context) (*FirewallIPAliases,
 }
 
 func (pf *Client) GetFirewallIPAlias(ctx context.Context, name string) (*FirewallIPAlias, error) {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.read(&pf.mutexes.FirewallAlias)()
 
 	ipAliases, err := pf.getFirewallIPAliases(ctx)
 	if err != nil {
@@ -223,8 +221,7 @@ func (pf *Client) createOrUpdateFirewallIPAlias(ctx context.Context, ipAliasReq 
 }
 
 func (pf *Client) CreateFirewallIPAlias(ctx context.Context, ipAliasReq FirewallIPAlias) (*FirewallIPAlias, error) {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.write(&pf.mutexes.FirewallAlias)()
 
 	if err := pf.createOrUpdateFirewallIPAlias(ctx, ipAliasReq, nil); err != nil {
 		return nil, fmt.Errorf("%w ip alias, %w", ErrCreateOperationFailed, err)
@@ -244,8 +241,7 @@ func (pf *Client) CreateFirewallIPAlias(ctx context.Context, ipAliasReq Firewall
 }
 
 func (pf *Client) UpdateFirewallIPAlias(ctx context.Context, ipAliasReq FirewallIPAlias) (*FirewallIPAlias, error) {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.write(&pf.mutexes.FirewallAlias)()
 
 	ipAliases, err := pf.getFirewallIPAliases(ctx)
 	if err != nil {
@@ -275,8 +271,7 @@ func (pf *Client) UpdateFirewallIPAlias(ctx context.Context, ipAliasReq Firewall
 }
 
 func (pf *Client) DeleteFirewallIPAlias(ctx context.Context, name string) error {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.write(&pf.mutexes.FirewallAlias)()
 
 	ipAliases, err := pf.getFirewallIPAliases(ctx)
 	if err != nil {

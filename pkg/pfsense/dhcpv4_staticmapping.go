@@ -331,8 +331,7 @@ func (pf *Client) getDHCPv4StaticMappings(ctx context.Context, iface string) (*D
 }
 
 func (pf *Client) GetDHCPv4StaticMappings(ctx context.Context, iface string) (*DHCPv4StaticMappings, error) {
-	pf.mutexes.DHCPv4StaticMapping.Lock()
-	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
+	defer pf.read(&pf.mutexes.DHCPv4StaticMapping)()
 
 	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, iface)
 	if err != nil {
@@ -343,8 +342,7 @@ func (pf *Client) GetDHCPv4StaticMappings(ctx context.Context, iface string) (*D
 }
 
 func (pf *Client) GetDHCPv4StaticMapping(ctx context.Context, iface string, macAddress string) (*DHCPv4StaticMapping, error) {
-	pf.mutexes.DHCPv4StaticMapping.Lock()
-	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
+	defer pf.read(&pf.mutexes.DHCPv4StaticMapping)()
 
 	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, iface)
 	if err != nil {
@@ -405,8 +403,7 @@ func (pf *Client) createOrUpdateDHCPv4StaticMapping(ctx context.Context, staticM
 }
 
 func (pf *Client) CreateDHCPv4StaticMapping(ctx context.Context, staticMappingReq DHCPv4StaticMapping) (*DHCPv4StaticMapping, error) {
-	pf.mutexes.DHCPv4StaticMapping.Lock()
-	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
+	defer pf.write(&pf.mutexes.DHCPv4StaticMapping)()
 
 	if err := pf.createOrUpdateDHCPv4StaticMapping(ctx, staticMappingReq, nil); err != nil {
 		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrCreateOperationFailed, staticMappingReq.Interface, err)
@@ -426,8 +423,7 @@ func (pf *Client) CreateDHCPv4StaticMapping(ctx context.Context, staticMappingRe
 }
 
 func (pf *Client) UpdateDHCPv4StaticMapping(ctx context.Context, staticMappingReq DHCPv4StaticMapping) (*DHCPv4StaticMapping, error) {
-	pf.mutexes.DHCPv4StaticMapping.Lock()
-	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
+	defer pf.write(&pf.mutexes.DHCPv4StaticMapping)()
 
 	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, staticMappingReq.Interface)
 	if err != nil {
@@ -471,8 +467,7 @@ func (pf *Client) deleteDHCPv4StaticMapping(ctx context.Context, iface string, c
 }
 
 func (pf *Client) DeleteDHCPv4StaticMapping(ctx context.Context, iface string, macAddress string) error {
-	pf.mutexes.DHCPv4StaticMapping.Lock()
-	defer pf.mutexes.DHCPv4StaticMapping.Unlock()
+	defer pf.write(&pf.mutexes.DHCPv4StaticMapping)()
 
 	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, iface)
 	if err != nil {
