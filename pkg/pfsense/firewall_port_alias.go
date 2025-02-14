@@ -150,8 +150,7 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 }
 
 func (pf *Client) GetFirewallPortAliases(ctx context.Context) (*FirewallPortAliases, error) {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.read(&pf.mutexes.FirewallAlias)()
 
 	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {
@@ -162,8 +161,7 @@ func (pf *Client) GetFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 }
 
 func (pf *Client) GetFirewallPortAlias(ctx context.Context, name string) (*FirewallPortAlias, error) {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.read(&pf.mutexes.FirewallAlias)()
 
 	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {
@@ -207,8 +205,7 @@ func (pf *Client) createOrUpdateFirewallPortAlias(ctx context.Context, portAlias
 }
 
 func (pf *Client) CreateFirewallPortAlias(ctx context.Context, portAliasReq FirewallPortAlias) (*FirewallPortAlias, error) {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.write(&pf.mutexes.FirewallAlias)()
 
 	if err := pf.createOrUpdateFirewallPortAlias(ctx, portAliasReq, nil); err != nil {
 		return nil, fmt.Errorf("%w port alias, %w", ErrCreateOperationFailed, err)
@@ -228,8 +225,7 @@ func (pf *Client) CreateFirewallPortAlias(ctx context.Context, portAliasReq Fire
 }
 
 func (pf *Client) UpdateFirewallPortAlias(ctx context.Context, portAliasReq FirewallPortAlias) (*FirewallPortAlias, error) {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.write(&pf.mutexes.FirewallAlias)()
 
 	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {
@@ -259,8 +255,7 @@ func (pf *Client) UpdateFirewallPortAlias(ctx context.Context, portAliasReq Fire
 }
 
 func (pf *Client) DeleteFirewallPortAlias(ctx context.Context, name string) error {
-	pf.mutexes.FirewallAlias.Lock()
-	defer pf.mutexes.FirewallAlias.Unlock()
+	defer pf.write(&pf.mutexes.FirewallAlias)()
 
 	portAliases, err := pf.getFirewallPortAliases(ctx)
 	if err != nil {

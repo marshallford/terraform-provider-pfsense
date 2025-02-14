@@ -43,6 +43,7 @@ provider "pfsense" {
 
 ### Optional
 
+- `concurrent_writes` (Boolean) Enable concurrent pfSense configuration writes. Be aware that pfSense's XML configuration system does not support write operations at scale, which can lead to overwrites and unexpected behavior. Defaults to `false`.
 - `max_attempts` (Number) Maximum number of attempts (only applicable for retryable errors), defaults to `3`.
 - `tls_skip_verify` (Boolean) Skip verification of TLS certificates, defaults to `false`.
 - `url` (String) pfSense administration URL, defaults to `https://192.168.1.1`.

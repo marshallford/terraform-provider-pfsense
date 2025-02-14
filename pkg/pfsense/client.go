@@ -25,29 +25,33 @@ const (
 	DefaultRetryMinWait              = time.Second
 	DefaultRetryMaxWait              = 5 * time.Second
 	DefaultMaxAttempts               = 3
+	DefaultConcurrentWrites          = false
 	staticMappingDomainSearchListSep = ";"
 	StaticMappingMaxWINSServers      = 2
 	StaticMappingMaxDNSServers       = 4
 )
 
 type Options struct {
-	URL           *url.URL
-	Username      string
-	Password      string
-	TLSSkipVerify *bool
-	RetryMinWait  *time.Duration
-	RetryMaxWait  *time.Duration
-	MaxAttempts   *int
+	URL              *url.URL
+	Username         string
+	Password         string
+	TLSSkipVerify    *bool
+	RetryMinWait     *time.Duration
+	RetryMaxWait     *time.Duration
+	MaxAttempts      *int
+	ConcurrentWrites *bool // TODO atomic.Bool
 }
 
 type mutexes struct {
+	GlobalWrite               sync.Mutex
+	DHCPv4Apply               sync.Mutex   // TODO one per iface
+	DHCPv4StaticMapping       sync.RWMutex // TODO one per iface
 	DNSResolverApply          sync.Mutex
-	DNSResolverHostOverride   sync.Mutex
-	DNSResolverDomainOverride sync.Mutex
+	DNSResolverConfigFile     sync.RWMutex
+	DNSResolverHostOverride   sync.RWMutex
+	DNSResolverDomainOverride sync.RWMutex
+	FirewallAlias             sync.RWMutex
 	FirewallFilterReload      sync.Mutex
-	FirewallAlias             sync.Mutex
-	DHCPv4Apply               sync.Mutex // TODO one per iface
-	DHCPv4StaticMapping       sync.Mutex // TODO one per iface
 }
 
 type Client struct {
@@ -100,6 +104,30 @@ func (pf *Client) updateToken(doc *goquery.Document) error {
 	return nil
 }
 
+func (pf *Client) read(mutex *sync.RWMutex) func() {
+	mutex.RLock()
+
+	return func() {
+		mutex.RUnlock()
+	}
+}
+
+func (pf *Client) write(mutex *sync.RWMutex) func() {
+	globalWriteLocking := !*pf.Options.ConcurrentWrites
+
+	if globalWriteLocking {
+		pf.mutexes.GlobalWrite.Lock()
+	}
+	mutex.Lock()
+
+	return func() {
+		mutex.Unlock()
+		if globalWriteLocking {
+			pf.mutexes.GlobalWrite.Unlock()
+		}
+	}
+}
+
 func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	var err error
 
@@ -138,6 +166,11 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	if opts.MaxAttempts == nil {
 		i := DefaultMaxAttempts
 		opts.MaxAttempts = &i
+	}
+
+	if opts.ConcurrentWrites == nil {
+		b := DefaultConcurrentWrites
+		opts.ConcurrentWrites = &b
 	}
 
 	pfsense := &Client{

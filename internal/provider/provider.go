@@ -30,11 +30,12 @@ type pfSenseProvider struct {
 }
 
 type pfSenseProviderModel struct {
-	URL           types.String `tfsdk:"url"`
-	Username      types.String `tfsdk:"username"`
-	Password      types.String `tfsdk:"password"`
-	TLSSkipVerify types.Bool   `tfsdk:"tls_skip_verify"`
-	MaxAttempts   types.Int64  `tfsdk:"max_attempts"`
+	URL              types.String `tfsdk:"url"`
+	Username         types.String `tfsdk:"username"`
+	Password         types.String `tfsdk:"password"`
+	TLSSkipVerify    types.Bool   `tfsdk:"tls_skip_verify"`
+	MaxAttempts      types.Int64  `tfsdk:"max_attempts"`
+	ConcurrentWrites types.Bool   `tfsdk:"concurrent_writes"`
 }
 
 func (p *pfSenseProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -70,6 +71,11 @@ func (p *pfSenseProvider) Schema(_ context.Context, _ provider.SchemaRequest, re
 			"max_attempts": schema.Int64Attribute{
 				Description:         fmt.Sprintf("Maximum number of attempts (only applicable for retryable errors), defaults to '%d'.", pfsense.DefaultMaxAttempts),
 				MarkdownDescription: fmt.Sprintf("Maximum number of attempts (only applicable for retryable errors), defaults to `%d`.", pfsense.DefaultMaxAttempts),
+				Optional:            true,
+			},
+			"concurrent_writes": schema.BoolAttribute{
+				Description:         fmt.Sprintf("Enable concurrent pfSense configuration writes. Be aware that pfSense's XML configuration system does not support write operations at scale, which can lead to overwrites and unexpected behavior. Defaults to '%t'.", pfsense.DefaultConcurrentWrites),
+				MarkdownDescription: fmt.Sprintf("Enable concurrent pfSense configuration writes. Be aware that pfSense's XML configuration system does not support write operations at scale, which can lead to overwrites and unexpected behavior. Defaults to `%t`.", pfsense.DefaultConcurrentWrites),
 				Optional:            true,
 			},
 		},
@@ -117,6 +123,12 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 		resp.Diagnostics.AddAttributeError(path, summary, detail)
 	}
 
+	if data.ConcurrentWrites.IsUnknown() {
+		path := path.Root("concurrent_writes")
+		summary, detail := unknownProviderValue(path)
+		resp.Diagnostics.AddAttributeError(path, summary, detail)
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -149,6 +161,10 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 	if !data.MaxAttempts.IsNull() {
 		i := int(data.MaxAttempts.ValueInt64())
 		opts.MaxAttempts = &i
+	}
+
+	if !data.ConcurrentWrites.IsNull() {
+		opts.ConcurrentWrites = data.ConcurrentWrites.ValueBoolPointer()
 	}
 
 	if resp.Diagnostics.HasError() {
