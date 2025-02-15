@@ -2,7 +2,6 @@ package pfsense
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/netip"
@@ -114,15 +113,10 @@ func (dos DomainOverrides) GetControlIDByDomain(domain string) (*int, error) {
 
 func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOverrides, error) {
 	unableToParseResErr := fmt.Errorf("%w domain override response", ErrUnableToParse)
-	bytes, err := pf.getConfigJSON(ctx, "['unbound']['domainoverrides']")
-	if err != nil {
-		return nil, err
-	}
-
+	command := "print_r(json_encode($config['unbound']['domainoverrides']));"
 	var doResp []domainOverrideResponse
-	err = json.Unmarshal(bytes, &doResp)
-	if err != nil {
-		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
+	if err := pf.ExecutePHPCommand(ctx, command, &doResp); err != nil {
+		return nil, err
 	}
 
 	domainOverrides := make(DomainOverrides, 0, len(doResp))

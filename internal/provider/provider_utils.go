@@ -1,13 +1,16 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
@@ -123,4 +126,53 @@ func wrapElements(input []string, wrap string) []string {
 
 func wrapElementsJoin(input []string, wrap string) string {
 	return strings.Join(wrapElements(input, wrap), ", ")
+}
+
+// ref: https://github.com/coryflucas/terraform-provider-kubernetes/blob/master/internal/framework/provider/functions/decode.go
+func convertJSONToTerraform(ctx context.Context, data any) (attr.Value, diag.Diagnostics) { //nolint:ireturn
+	switch value := data.(type) {
+	case string:
+		return types.StringValue(value), nil
+	case float64:
+		return types.Float64Value(value), nil
+	case bool:
+		return types.BoolValue(value), nil
+	case nil:
+		return types.DynamicNull(), nil
+	case []any:
+		attrValues := make([]attr.Value, len(value))
+		attrTypes := make([]attr.Type, len(value))
+		for index, v := range value {
+			attrValue, diags := convertJSONToTerraform(ctx, v)
+			if diags.HasError() {
+				return nil, diags
+			}
+			attrValues[index] = attrValue
+			attrTypes[index] = attrValue.Type(ctx)
+		}
+
+		return types.TupleValue(attrTypes, attrValues)
+	case map[string]any:
+		attrValues := make(map[string]attr.Value, len(value))
+		attrTypes := make(map[string]attr.Type, len(value))
+
+		for key, v := range value {
+			attrValue, diags := convertJSONToTerraform(ctx, v)
+			if diags.HasError() {
+				return nil, diags
+			}
+			attrValues[key] = attrValue
+			attrTypes[key] = attrValue.Type(ctx)
+		}
+
+		return types.ObjectValue(attrTypes, attrValues)
+	default:
+		var diags diag.Diagnostics
+		diags.AddError(
+			"Failed to convert JSON to Terraform attribute value",
+			fmt.Sprintf("unexpected type: %T for value %#v", value, value),
+		)
+
+		return nil, diags
+	}
 }
