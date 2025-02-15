@@ -3,7 +3,6 @@ package pfsense
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -65,16 +64,9 @@ func (pf *Client) getDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, 
 		"$configs['content'] = file_get_contents($filename);" +
 		"return $configs;" +
 		fmt.Sprintf("}, glob('%s/*.%s'))));", dnsResolverConfigFileDir, dnsResolverConfigFileExt)
-
-	bytes, err := pf.runPHPCommand(ctx, command)
-	if err != nil {
-		return nil, err
-	}
-
 	var cfResp []configFileResponse
-	err = json.Unmarshal(bytes, &cfResp)
-	if err != nil {
-		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
+	if err := pf.ExecutePHPCommand(ctx, command, &cfResp); err != nil {
+		return nil, err
 	}
 
 	configFiles := make(ConfigFiles, 0, len(cfResp))

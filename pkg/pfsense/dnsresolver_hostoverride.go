@@ -154,15 +154,10 @@ func (hos HostOverrides) GetControlIDByFQDN(fqdn string) (*int, error) {
 
 func (pf *Client) getDNSResolverHostOverrides(ctx context.Context) (*HostOverrides, error) {
 	unableToParseResErr := fmt.Errorf("%w host override response", ErrUnableToParse)
-	bytes, err := pf.getConfigJSON(ctx, "['unbound']['hosts']")
-	if err != nil {
-		return nil, err
-	}
-
+	command := "print_r(json_encode($config['unbound']['hosts']));"
 	var hoResp []hostOverrideResponse
-	err = json.Unmarshal(bytes, &hoResp)
-	if err != nil {
-		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
+	if err := pf.ExecutePHPCommand(ctx, command, &hoResp); err != nil {
+		return nil, err
 	}
 
 	hostOverrides := make(HostOverrides, 0, len(hoResp))

@@ -2,7 +2,6 @@ package pfsense
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -84,16 +83,9 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 		"$v['controlID'] = $k; array_push($output, $v);" +
 		"}});" +
 		"print_r(json_encode($output));"
-
-	bytes, err := pf.runPHPCommand(ctx, command)
-	if err != nil {
-		return nil, err
-	}
-
 	var portAliasResp []firewallPortAliasResponse
-	err = json.Unmarshal(bytes, &portAliasResp)
-	if err != nil {
-		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
+	if err := pf.ExecutePHPCommand(ctx, command, &portAliasResp); err != nil {
+		return nil, err
 	}
 
 	portAliases := make(FirewallPortAliases, 0, len(portAliasResp))

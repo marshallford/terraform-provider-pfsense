@@ -205,6 +205,7 @@ func (p *pfSenseProvider) DataSources(_ context.Context) []func() datasource.Dat
 		NewFirewallAliasesDataSource,
 		NewSystemVersionDataSource,
 		NewDHCPv4StaticMappingsDataSource,
+		NewExecutePHPCommandDataSource,
 	}
 }
 

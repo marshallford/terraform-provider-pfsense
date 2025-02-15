@@ -239,37 +239,33 @@ func (pf *Client) callHTML(ctx context.Context, method string, relativeURL url.U
 	return doc, nil
 }
 
-func (pf *Client) runPHPCommand(ctx context.Context, command string) ([]byte, error) {
-	u := url.URL{Path: "diag_command.php"}
-	v := url.Values{
+func (pf *Client) ExecutePHPCommand(ctx context.Context, command string, value any) error {
+	relativeURL := url.URL{Path: "diag_command.php"}
+	values := url.Values{
 		"txtPHPCommand": {command},
 		"submit":        {"EXECPHP"},
 	}
-	doc, err := pf.callHTML(ctx, http.MethodPost, u, &v)
+	doc, err := pf.callHTML(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	resp := doc.FindMatcher(goquery.Single("pre"))
-
 	if resp.Length() != 1 {
-		return nil, fmt.Errorf("%w, php command response not found", ErrUnableToScrapeHTML)
+		return fmt.Errorf("%w, php command response not found", ErrUnableToScrapeHTML)
 	}
 
-	return []byte(resp.Text()), nil
-}
+	commandErr := doc.FindMatcher(goquery.Single("#errdiv"))
+	if commandErr.Length() == 1 {
+		return fmt.Errorf("%w, php command failed, %s", ErrServerValidation, resp.Text())
+	}
 
-func (pf *Client) getConfigJSON(ctx context.Context, value string) (json.RawMessage, error) {
-	resp, err := pf.runPHPCommand(ctx, fmt.Sprintf("print_r(json_encode($config%s));", value))
+	err = json.Unmarshal([]byte(resp.Text()), &value)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("%w php command response as JSON, %w", ErrUnableToParse, err)
 	}
 
-	if !json.Valid(resp) {
-		return nil, fmt.Errorf("%w, php command response as JSON, %w", ErrUnableToParse, err)
-	}
-
-	return resp, nil
+	return nil
 }
 
 func removeEmptyStrings(s []string) []string {

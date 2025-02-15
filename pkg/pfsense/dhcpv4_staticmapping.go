@@ -2,7 +2,6 @@ package pfsense
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -250,15 +249,10 @@ func (sms DHCPv4StaticMappings) GetControlIDByMACAddress(macAddress string) (*in
 //nolint:gocognit
 func (pf *Client) getDHCPv4StaticMappings(ctx context.Context, iface string) (*DHCPv4StaticMappings, error) {
 	unableToParseResErr := fmt.Errorf("%w static mapping response", ErrUnableToParse)
-	bytes, err := pf.getConfigJSON(ctx, fmt.Sprintf("['dhcpd']['%s']['staticmap']", iface))
-	if err != nil {
-		return nil, err
-	}
-
+	command := fmt.Sprintf("print_r(json_encode($config['dhcpd']['%s']['staticmap']));", iface)
 	var smResp []dhcpv4StaticMappingResponse
-	err = json.Unmarshal(bytes, &smResp)
-	if err != nil {
-		return nil, fmt.Errorf("%w, %w", unableToParseResErr, err)
+	if err := pf.ExecutePHPCommand(ctx, command, &smResp); err != nil {
+		return nil, err
 	}
 
 	staticMappings := make(DHCPv4StaticMappings, 0, len(smResp))
