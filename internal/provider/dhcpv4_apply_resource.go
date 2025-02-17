@@ -43,7 +43,6 @@ func (r *DHCPv4ApplyResource) Schema(_ context.Context, _ resource.SchemaRequest
 				Description: "Network interface.",
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{

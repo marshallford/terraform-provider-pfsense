@@ -52,7 +52,6 @@ func (r *DHCPv4StaticMappingResource) Schema(_ context.Context, _ resource.Schem
 				Description: DHCPv4StaticMappingModel{}.descriptions()["interface"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
@@ -63,7 +62,6 @@ func (r *DHCPv4StaticMappingResource) Schema(_ context.Context, _ resource.Schem
 				Description: DHCPv4StaticMappingModel{}.descriptions()["mac_address"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
