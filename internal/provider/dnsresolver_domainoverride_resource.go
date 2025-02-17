@@ -47,7 +47,6 @@ func (r *DNSResolverDomainOverrideResource) Schema(_ context.Context, _ resource
 				Description: DNSResolverDomainOverrideModel{}.descriptions()["domain"].Description,
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
