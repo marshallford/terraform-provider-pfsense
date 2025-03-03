@@ -25,11 +25,6 @@ type ExecutePHPCommandDataSource struct {
 	client *pfsense.Client
 }
 
-type ExecutePHPCommandDataSourceModel struct {
-	Command types.String  `tfsdk:"command"`
-	Result  types.Dynamic `tfsdk:"result"`
-}
-
 func (d *ExecutePHPCommandDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_execute_php_command", req.ProviderTypeName)
 }
@@ -40,14 +35,14 @@ func (d *ExecutePHPCommandDataSource) Schema(_ context.Context, _ datasource.Sch
 		MarkdownDescription: "[Execute PHP command](https://docs.netgate.com/pfsense/en/latest/diagnostics/command-prompt.html#php-execute). The command must print exactly one valid JSON value. Only execute commands without observable side-effects.",
 		Attributes: map[string]schema.Attribute{
 			"command": schema.StringAttribute{
-				Description: "PHP command.",
+				Description: ExecutePHPCommandModel{}.descriptions()["command"].Description,
 				Required:    true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
 			},
 			"result": schema.DynamicAttribute{
-				Description: "Result of command.",
+				Description: ExecutePHPCommandModel{}.descriptions()["result"].Description,
 				Computed:    true,
 			},
 		},
@@ -64,26 +59,26 @@ func (d *ExecutePHPCommandDataSource) Configure(_ context.Context, req datasourc
 }
 
 func (d *ExecutePHPCommandDataSource) Read(ctx context.Context, _ datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data ExecutePHPCommandDataSourceModel
+	var data ExecutePHPCommandModel
 	resp.Diagnostics.Append(resp.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var commandResponse interface{}
-	if addError(&resp.Diagnostics, "Failed to execute PHP command", d.client.ExecutePHPCommand(ctx, data.Command.ValueString(), &commandResponse)) {
+	result, err := d.client.ExecutePHPCommand(ctx, data.Command.ValueString(), "read")
+	if addError(&resp.Diagnostics, "Failed to execute PHP command", err) {
 		return
 	}
 
-	result, newDiags := convertJSONToTerraform(ctx, commandResponse)
+	resultValue, newDiags := convertJSONToTerraform(ctx, result)
 	resp.Diagnostics.Append(newDiags...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data.Result = types.DynamicValue(result)
+	data.Result = types.DynamicValue(resultValue)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

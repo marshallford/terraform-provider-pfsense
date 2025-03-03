@@ -220,5 +220,6 @@ func (p *pfSenseProvider) Resources(_ context.Context) []func() resource.Resourc
 		NewFirewallPortAliasResource,
 		NewDHCPv4ApplyResource,
 		NewDHCPv4StaticMappingResource,
+		NewExecutePHPCommandResource,
 	}
 }

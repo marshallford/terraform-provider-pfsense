@@ -65,7 +65,7 @@ func (pf *Client) getDNSResolverConfigFiles(ctx context.Context) (*ConfigFiles, 
 		"return $configs;" +
 		fmt.Sprintf("}, glob('%s/*.%s'))));", dnsResolverConfigFileDir, dnsResolverConfigFileExt)
 	var cfResp []configFileResponse
-	if err := pf.ExecutePHPCommand(ctx, command, &cfResp); err != nil {
+	if err := pf.executePHPCommand(ctx, command, &cfResp); err != nil {
 		return nil, err
 	}
 

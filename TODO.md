@@ -8,7 +8,8 @@
 - [ ] Add provider docs for user permissions/group requirements
 - [X] Add provider docs to explain concurrency errors
 - [X] Add provider option to make all requests serial to minimize errors
-- [ ] Command data source
+- [X] Command data source
+- [X] Command resource
 - [ ] Validate DNS resolver config file with `unbound-checkconf` before saving
 - [ ] Add struct equality checks to confirm update calls are successful
 - [ ] Support apply/reload on destroy

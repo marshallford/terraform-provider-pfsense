@@ -50,6 +50,7 @@ type mutexes struct {
 	DNSResolverConfigFile     sync.RWMutex
 	DNSResolverHostOverride   sync.RWMutex
 	DNSResolverDomainOverride sync.RWMutex
+	ExecutePHPCommand         sync.RWMutex
 	FirewallAlias             sync.RWMutex
 	FirewallFilterReload      sync.Mutex
 }
@@ -239,7 +240,7 @@ func (pf *Client) callHTML(ctx context.Context, method string, relativeURL url.U
 	return doc, nil
 }
 
-func (pf *Client) ExecutePHPCommand(ctx context.Context, command string, value any) error {
+func (pf *Client) executePHPCommand(ctx context.Context, command string, value any) error {
 	relativeURL := url.URL{Path: "diag_command.php"}
 	values := url.Values{
 		"txtPHPCommand": {command},

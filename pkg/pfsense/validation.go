@@ -184,11 +184,11 @@ func ValidateIPAddress(addr string, addrFamily string) error {
 	}
 
 	switch addrFamily {
-	case "ipv4":
+	case "IPv4":
 		if !parsedAddr.Is4() {
 			return fmt.Errorf("%w, not a valid ipv4 address", ErrClientValidation)
 		}
-	case "ipv6":
+	case "IPv6":
 		if !parsedAddr.Is6() {
 			return fmt.Errorf("%w, not a valid ipv6 address", ErrClientValidation)
 		}

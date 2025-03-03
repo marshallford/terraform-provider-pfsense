@@ -115,7 +115,7 @@ func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOve
 	unableToParseResErr := fmt.Errorf("%w domain override response", ErrUnableToParse)
 	command := "print_r(json_encode($config['unbound']['domainoverrides']));"
 	var doResp []domainOverrideResponse
-	if err := pf.ExecutePHPCommand(ctx, command, &doResp); err != nil {
+	if err := pf.executePHPCommand(ctx, command, &doResp); err != nil {
 		return nil, err
 	}
 
