@@ -92,7 +92,7 @@ func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaReq
 							Required:    true,
 							Validators: []validator.String{
 								// https://github.com/hashicorp/terraform-plugin-framework-validators/issues/113
-								stringvalidator.Any(stringIsNetwork(), stringIsIPAddress("any"), stringIsDomain(), stringIsAlias()),
+								stringvalidator.Any(stringIsNetwork(), stringIsIPAddress("Any"), stringIsDomain(), stringIsAlias()),
 							},
 						},
 						"description": schema.StringAttribute{

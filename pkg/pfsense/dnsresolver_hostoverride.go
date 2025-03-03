@@ -156,7 +156,7 @@ func (pf *Client) getDNSResolverHostOverrides(ctx context.Context) (*HostOverrid
 	unableToParseResErr := fmt.Errorf("%w host override response", ErrUnableToParse)
 	command := "print_r(json_encode($config['unbound']['hosts']));"
 	var hoResp []hostOverrideResponse
-	if err := pf.ExecutePHPCommand(ctx, command, &hoResp); err != nil {
+	if err := pf.executePHPCommand(ctx, command, &hoResp); err != nil {
 		return nil, err
 	}
 

@@ -95,7 +95,7 @@ func (pf *Client) getFirewallIPAliases(ctx context.Context) (*FirewallIPAliases,
 		"}});" +
 		"print_r(json_encode($output));"
 	var ipAliasResp []firewallIPAliasResponse
-	if err := pf.ExecutePHPCommand(ctx, command, &ipAliasResp); err != nil {
+	if err := pf.executePHPCommand(ctx, command, &ipAliasResp); err != nil {
 		return nil, err
 	}
 

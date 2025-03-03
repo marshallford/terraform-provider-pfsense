@@ -84,7 +84,7 @@ func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAlia
 		"}});" +
 		"print_r(json_encode($output));"
 	var portAliasResp []firewallPortAliasResponse
-	if err := pf.ExecutePHPCommand(ctx, command, &portAliasResp); err != nil {
+	if err := pf.executePHPCommand(ctx, command, &portAliasResp); err != nil {
 		return nil, err
 	}
 

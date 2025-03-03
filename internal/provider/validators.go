@@ -197,7 +197,7 @@ type stringIsIPAddressValidator struct {
 }
 
 func (v stringIsIPAddressValidator) Description(_ context.Context) string {
-	if v.AddressFamily == "any" {
+	if v.AddressFamily == "Any" {
 		return "string must be an ip address"
 	}
 
@@ -216,7 +216,7 @@ func (v stringIsIPAddressValidator) ValidateString(_ context.Context, req valida
 	err := pfsense.ValidateIPAddress(req.ConfigValue.ValueString(), v.AddressFamily)
 	summary := "Not a valid ip address"
 
-	if v.AddressFamily != "any" {
+	if v.AddressFamily != "Any" {
 		summary = fmt.Sprintf("Not a valid %s address", v.AddressFamily)
 	}
 

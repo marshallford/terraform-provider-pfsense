@@ -72,7 +72,7 @@ func (r *DNSResolverHostOverrideResource) Schema(_ context.Context, _ resource.S
 				Required:    true,
 				ElementType: types.StringType,
 				Validators: []validator.List{
-					listvalidator.ValueStringsAre(stringIsIPAddress("any")),
+					listvalidator.ValueStringsAre(stringIsIPAddress("Any")),
 				},
 			},
 			"description": schema.StringAttribute{

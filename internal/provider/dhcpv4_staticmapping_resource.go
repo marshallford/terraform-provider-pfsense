@@ -79,7 +79,7 @@ func (r *DHCPv4StaticMappingResource) Schema(_ context.Context, _ resource.Schem
 				Description: DHCPv4StaticMappingModel{}.descriptions()["ip_address"].Description,
 				Optional:    true,
 				Validators: []validator.String{
-					stringIsIPAddress("ipv4"),
+					stringIsIPAddress("IPv4"),
 				},
 			},
 			"arp_table_static_entry": schema.BoolAttribute{
@@ -110,7 +110,7 @@ func (r *DHCPv4StaticMappingResource) Schema(_ context.Context, _ resource.Schem
 				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 				ElementType: types.StringType,
 				Validators: []validator.List{
-					listvalidator.ValueStringsAre(stringIsIPAddress("ipv4")),
+					listvalidator.ValueStringsAre(stringIsIPAddress("IPv4")),
 					listvalidator.SizeAtMost(pfsense.StaticMappingMaxWINSServers),
 				},
 			},
@@ -121,7 +121,7 @@ func (r *DHCPv4StaticMappingResource) Schema(_ context.Context, _ resource.Schem
 				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 				ElementType: types.StringType,
 				Validators: []validator.List{
-					listvalidator.ValueStringsAre(stringIsIPAddress("ipv4")),
+					listvalidator.ValueStringsAre(stringIsIPAddress("IPv4")),
 					listvalidator.SizeAtMost(pfsense.StaticMappingMaxDNSServers),
 				},
 			},
@@ -129,7 +129,7 @@ func (r *DHCPv4StaticMappingResource) Schema(_ context.Context, _ resource.Schem
 				Description: DHCPv4StaticMappingModel{}.descriptions()["gateway"].Description,
 				Optional:    true,
 				Validators: []validator.String{
-					stringIsIPAddress("ipv4"),
+					stringIsIPAddress("IPv4"),
 				},
 			},
 			"domain_name": schema.StringAttribute{
