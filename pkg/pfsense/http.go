@@ -54,7 +54,8 @@ func (pf *Client) retryableDo(req *http.Request, reqBody *[]byte) (*http.Respons
 		}
 
 		if httpDoErr == nil {
-			resp.Body.Close()
+			// #nosec G104
+			resp.Body.Close() //nolint:errcheck
 			_, _ = io.Copy(io.Discard, resp.Body)
 		}
 
@@ -76,7 +77,8 @@ func (pf *Client) retryableDo(req *http.Request, reqBody *[]byte) (*http.Respons
 	}
 
 	if resp != nil {
-		resp.Body.Close()
+		// #nosec G104
+		resp.Body.Close() //nolint:errcheck
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}
 

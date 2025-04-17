@@ -27,7 +27,7 @@ func (pf *Client) getSystemVersion(ctx context.Context) (*SystemVersion, error) 
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	bytes, err := io.ReadAll(resp.Body)
 	_, _ = io.Copy(io.Discard, resp.Body)

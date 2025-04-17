@@ -25,7 +25,7 @@ func (pf *Client) ApplyDHCPv4Changes(ctx context.Context, iface string) error {
 		return fmt.Errorf("%w '%s' dhcpv4 changes, %w", ErrApplyOperationFailed, iface, err)
 	}
 
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 	_, _ = io.Copy(io.Discard, resp.Body)
 
 	return nil

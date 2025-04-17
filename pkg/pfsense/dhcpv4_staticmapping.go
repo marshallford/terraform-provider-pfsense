@@ -443,7 +443,7 @@ func (pf *Client) UpdateDHCPv4StaticMapping(ctx context.Context, staticMappingRe
 		return nil, fmt.Errorf("%w '%s' static mapping after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
-	// TODO equality check
+	// TODO equality check.
 	return staticMapping, nil
 }
 

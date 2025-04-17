@@ -14,10 +14,10 @@ const MAC48Length = 6
 
 var dnsLabelRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`)
 
-// TODO implement validation in Set functions
+// TODO implement validation in Set functions.
 // solve: len == 0 checks will break Get functions, for example when a string is empty
 
-// used for hostname and host override name
+// used for hostname and host override name.
 func ValidateDNSLabel(dnsLabel string) error {
 	if !dnsLabelRegex.MatchString(dnsLabel) {
 		return fmt.Errorf("%w, not a valid rfc 1123 dns label", ErrClientValidation)
@@ -44,7 +44,7 @@ func ValidateDomain(domain string) error {
 	dnsLabels := removeEmptyStrings(strings.Split(domain, "."))
 
 	if len(dnsLabels) == 0 {
-		// TODO unsure if this can be reached
+		// TODO unsure if this can be reached.
 		return fmt.Errorf("%w, domain cannot be empty", ErrClientValidation)
 	}
 

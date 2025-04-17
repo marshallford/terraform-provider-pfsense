@@ -1,29 +1,22 @@
-run:
-  timeout: 5m
-
-issues:
-  max-per-linter: 0
-  max-same-issues: 0
-
-# golangci-lint run --print-issued-lines=false --uniq-by-line=false --no-config --enable-all 2> /dev/null | awk 'NF>1{print $NF}' | tr -d '()' | sort -u
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
   - cyclop
   - depguard
   - dupl
   - exhaustruct
+  - funcorder
   - funlen
-  - godot
   - godox
   - lll
   - perfsprint
-  - recvcheck # TODO look into further
-  - wrapcheck # TODO do later
+  - recvcheck
+  - revive
+  - wrapcheck
   - wsl
-
-linters-settings:
-  varnamelen:
-    ignore-type-assert-ok: true
-    ignore-map-index-ok: true
-    ignore-chan-recv-ok: true
+  settings:
+    varnamelen:
+      ignore-type-assert-ok: true
+      ignore-map-index-ok: true
+      ignore-chan-recv-ok: true

@@ -39,13 +39,13 @@ type Options struct {
 	RetryMinWait     *time.Duration
 	RetryMaxWait     *time.Duration
 	MaxAttempts      *int
-	ConcurrentWrites *bool // TODO atomic.Bool
+	ConcurrentWrites *bool // TODO atomic.Bool.
 }
 
 type mutexes struct {
 	GlobalWrite               sync.Mutex
-	DHCPv4Apply               sync.Mutex   // TODO one per iface
-	DHCPv4StaticMapping       sync.RWMutex // TODO one per iface
+	DHCPv4Apply               sync.Mutex   // TODO one per iface.
+	DHCPv4StaticMapping       sync.RWMutex // TODO one per iface.
 	DNSResolverApply          sync.Mutex
 	DNSResolverConfigFile     sync.RWMutex
 	DNSResolverHostOverride   sync.RWMutex
@@ -229,7 +229,7 @@ func (pf *Client) callHTML(ctx context.Context, method string, relativeURL url.U
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	_, _ = io.Copy(io.Discard, resp.Body)
