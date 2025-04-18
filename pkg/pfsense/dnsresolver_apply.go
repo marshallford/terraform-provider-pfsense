@@ -22,7 +22,7 @@ func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) error {
 		return fmt.Errorf("%w dns resolver changes, %w", ErrApplyOperationFailed, err)
 	}
 
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 	_, _ = io.Copy(io.Discard, resp.Body)
 
 	return nil

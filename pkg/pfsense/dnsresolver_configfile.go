@@ -130,7 +130,7 @@ func (pf *Client) createOrUpdateDNSResolverConfigFile(ctx context.Context, confi
 		return err
 	}
 
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	bytes, err := io.ReadAll(resp.Body)
 	_, _ = io.Copy(io.Discard, resp.Body)
@@ -187,7 +187,7 @@ func (pf *Client) UpdateDNSResolverConfigFile(ctx context.Context, configFileReq
 		return nil, fmt.Errorf("%w config file after updating, %w", ErrGetOperationFailed, err)
 	}
 
-	// TODO equality check
+	// TODO equality check.
 	return configFile, nil
 }
 

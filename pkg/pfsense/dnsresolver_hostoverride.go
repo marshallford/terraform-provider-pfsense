@@ -60,7 +60,7 @@ func (p *hostOverrideAliasItemResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// TODO replace with Terraform custom type for netip.Addr
+// TODO replace with Terraform custom type for netip.Addr.
 func (ho HostOverride) StringifyIPAddresses() []string {
 	addrs := make([]string, 0, len(ho.IPAddresses))
 	for _, ipAddress := range ho.IPAddresses {
@@ -317,7 +317,7 @@ func (pf *Client) UpdateDNSResolverHostOverride(ctx context.Context, hostOverrid
 		return nil, fmt.Errorf("%w host override after updating, %w", ErrGetOperationFailed, err)
 	}
 
-	// TODO equality check
+	// TODO equality check.
 	return hostOverride, nil
 }
 

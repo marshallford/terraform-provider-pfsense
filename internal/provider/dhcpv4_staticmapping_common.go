@@ -12,7 +12,7 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-// TODO Handle pfSense "form placeholder" defaulting
+// TODO Handle pfSense "form placeholder" defaulting.
 // Simple attrs: hardcoded defaults: arp_table_static_entry=false, default_lease_time=2h, maximum_lease_time=24h
 // Complicated: wins_servers, dns_servers, gateway, domain_name, domain_search_list
 // Since the HTML form placeholders are not actually saved with the static mapping
@@ -170,7 +170,7 @@ func (m *DHCPv4StaticMappingModel) Set(ctx context.Context, staticMapping pfsens
 	diags.Append(newDiags...)
 	m.DomainSearchList = domainSearchListValue
 
-	// TODO RFC2131 allows for a 0 second DHCP lease (not sure if pfSense does), consider using *time.Duration to fix
+	// TODO RFC2131 allows for a 0 second DHCP lease (not sure if pfSense does), consider using *time.Duration to fix.
 	if staticMapping.DefaultLeaseTime != 0 {
 		m.DefaultLeaseTime = timetypes.NewGoDurationValue(staticMapping.DefaultLeaseTime)
 	}

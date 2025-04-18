@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// TODO pfSense allows for more than one domain override entry with the same domain
+// TODO pfSense allows for more than one domain override entry with the same domain.
 
 const (
 	domainOverrideIPPortSep = "@"
@@ -271,7 +271,7 @@ func (pf *Client) UpdateDNSResolverDomainOverride(ctx context.Context, domainOve
 		return nil, fmt.Errorf("%w domain override after updating, %w", ErrGetOperationFailed, err)
 	}
 
-	// TODO equality check
+	// TODO equality check.
 	return domainOverride, nil
 }
 
