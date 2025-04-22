@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -21,8 +22,9 @@ import (
 )
 
 var (
-	_ resource.Resource                = &DNSResolverHostOverrideResource{}
-	_ resource.ResourceWithImportState = &DNSResolverHostOverrideResource{}
+	_ resource.Resource                = (*DNSResolverHostOverrideResource)(nil)
+	_ resource.ResourceWithConfigure   = (*DNSResolverHostOverrideResource)(nil)
+	_ resource.ResourceWithImportState = (*DNSResolverHostOverrideResource)(nil)
 )
 
 type DNSResolverHostOverrideResourceModel struct {
@@ -183,6 +185,13 @@ func (r *DNSResolverHostOverrideResource) Read(ctx context.Context, req resource
 	}
 
 	hostOverride, err := r.client.GetDNSResolverHostOverride(ctx, data.FQDN.ValueString())
+
+	if errors.Is(err, pfsense.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
 	if addError(&resp.Diagnostics, "Error reading host override", err) {
 		return
 	}
@@ -269,13 +278,14 @@ func (r *DNSResolverHostOverrideResource) ImportState(ctx context.Context, req r
 		if addError(&resp.Diagnostics, "Host cannot be parsed", hostOverride.SetHost(idParts[0])) {
 			return
 		}
-		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("host"), hostOverride.Host)...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("host"), types.StringValue(hostOverride.Host))...)
 	}
 
 	if addError(&resp.Diagnostics, "Domain cannot be parsed", hostOverride.SetDomain(idParts[1])) {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("domain"), hostOverride.Domain)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("fqdn"), hostOverride.FQDN())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("domain"), types.StringValue(hostOverride.Domain))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("fqdn"), types.StringValue(hostOverride.FQDN()))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("apply"), types.BoolValue(defaultApply))...)
 }

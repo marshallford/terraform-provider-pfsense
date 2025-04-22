@@ -27,7 +27,7 @@ type DHCPv4StaticMappingsModel struct {
 
 type DHCPv4StaticMappingModel struct {
 	Interface           types.String         `tfsdk:"interface"`
-	MACAddress          types.String         `tfsdk:"mac_address"`
+	MACAddress          macAddressValue      `tfsdk:"mac_address"`
 	ClientIdentifier    types.String         `tfsdk:"client_identifier"`
 	IPAddress           types.String         `tfsdk:"ip_address"`
 	ARPTableStaticEntry types.Bool           `tfsdk:"arp_table_static_entry"`
@@ -93,7 +93,7 @@ func (DHCPv4StaticMappingModel) descriptions() map[string]attrDescription {
 func (DHCPv4StaticMappingModel) AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"interface":              types.StringType,
-		"mac_address":            types.StringType,
+		"mac_address":            macAddressType{},
 		"client_identifier":      types.StringType,
 		"ip_address":             types.StringType,
 		"arp_table_static_entry": types.BoolType,
@@ -130,7 +130,7 @@ func (m *DHCPv4StaticMappingModel) Set(ctx context.Context, staticMapping pfsens
 	var diags diag.Diagnostics
 
 	m.Interface = types.StringValue(staticMapping.Interface)
-	m.MACAddress = types.StringValue(staticMapping.MACAddress.String())
+	m.MACAddress = newMACAddressValue(staticMapping.MACAddress.String())
 
 	if staticMapping.ClientIdentifier != "" {
 		m.ClientIdentifier = types.StringValue(staticMapping.ClientIdentifier)

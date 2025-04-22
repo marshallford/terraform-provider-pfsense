@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -19,8 +20,9 @@ import (
 )
 
 var (
-	_ resource.Resource                = &FirewallIPAliasResource{}
-	_ resource.ResourceWithImportState = &FirewallIPAliasResource{}
+	_ resource.Resource                = (*FirewallIPAliasResource)(nil)
+	_ resource.ResourceWithConfigure   = (*FirewallIPAliasResource)(nil)
+	_ resource.ResourceWithImportState = (*FirewallIPAliasResource)(nil)
 )
 
 type FirewallIPAliasResourceModel struct {
@@ -165,11 +167,18 @@ func (r *FirewallIPAliasResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	ipAlias, err := r.client.GetFirewallIPAlias(ctx, data.Name.ValueString())
+
+	if errors.Is(err, pfsense.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
 	if addError(&resp.Diagnostics, "Error reading IP alias", err) {
 		return
 	}
 
-	resp.Diagnostics.Append(data.Value(ctx, ipAlias)...)
+	resp.Diagnostics.Append(data.Set(ctx, *ipAlias)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -235,4 +244,5 @@ func (r *FirewallIPAliasResource) Delete(ctx context.Context, req resource.Delet
 
 func (r *FirewallIPAliasResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("apply"), types.BoolValue(defaultApply))...)
 }

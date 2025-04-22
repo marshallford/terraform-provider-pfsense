@@ -121,10 +121,6 @@ func ValidateMACAddress(macAddress string) error {
 		return fmt.Errorf("%w, not an ieee 802 mac-48 address (6 bytes)", ErrClientValidation)
 	}
 
-	if !strings.Contains(macAddress, ":") {
-		return fmt.Errorf("%w, hex octets must be separated by colons", ErrClientValidation)
-	}
-
 	return nil
 }
 

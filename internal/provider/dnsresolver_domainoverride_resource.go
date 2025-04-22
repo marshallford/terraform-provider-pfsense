@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,8 +18,9 @@ import (
 )
 
 var (
-	_ resource.Resource                = &DNSResolverDomainOverrideResource{}
-	_ resource.ResourceWithImportState = &DNSResolverDomainOverrideResource{}
+	_ resource.Resource                = (*DNSResolverDomainOverrideResource)(nil)
+	_ resource.ResourceWithConfigure   = (*DNSResolverDomainOverrideResource)(nil)
+	_ resource.ResourceWithImportState = (*DNSResolverDomainOverrideResource)(nil)
 )
 
 type DNSResolverDomainOverrideResourceModel struct {
@@ -144,6 +146,13 @@ func (r *DNSResolverDomainOverrideResource) Read(ctx context.Context, req resour
 	}
 
 	domainOverride, err := r.client.GetDNSResolverDomainOverride(ctx, data.Domain.ValueString())
+
+	if errors.Is(err, pfsense.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
 	if addError(&resp.Diagnostics, "Error reading domain override", err) {
 		return
 	}
@@ -214,4 +223,5 @@ func (r *DNSResolverDomainOverrideResource) Delete(ctx context.Context, req reso
 
 func (r *DNSResolverDomainOverrideResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("domain"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("apply"), types.BoolValue(defaultApply))...)
 }

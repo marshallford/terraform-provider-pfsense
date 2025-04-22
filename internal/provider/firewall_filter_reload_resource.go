@@ -14,7 +14,10 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ resource.Resource = &FirewallFilterReloadResource{}
+var (
+	_ resource.Resource              = (*FirewallFilterReloadResource)(nil)
+	_ resource.ResourceWithConfigure = (*FirewallFilterReloadResource)(nil)
+)
 
 func NewFirewallFilterReloadResource() resource.Resource { //nolint:ireturn
 	return &FirewallFilterReloadResource{}

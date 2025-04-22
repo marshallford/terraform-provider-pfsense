@@ -15,7 +15,10 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ resource.Resource = &ExecutePHPCommandResource{}
+var (
+	_ resource.Resource              = (*ExecutePHPCommandResource)(nil)
+	_ resource.ResourceWithConfigure = (*ExecutePHPCommandResource)(nil)
+)
 
 type ExecutePHPCommandResourceModel struct {
 	ExecutePHPCommandModel

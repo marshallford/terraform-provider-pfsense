@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &SystemVersionDataSource{}
-	_ datasource.DataSourceWithConfigure = &SystemVersionDataSource{}
+	_ datasource.DataSource              = (*SystemVersionDataSource)(nil)
+	_ datasource.DataSourceWithConfigure = (*SystemVersionDataSource)(nil)
 )
 
 func NewSystemVersionDataSource() datasource.DataSource { //nolint:ireturn

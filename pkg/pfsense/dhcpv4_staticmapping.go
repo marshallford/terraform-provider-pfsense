@@ -226,9 +226,9 @@ func (sm *DHCPv4StaticMapping) SetMaximumLeaseTime(maximumLeaseTime string) erro
 
 type DHCPv4StaticMappings []DHCPv4StaticMapping
 
-func (sms DHCPv4StaticMappings) GetByMACAddress(macAddress string) (*DHCPv4StaticMapping, error) {
+func (sms DHCPv4StaticMappings) GetByMACAddress(macAddress net.HardwareAddr) (*DHCPv4StaticMapping, error) {
 	for _, sm := range sms {
-		if sm.MACAddress.String() == macAddress {
+		if sm.MACAddress.String() == macAddress.String() {
 			return &sm, nil
 		}
 	}
@@ -236,9 +236,9 @@ func (sms DHCPv4StaticMappings) GetByMACAddress(macAddress string) (*DHCPv4Stati
 	return nil, fmt.Errorf("static mapping %w with mac address '%s'", ErrNotFound, macAddress)
 }
 
-func (sms DHCPv4StaticMappings) GetControlIDByMACAddress(macAddress string) (*int, error) {
+func (sms DHCPv4StaticMappings) GetControlIDByMACAddress(macAddress net.HardwareAddr) (*int, error) {
 	for index, do := range sms {
-		if do.MACAddress.String() == macAddress {
+		if do.MACAddress.String() == macAddress.String() {
 			return &index, nil
 		}
 	}
@@ -335,7 +335,7 @@ func (pf *Client) GetDHCPv4StaticMappings(ctx context.Context, iface string) (*D
 	return staticMappings, nil
 }
 
-func (pf *Client) GetDHCPv4StaticMapping(ctx context.Context, iface string, macAddress string) (*DHCPv4StaticMapping, error) {
+func (pf *Client) GetDHCPv4StaticMapping(ctx context.Context, iface string, macAddress net.HardwareAddr) (*DHCPv4StaticMapping, error) {
 	defer pf.read(&pf.mutexes.DHCPv4StaticMapping)()
 
 	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, iface)
@@ -408,7 +408,7 @@ func (pf *Client) CreateDHCPv4StaticMapping(ctx context.Context, staticMappingRe
 		return nil, fmt.Errorf("%w '%s' static mappings after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
-	staticMapping, err := staticMappings.GetByMACAddress(staticMappingReq.MACAddress.String())
+	staticMapping, err := staticMappings.GetByMACAddress(staticMappingReq.MACAddress)
 	if err != nil {
 		return nil, fmt.Errorf("%w '%s' static mapping after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
@@ -424,7 +424,7 @@ func (pf *Client) UpdateDHCPv4StaticMapping(ctx context.Context, staticMappingRe
 		return nil, fmt.Errorf("%w '%s' static mappings, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
-	controlID, err := staticMappings.GetControlIDByMACAddress(staticMappingReq.MACAddress.String())
+	controlID, err := staticMappings.GetControlIDByMACAddress(staticMappingReq.MACAddress)
 	if err != nil {
 		return nil, fmt.Errorf("%w '%s' static mapping, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
@@ -438,7 +438,7 @@ func (pf *Client) UpdateDHCPv4StaticMapping(ctx context.Context, staticMappingRe
 		return nil, fmt.Errorf("%w '%s' static mappings after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
 
-	staticMapping, err := staticMappings.GetByMACAddress(staticMappingReq.MACAddress.String())
+	staticMapping, err := staticMappings.GetByMACAddress(staticMappingReq.MACAddress)
 	if err != nil {
 		return nil, fmt.Errorf("%w '%s' static mapping after creating, %w", ErrGetOperationFailed, staticMappingReq.Interface, err)
 	}
@@ -460,7 +460,7 @@ func (pf *Client) deleteDHCPv4StaticMapping(ctx context.Context, iface string, c
 	return err
 }
 
-func (pf *Client) DeleteDHCPv4StaticMapping(ctx context.Context, iface string, macAddress string) error {
+func (pf *Client) DeleteDHCPv4StaticMapping(ctx context.Context, iface string, macAddress net.HardwareAddr) error {
 	defer pf.write(&pf.mutexes.DHCPv4StaticMapping)()
 
 	staticMappings, err := pf.getDHCPv4StaticMappings(ctx, iface)
