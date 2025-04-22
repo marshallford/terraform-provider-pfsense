@@ -287,4 +287,5 @@ func (r *DNSResolverHostOverrideResource) ImportState(ctx context.Context, req r
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("domain"), types.StringValue(hostOverride.Domain))...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("fqdn"), types.StringValue(hostOverride.FQDN()))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("apply"), types.BoolValue(defaultApply))...)
 }

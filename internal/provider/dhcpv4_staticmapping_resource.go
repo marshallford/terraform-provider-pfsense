@@ -336,4 +336,5 @@ func (r *DHCPv4StaticMappingResource) ImportState(ctx context.Context, req resou
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("interface"), types.StringValue(staticMapping.Interface))...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("mac_address"), newMACAddressValue(staticMapping.MACAddress.String()))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("apply"), types.BoolValue(defaultApply))...)
 }

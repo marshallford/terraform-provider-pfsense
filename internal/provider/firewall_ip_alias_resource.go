@@ -244,4 +244,5 @@ func (r *FirewallIPAliasResource) Delete(ctx context.Context, req resource.Delet
 
 func (r *FirewallIPAliasResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("apply"), types.BoolValue(defaultApply))...)
 }
