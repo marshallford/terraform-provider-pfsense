@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,8 +18,9 @@ import (
 )
 
 var (
-	_ resource.Resource                = &DNSResolverConfigFileResource{}
-	_ resource.ResourceWithImportState = &DNSResolverConfigFileResource{}
+	_ resource.Resource                = (*DNSResolverConfigFileResource)(nil)
+	_ resource.ResourceWithConfigure   = (*DNSResolverConfigFileResource)(nil)
+	_ resource.ResourceWithImportState = (*DNSResolverConfigFileResource)(nil)
 )
 
 type DNSResolverConfigFileResourceModel struct {
@@ -124,6 +126,13 @@ func (r *DNSResolverConfigFileResource) Read(ctx context.Context, req resource.R
 	}
 
 	configFile, err := r.client.GetDNSResolverConfigFile(ctx, data.Name.ValueString())
+
+	if errors.Is(err, pfsense.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
 	if addError(&resp.Diagnostics, "Error reading config file", err) {
 		return
 	}

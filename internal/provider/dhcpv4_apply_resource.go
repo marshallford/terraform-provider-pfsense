@@ -15,7 +15,10 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ resource.Resource = &DHCPv4ApplyResource{}
+var (
+	_ resource.Resource              = (*DHCPv4ApplyResource)(nil)
+	_ resource.ResourceWithConfigure = (*DHCPv4ApplyResource)(nil)
+)
 
 func NewDHCPv4ApplyResource() resource.Resource { //nolint:ireturn
 	return &DHCPv4ApplyResource{}

@@ -14,7 +14,10 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ resource.Resource = &DNSResolverApplyResource{}
+var (
+	_ resource.Resource              = (*DNSResolverApplyResource)(nil)
+	_ resource.ResourceWithConfigure = (*DNSResolverApplyResource)(nil)
+)
 
 func NewDNSResolverApplyResource() resource.Resource { //nolint:ireturn
 	return &DNSResolverApplyResource{}

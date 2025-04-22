@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &DNSResolverHostOverridesDataSource{}
-	_ datasource.DataSourceWithConfigure = &DNSResolverHostOverridesDataSource{}
+	_ datasource.DataSource              = (*DNSResolverHostOverridesDataSource)(nil)
+	_ datasource.DataSourceWithConfigure = (*DNSResolverHostOverridesDataSource)(nil)
 )
 
 func NewDNSResolverHostOverridesDataSource() datasource.DataSource { //nolint:ireturn

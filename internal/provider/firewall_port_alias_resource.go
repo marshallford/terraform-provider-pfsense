@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -19,8 +20,9 @@ import (
 )
 
 var (
-	_ resource.Resource                = &FirewallPortAliasResource{}
-	_ resource.ResourceWithImportState = &FirewallPortAliasResource{}
+	_ resource.Resource                = (*FirewallPortAliasResource)(nil)
+	_ resource.ResourceWithConfigure   = (*FirewallPortAliasResource)(nil)
+	_ resource.ResourceWithImportState = (*FirewallPortAliasResource)(nil)
 )
 
 type FirewallPortAliasResourceModel struct {
@@ -154,11 +156,18 @@ func (r *FirewallPortAliasResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	portAlias, err := r.client.GetFirewallPortAlias(ctx, data.Name.ValueString())
+
+	if errors.Is(err, pfsense.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
 	if addError(&resp.Diagnostics, "Error reading port alias", err) {
 		return
 	}
 
-	resp.Diagnostics.Append(data.Value(ctx, portAlias)...)
+	resp.Diagnostics.Append(data.Set(ctx, *portAlias)...)
 
 	if resp.Diagnostics.HasError() {
 		return

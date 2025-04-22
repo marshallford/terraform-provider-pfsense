@@ -10,6 +10,8 @@ import (
 
 type stringIsDNSLabelValidator struct{}
 
+var _ validator.String = (*stringIsDNSLabelValidator)(nil)
+
 func (v stringIsDNSLabelValidator) Description(_ context.Context) string {
 	return "string must be a RFC 1123 DNS label"
 }
@@ -32,6 +34,8 @@ func stringIsDNSLabel() stringIsDNSLabelValidator {
 }
 
 type stringIsDomainValidator struct{}
+
+var _ validator.String = (*stringIsDomainValidator)(nil)
 
 func (v stringIsDomainValidator) Description(_ context.Context) string {
 	return "string must be a domain"
@@ -56,6 +60,8 @@ func stringIsDomain() stringIsDomainValidator {
 
 type stringIsAliasValidator struct{}
 
+var _ validator.String = (*stringIsAliasValidator)(nil)
+
 func (v stringIsAliasValidator) Description(_ context.Context) string {
 	return "string must be a pfsense alias"
 }
@@ -78,6 +84,8 @@ func stringIsAlias() stringIsAliasValidator {
 }
 
 type stringIsConfigFileNameValidator struct{}
+
+var _ validator.String = (*stringIsConfigFileNameValidator)(nil)
 
 func (v stringIsConfigFileNameValidator) Description(_ context.Context) string {
 	return "string must be a config file name"
@@ -102,6 +110,8 @@ func stringIsConfigFileName() stringIsConfigFileNameValidator {
 
 type stringIsInterfaceValidator struct{}
 
+var _ validator.String = (*stringIsInterfaceValidator)(nil)
+
 func (v stringIsInterfaceValidator) Description(_ context.Context) string {
 	return "string must be a pfsense interface"
 }
@@ -123,30 +133,9 @@ func stringIsInterface() stringIsInterfaceValidator {
 	return stringIsInterfaceValidator{}
 }
 
-type stringIsMACAddressValidator struct{}
-
-func (v stringIsMACAddressValidator) Description(_ context.Context) string {
-	return "string must be a MAC address"
-}
-
-func (v stringIsMACAddressValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
-}
-
-func (v stringIsMACAddressValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
-		return
-	}
-
-	err := pfsense.ValidateMACAddress(req.ConfigValue.ValueString())
-	addPathError(&resp.Diagnostics, req.Path, "Not a valid MAC address", err)
-}
-
-func stringIsMACAddress() stringIsMACAddressValidator {
-	return stringIsMACAddressValidator{}
-}
-
 type stringIsPortValidator struct{}
+
+var _ validator.String = (*stringIsPortValidator)(nil)
 
 func (v stringIsPortValidator) Description(_ context.Context) string {
 	return "string must be a port number"
@@ -170,6 +159,8 @@ func stringIsPort() stringIsPortValidator {
 }
 
 type stringIsPortRangeValidator struct{}
+
+var _ validator.String = (*stringIsPortRangeValidator)(nil)
 
 func (v stringIsPortRangeValidator) Description(_ context.Context) string {
 	return "string must be a port range"
@@ -195,6 +186,8 @@ func stringIsPortRange() stringIsPortRangeValidator {
 type stringIsIPAddressValidator struct {
 	AddressFamily string
 }
+
+var _ validator.String = (*stringIsIPAddressValidator)(nil)
 
 func (v stringIsIPAddressValidator) Description(_ context.Context) string {
 	if v.AddressFamily == "Any" {
@@ -231,6 +224,8 @@ func stringIsIPAddress(addrFamily string) stringIsIPAddressValidator {
 
 type stringIsIPAddressPortValidator struct{}
 
+var _ validator.String = (*stringIsIPAddressPortValidator)(nil)
+
 func (v stringIsIPAddressPortValidator) Description(_ context.Context) string {
 	return "string must be an ip address port"
 }
@@ -253,6 +248,8 @@ func stringIsIPAddressPort() stringIsIPAddressPortValidator {
 }
 
 type stringIsNetworkValidator struct{}
+
+var _ validator.String = (*stringIsNetworkValidator)(nil)
 
 func (v stringIsNetworkValidator) Description(_ context.Context) string {
 	return "string must be a network"

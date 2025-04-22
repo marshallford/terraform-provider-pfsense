@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &DHCPv4StaticMappingsDataSource{}
-	_ datasource.DataSourceWithConfigure = &DHCPv4StaticMappingsDataSource{}
+	_ datasource.DataSource              = (*DHCPv4StaticMappingsDataSource)(nil)
+	_ datasource.DataSourceWithConfigure = (*DHCPv4StaticMappingsDataSource)(nil)
 )
 
 func NewDHCPv4StaticMappingsDataSource() datasource.DataSource { //nolint:ireturn
@@ -52,6 +52,7 @@ func (d *DHCPv4StaticMappingsDataSource) Schema(_ context.Context, _ datasource.
 						},
 						"mac_address": schema.StringAttribute{
 							Description: DHCPv4StaticMappingModel{}.descriptions()["mac_address"].Description,
+							CustomType:  macAddressType{},
 							Computed:    true,
 						},
 						"client_identifier": schema.StringAttribute{

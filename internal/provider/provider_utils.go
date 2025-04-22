@@ -40,6 +40,21 @@ func unexpectedConfigureType(value string, providerData any) (string, string) {
 		fmt.Sprintf("Expected *providerOptions, got: %T. Please report this issue to the provider developers.", providerData)
 }
 
+func unexpectedValueTypeSemanticEquality(value any, valuable any) (string, string) {
+	return "Semantic Equality Check Error",
+		fmt.Sprintf("An unexpected value type was received while performing semantic equality checks. "+
+			"Please report this to the provider developers.\n\n"+
+			"Expected Value Type: %T\n"+
+			"Got Value Type: %T", value, valuable)
+}
+
+func unexpectedErrorSemanticEquality(err error) (string, string) {
+	return "Semantic Equality Check Error",
+		fmt.Sprintf("An unexpected error occurred while performing semantic equality checks. "+
+			"Please report this to the provider developers.\n\n"+
+			"Error: %s", err.Error())
+}
+
 func configureResourceClient(req resource.ConfigureRequest, resp *resource.ConfigureResponse) (*pfsense.Client, bool) {
 	if req.ProviderData == nil {
 		return nil, false
@@ -95,7 +110,7 @@ func addError(diags *diag.Diagnostics, summary string, err error) bool {
 	return false
 }
 
-func addPathError(diags *diag.Diagnostics, path path.Path, summary string, err error) bool { //nolint:unparam
+func addPathError(diags *diag.Diagnostics, path path.Path, summary string, err error) bool {
 	if err != nil {
 		diags.AddAttributeError(path, summary, fmt.Sprintf("%s: %s", diagDetailPrefix, err))
 
@@ -108,6 +123,16 @@ func addPathError(diags *diag.Diagnostics, path path.Path, summary string, err e
 func addWarning(diags *diag.Diagnostics, summary string, err error) bool { //nolint:unparam
 	if err != nil {
 		diags.AddWarning(summary, fmt.Sprintf("%s: %s", diagDetailPrefix, err))
+
+		return true
+	}
+
+	return false
+}
+
+func addPathWarning(diags *diag.Diagnostics, path path.Path, summary string, err error) bool {
+	if err != nil {
+		diags.AddAttributeWarning(path, summary, fmt.Sprintf("%s: %s", diagDetailPrefix, err))
 
 		return true
 	}

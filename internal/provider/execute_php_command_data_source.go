@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &ExecutePHPCommandDataSource{}
-	_ datasource.DataSourceWithConfigure = &ExecutePHPCommandDataSource{}
+	_ datasource.DataSource              = (*ExecutePHPCommandDataSource)(nil)
+	_ datasource.DataSourceWithConfigure = (*ExecutePHPCommandDataSource)(nil)
 )
 
 func NewExecutePHPCommandDataSource() datasource.DataSource { //nolint:ireturn

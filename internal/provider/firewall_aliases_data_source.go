@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &FirewallAliasesDataSource{}
-	_ datasource.DataSourceWithConfigure = &FirewallAliasesDataSource{}
+	_ datasource.DataSource              = (*FirewallAliasesDataSource)(nil)
+	_ datasource.DataSourceWithConfigure = (*FirewallAliasesDataSource)(nil)
 )
 
 type FirewallAliasesModel struct {

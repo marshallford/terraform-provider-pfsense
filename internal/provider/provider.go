@@ -15,7 +15,7 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ provider.Provider = &pfSenseProvider{}
+var _ provider.Provider = (*pfSenseProvider)(nil)
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {

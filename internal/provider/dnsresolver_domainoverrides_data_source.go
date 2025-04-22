@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &DNSResolverDomainOverridesDataSource{}
-	_ datasource.DataSourceWithConfigure = &DNSResolverDomainOverridesDataSource{}
+	_ datasource.DataSource              = (*DNSResolverDomainOverridesDataSource)(nil)
+	_ datasource.DataSourceWithConfigure = (*DNSResolverDomainOverridesDataSource)(nil)
 )
 
 func NewDNSResolverDomainOverridesDataSource() datasource.DataSource { //nolint:ireturn

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -22,8 +23,9 @@ import (
 )
 
 var (
-	_ resource.Resource                = &DHCPv4StaticMappingResource{}
-	_ resource.ResourceWithImportState = &DHCPv4StaticMappingResource{}
+	_ resource.Resource                = (*DHCPv4StaticMappingResource)(nil)
+	_ resource.ResourceWithConfigure   = (*DHCPv4StaticMappingResource)(nil)
+	_ resource.ResourceWithImportState = (*DHCPv4StaticMappingResource)(nil)
 )
 
 type DHCPv4StaticMappingResourceModel struct {
@@ -60,12 +62,11 @@ func (r *DHCPv4StaticMappingResource) Schema(_ context.Context, _ resource.Schem
 			},
 			"mac_address": schema.StringAttribute{
 				Description: DHCPv4StaticMappingModel{}.descriptions()["mac_address"].Description,
+				CustomType:  macAddressType{},
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
+					macAddressPlanModifier(),
 					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringIsMACAddress(),
 				},
 			},
 			"client_identifier": schema.StringAttribute{
@@ -221,7 +222,21 @@ func (r *DHCPv4StaticMappingResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	staticMapping, err := r.client.GetDHCPv4StaticMapping(ctx, data.Interface.ValueString(), data.MACAddress.ValueString())
+	macAddress, newDiags := data.MACAddress.parseMACAddress()
+	resp.Diagnostics.Append(newDiags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	staticMapping, err := r.client.GetDHCPv4StaticMapping(ctx, data.Interface.ValueString(), macAddress)
+
+	if errors.Is(err, pfsense.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
 	if addError(&resp.Diagnostics, "Error reading static mapping", err) {
 		return
 	}
@@ -277,7 +292,14 @@ func (r *DHCPv4StaticMappingResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	err := r.client.DeleteDHCPv4StaticMapping(ctx, data.Interface.ValueString(), data.MACAddress.ValueString())
+	macAddress, newDiags := data.MACAddress.parseMACAddress()
+	resp.Diagnostics.Append(newDiags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err := r.client.DeleteDHCPv4StaticMapping(ctx, data.Interface.ValueString(), macAddress)
 	if addError(&resp.Diagnostics, "Error deleting static mapping", err) {
 		return
 	}
@@ -312,6 +334,6 @@ func (r *DHCPv4StaticMappingResource) ImportState(ctx context.Context, req resou
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("interface"), staticMapping.Interface)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("mac_address"), staticMapping.MACAddress)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("interface"), types.StringValue(staticMapping.Interface))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("mac_address"), newMACAddressValue(staticMapping.MACAddress.String()))...)
 }
