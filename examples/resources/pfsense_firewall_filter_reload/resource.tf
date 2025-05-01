@@ -8,7 +8,7 @@ resource "pfsense_firewall_ip_alias" "example" {
   type  = "host"
   apply = false
   entries = [
-    { address = each.value },
+    { ip = each.value },
   ]
 }
 
