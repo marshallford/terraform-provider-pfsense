@@ -132,7 +132,7 @@ func (pf *Client) write(mutex *sync.RWMutex) func() {
 func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 	var err error
 
-	if opts.URL.String() == "" {
+	if opts.URL == nil {
 		url, err := url.Parse(DefaultURL)
 		if err != nil {
 			return nil, fmt.Errorf("%w, %w", ErrClientValidation, err)
