@@ -4,11 +4,14 @@ page_title: "pfsense_dhcpv4_apply Resource - terraform-provider-pfsense"
 subcategory: ""
 description: |-
   Apply DHCPv4 configuration.
+  Required Privileges: WebCfg - Services: DHCP Server
 ---
 
 # pfsense_dhcpv4_apply (Resource)
 
 Apply DHCPv4 configuration.
+
+Required Privileges: `WebCfg - Services: DHCP Server`
 
 ## Example Usage
 

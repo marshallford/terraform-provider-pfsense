@@ -4,11 +4,19 @@ page_title: "pfsense_dnsresolver_hostoverride Resource - terraform-provider-pfse
 subcategory: ""
 description: |-
   DNS resolver host override https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html. Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.
+  Required Privileges:
+  Create: WebCfg - Diagnostics: Command, WebCfg - Services: DNS Resolver: Edit hostRead: WebCfg - Diagnostics: CommandUpdate: WebCfg - Diagnostics: Command, WebCfg - Services: DNS Resolver: Edit hostDelete: WebCfg - Diagnostics: Command, WebCfg - Services: DNS Resolver
 ---
 
 # pfsense_dnsresolver_hostoverride (Resource)
 
 DNS resolver [host override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.
+
+Required Privileges: 
+* Create: `WebCfg - Diagnostics: Command`, `WebCfg - Services: DNS Resolver: Edit host`
+* Read: `WebCfg - Diagnostics: Command`
+* Update: `WebCfg - Diagnostics: Command`, `WebCfg - Services: DNS Resolver: Edit host`
+* Delete: `WebCfg - Diagnostics: Command`, `WebCfg - Services: DNS Resolver`
 
 ## Example Usage
 

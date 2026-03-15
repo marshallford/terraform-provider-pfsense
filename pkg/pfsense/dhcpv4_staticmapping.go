@@ -12,6 +12,13 @@ import (
 	"time"
 )
 
+var DHCPv4StaticMappingPrivileges = Privileges{
+	Create: []string{PrivDiagnosticsCommand, PrivDHCPServerEditStaticMapping},
+	Read:   []string{PrivDiagnosticsCommand},
+	Update: []string{PrivDiagnosticsCommand, PrivDHCPServerEditStaticMapping},
+	Delete: []string{PrivDiagnosticsCommand, PrivDHCPServer},
+}
+
 type dhcpv4StaticMappingResponse struct {
 	MACAddress          string   `json:"mac"`
 	ClientIdentifier    string   `json:"cid"`

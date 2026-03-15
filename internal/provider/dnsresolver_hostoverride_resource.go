@@ -47,7 +47,7 @@ func (r *DNSResolverHostOverrideResource) Metadata(_ context.Context, req resour
 func (r *DNSResolverHostOverrideResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "DNS resolver host override. Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
-		MarkdownDescription: "DNS resolver [host override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.",
+		MarkdownDescription: "DNS resolver [host override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Host for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver." + privilegesMarkdown(pfsense.DNSResolverHostOverridePrivileges),
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
 				Description: DNSResolverHostOverrideModel{}.descriptions()["host"].Description,

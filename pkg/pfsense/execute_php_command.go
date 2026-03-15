@@ -5,6 +5,13 @@ import (
 	"fmt"
 )
 
+var ExecutePHPCommandPrivileges = Privileges{
+	Create: []string{PrivDiagnosticsCommand},
+	Read:   []string{PrivDiagnosticsCommand},
+	Update: []string{PrivDiagnosticsCommand},
+	Delete: []string{PrivDiagnosticsCommand},
+}
+
 func (pf *Client) ExecutePHPCommand(ctx context.Context, command string, crud string) (any, error) {
 	var executeErr error
 

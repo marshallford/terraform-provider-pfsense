@@ -29,7 +29,7 @@ func (d *DNSResolverDomainOverridesDataSource) Metadata(_ context.Context, req d
 func (d *DNSResolverDomainOverridesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Retrieves all DNS resolver domain overrides. Domains for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
-		MarkdownDescription: "Retrieves all DNS resolver [domain overrides](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domains for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.",
+		MarkdownDescription: "Retrieves all DNS resolver [domain overrides](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domains for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead." + privilegesMarkdown(pfsense.DNSResolverDomainOverridePrivileges, true),
 		Attributes: map[string]schema.Attribute{
 			"all": schema.ListNestedAttribute{
 				Description: "All domain overrides.",

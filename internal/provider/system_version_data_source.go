@@ -34,7 +34,8 @@ func (d *SystemVersionDataSource) Metadata(_ context.Context, req datasource.Met
 
 func (d *SystemVersionDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Retrieves current and latest system version.",
+		Description:         "Retrieves current and latest system version.",
+		MarkdownDescription: "Retrieves current and latest system version." + privilegesMarkdown(pfsense.SystemVersionPrivileges, true),
 		Attributes: map[string]schema.Attribute{
 			"current": schema.StringAttribute{
 				Description: "Current pfSense system version.",

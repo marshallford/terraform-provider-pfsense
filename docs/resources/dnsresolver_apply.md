@@ -4,11 +4,14 @@ page_title: "pfsense_dnsresolver_apply Resource - terraform-provider-pfsense"
 subcategory: ""
 description: |-
   Apply DNS resolver configuration.
+  Required Privileges: WebCfg - Services: DNS Resolver
 ---
 
 # pfsense_dnsresolver_apply (Resource)
 
 Apply DNS resolver configuration.
+
+Required Privileges: `WebCfg - Services: DNS Resolver`
 
 ## Example Usage
 

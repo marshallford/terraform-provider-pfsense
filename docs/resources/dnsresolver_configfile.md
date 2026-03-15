@@ -4,11 +4,19 @@ page_title: "pfsense_dnsresolver_configfile Resource - terraform-provider-pfsens
 subcategory: ""
 description: |-
   DNS resolver (Unbound) config file https://man.freebsd.org/cgi/man.cgi?unbound.conf. Prerequisite: Must add the directive include-toplevel: /var/unbound/conf.d/* to the DNS resolver custom options input. Use with caution, content is not checked/validated.
+  Required Privileges:
+  Create: WebCfg - Diagnostics: Command, WebCfg - Diagnostics: Edit FileRead: WebCfg - Diagnostics: CommandUpdate: WebCfg - Diagnostics: Command, WebCfg - Diagnostics: Edit FileDelete: WebCfg - Diagnostics: Command, WebCfg - Diagnostics: Edit File
 ---
 
 # pfsense_dnsresolver_configfile (Resource)
 
 DNS resolver (Unbound) [config file](https://man.freebsd.org/cgi/man.cgi?unbound.conf). **Prerequisite**: Must add the directive `include-toplevel: /var/unbound/conf.d/*` to the DNS resolver custom options input. **Use with caution**, content is not checked/validated.
+
+Required Privileges: 
+* Create: `WebCfg - Diagnostics: Command`, `WebCfg - Diagnostics: Edit File`
+* Read: `WebCfg - Diagnostics: Command`
+* Update: `WebCfg - Diagnostics: Command`, `WebCfg - Diagnostics: Edit File`
+* Delete: `WebCfg - Diagnostics: Command`, `WebCfg - Diagnostics: Edit File`
 
 ## Example Usage
 

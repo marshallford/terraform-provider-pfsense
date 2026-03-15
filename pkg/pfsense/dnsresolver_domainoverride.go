@@ -12,6 +12,13 @@ import (
 
 // TODO pfSense allows for more than one domain override entry with the same domain.
 
+var DNSResolverDomainOverridePrivileges = Privileges{
+	Create: []string{PrivDiagnosticsCommand, PrivDNSResolverEditDomainOverride},
+	Read:   []string{PrivDiagnosticsCommand},
+	Update: []string{PrivDiagnosticsCommand, PrivDNSResolverEditDomainOverride},
+	Delete: []string{PrivDiagnosticsCommand, PrivDNSResolver},
+}
+
 const (
 	domainOverrideIPPortSep = "@"
 	DefaultDNSPort          = 53

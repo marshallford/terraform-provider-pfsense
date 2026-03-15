@@ -9,6 +9,10 @@ import (
 	"net/url"
 )
 
+var SystemVersionPrivileges = Privileges{
+	Read: []string{PrivPackageManagerInstall},
+}
+
 type SystemVersion struct {
 	Current string `json:"installed_version"` //nolint:tagliatelle
 	Latest  string `json:"version"`           //nolint:tagliatelle

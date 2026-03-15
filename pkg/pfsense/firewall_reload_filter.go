@@ -8,6 +8,10 @@ import (
 	"net/url"
 )
 
+var FirewallFilterPrivileges = Privileges{
+	Create: []string{PrivFilterReloadStatus},
+}
+
 func (pf *Client) ReloadFirewallFilter(ctx context.Context) error {
 	pf.mutexes.FirewallFilterReload.Lock()
 	defer pf.mutexes.FirewallFilterReload.Unlock()

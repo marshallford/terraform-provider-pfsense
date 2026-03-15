@@ -11,6 +11,13 @@ import (
 	"strings"
 )
 
+var DNSResolverHostOverridePrivileges = Privileges{
+	Create: []string{PrivDiagnosticsCommand, PrivDNSResolverEditHost},
+	Read:   []string{PrivDiagnosticsCommand},
+	Update: []string{PrivDiagnosticsCommand, PrivDNSResolverEditHost},
+	Delete: []string{PrivDiagnosticsCommand, PrivDNSResolver},
+}
+
 const (
 	hostOverrideIPAddressesSep = ","
 )

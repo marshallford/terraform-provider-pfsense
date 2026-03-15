@@ -32,7 +32,7 @@ func (d *ExecutePHPCommandDataSource) Metadata(_ context.Context, req datasource
 func (d *ExecutePHPCommandDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Execute PHP command. The command must print exactly one valid JSON value. Only execute commands without observable side-effects.",
-		MarkdownDescription: "[Execute PHP command](https://docs.netgate.com/pfsense/en/latest/diagnostics/command-prompt.html#php-execute). The command must print exactly one valid JSON value. Only execute commands without observable side-effects.",
+		MarkdownDescription: "[Execute PHP command](https://docs.netgate.com/pfsense/en/latest/diagnostics/command-prompt.html#php-execute). The command must print exactly one valid JSON value. Only execute commands without observable side-effects." + privilegesMarkdown(pfsense.ExecutePHPCommandPrivileges, true),
 		Attributes: map[string]schema.Attribute{
 			"command": schema.StringAttribute{
 				Description: ExecutePHPCommandModel{}.descriptions()["command"].Description,

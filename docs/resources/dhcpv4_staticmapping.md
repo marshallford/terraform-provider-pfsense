@@ -4,11 +4,19 @@ page_title: "pfsense_dhcpv4_staticmapping Resource - terraform-provider-pfsense"
 subcategory: ""
 description: |-
   DHCPv4 static mapping https://docs.netgate.com/pfsense/en/latest/services/dhcp/ipv4.html#static-mappings. Static mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries.
+  Required Privileges:
+  Create: WebCfg - Diagnostics: Command, WebCfg - Services: DHCP Server: Edit static mappingRead: WebCfg - Diagnostics: CommandUpdate: WebCfg - Diagnostics: Command, WebCfg - Services: DHCP Server: Edit static mappingDelete: WebCfg - Diagnostics: Command, WebCfg - Services: DHCP Server
 ---
 
 # pfsense_dhcpv4_staticmapping (Resource)
 
 DHCPv4 [static mapping](https://docs.netgate.com/pfsense/en/latest/services/dhcp/ipv4.html#static-mappings). Static mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries.
+
+Required Privileges: 
+* Create: `WebCfg - Diagnostics: Command`, `WebCfg - Services: DHCP Server: Edit static mapping`
+* Read: `WebCfg - Diagnostics: Command`
+* Update: `WebCfg - Diagnostics: Command`, `WebCfg - Services: DHCP Server: Edit static mapping`
+* Delete: `WebCfg - Diagnostics: Command`, `WebCfg - Services: DHCP Server`
 
 ## Example Usage
 

@@ -40,7 +40,8 @@ func (r *DHCPv4ApplyResource) Metadata(_ context.Context, req resource.MetadataR
 
 func (r *DHCPv4ApplyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Apply DHCPv4 configuration.",
+		Description:         "Apply DHCPv4 configuration.",
+		MarkdownDescription: "Apply DHCPv4 configuration." + privilegesMarkdown(pfsense.DHCPv4ChangesPrivileges),
 		Attributes: map[string]schema.Attribute{
 			"interface": schema.StringAttribute{
 				Description: "Network interface.",

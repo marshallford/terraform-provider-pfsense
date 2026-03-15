@@ -8,6 +8,10 @@ import (
 	"net/url"
 )
 
+var DNSResolverChangesPrivileges = Privileges{
+	Create: []string{PrivDNSResolver},
+}
+
 func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) error {
 	pf.mutexes.DNSResolverApply.Lock()
 	defer pf.mutexes.DNSResolverApply.Unlock()

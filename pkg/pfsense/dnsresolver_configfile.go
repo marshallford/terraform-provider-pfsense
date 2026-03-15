@@ -10,6 +10,13 @@ import (
 	"strings"
 )
 
+var DNSResolverConfigFilePrivileges = Privileges{
+	Create: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+	Read:   []string{PrivDiagnosticsCommand},
+	Update: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+	Delete: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+}
+
 const (
 	dnsResolverConfigFileDir = "/var/unbound/conf.d"
 	dnsResolverConfigFileExt = "conf"

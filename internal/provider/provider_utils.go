@@ -153,6 +153,43 @@ func wrapElementsJoin(input []string, wrap string) string {
 	return strings.Join(wrapElements(input, wrap), ", ")
 }
 
+func privilegesMarkdown(privs pfsense.Privileges, readOnly ...bool) string {
+	var sb strings.Builder
+	sb.WriteString("\n\nRequired Privileges: ")
+
+	isReadOnly := len(readOnly) > 0 && readOnly[0]
+	onlyCreate := len(privs.Create) > 0 && len(privs.Read) == 0 && len(privs.Update) == 0 && len(privs.Delete) == 0
+
+	if isReadOnly {
+		sb.WriteString(wrapElementsJoin(privs.Read, "`"))
+		return sb.String()
+	}
+
+	if onlyCreate {
+		sb.WriteString(wrapElementsJoin(privs.Create, "`"))
+		return sb.String()
+	}
+
+	if len(privs.Create) > 0 {
+		sb.WriteString("\n* Create: ")
+		sb.WriteString(wrapElementsJoin(privs.Create, "`"))
+	}
+	if len(privs.Read) > 0 {
+		sb.WriteString("\n* Read: ")
+		sb.WriteString(wrapElementsJoin(privs.Read, "`"))
+	}
+	if len(privs.Update) > 0 {
+		sb.WriteString("\n* Update: ")
+		sb.WriteString(wrapElementsJoin(privs.Update, "`"))
+	}
+	if len(privs.Delete) > 0 {
+		sb.WriteString("\n* Delete: ")
+		sb.WriteString(wrapElementsJoin(privs.Delete, "`"))
+	}
+
+	return sb.String()
+}
+
 // ref: https://github.com/coryflucas/terraform-provider-kubernetes/blob/master/internal/framework/provider/functions/decode.go
 func convertJSONToTerraform(ctx context.Context, data any) (attr.Value, diag.Diagnostics) { //nolint:ireturn
 	switch value := data.(type) {

@@ -4,11 +4,14 @@ page_title: "pfsense_firewall_aliases Data Source - terraform-provider-pfsense"
 subcategory: ""
 description: |-
   Retrieves all firewall aliases https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.
+  Required Privileges: WebCfg - Diagnostics: Command
 ---
 
 # pfsense_firewall_aliases (Data Source)
 
 Retrieves all firewall [aliases](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html). Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.
+
+Required Privileges: `WebCfg - Diagnostics: Command`
 
 ## Example Usage
 

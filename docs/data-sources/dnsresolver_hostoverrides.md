@@ -4,11 +4,14 @@ page_title: "pfsense_dnsresolver_hostoverrides Data Source - terraform-provider-
 subcategory: ""
 description: |-
   Retrieves all DNS resolver host overrides https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html. Hosts for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.
+  Required Privileges: WebCfg - Diagnostics: Command
 ---
 
 # pfsense_dnsresolver_hostoverrides (Data Source)
 
 Retrieves all DNS resolver [host overrides](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-host-overrides.html). Hosts for which the resolver's standard DNS lookup process should be overridden and a specific IPv4 or IPv6 address should automatically be returned by the resolver.
+
+Required Privileges: `WebCfg - Diagnostics: Command`
 
 ## Example Usage
 

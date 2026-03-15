@@ -8,6 +8,10 @@ import (
 	"net/url"
 )
 
+var DHCPv4ChangesPrivileges = Privileges{
+	Create: []string{PrivDHCPServer},
+}
+
 func (pf *Client) ApplyDHCPv4Changes(ctx context.Context, iface string) error {
 	pf.mutexes.DHCPv4Apply.Lock()
 	defer pf.mutexes.DHCPv4Apply.Unlock()
