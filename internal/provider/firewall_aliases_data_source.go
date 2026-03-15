@@ -64,7 +64,7 @@ func (d *FirewallAliasesDataSource) Metadata(_ context.Context, req datasource.M
 func (d *FirewallAliasesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Retrieves all firewall aliases. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
-		MarkdownDescription: "Retrieves all firewall [aliases](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html). Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
+		MarkdownDescription: "Retrieves all firewall [aliases](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html). Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall." + privilegesMarkdown(pfsense.FirewallIPAlias{}, true),
 		Attributes: map[string]schema.Attribute{
 			"ip": schema.ListNestedAttribute{
 				Description: "IP aliases (hosts and networks).",

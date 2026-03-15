@@ -153,6 +153,52 @@ func wrapElementsJoin(input []string, wrap string) string {
 	return strings.Join(wrapElements(input, wrap), ", ")
 }
 
+type pfsensePrivileges interface {
+	Privileges() pfsense.Privileges
+}
+
+func privilegesMarkdown(p pfsensePrivileges, readOnly ...bool) string {
+	privs := p.Privileges()
+	var builder strings.Builder
+
+	isReadOnly := len(readOnly) > 0 && readOnly[0]
+	onlyCreate := len(privs.Create) > 0 && len(privs.Read) == 0 && len(privs.Update) == 0 && len(privs.Delete) == 0
+
+	if isReadOnly {
+		builder.WriteString("\n\nRequired Privileges: ")
+		builder.WriteString(wrapElementsJoin(privs.Read, "`"))
+
+		return builder.String()
+	}
+
+	if onlyCreate {
+		builder.WriteString("\n\nRequired Privileges: ")
+		builder.WriteString(wrapElementsJoin(privs.Create, "`"))
+
+		return builder.String()
+	}
+
+	builder.WriteString("\n\nRequired Privileges:")
+	if len(privs.Create) > 0 {
+		builder.WriteString("\n* Create: ")
+		builder.WriteString(wrapElementsJoin(privs.Create, "`"))
+	}
+	if len(privs.Read) > 0 {
+		builder.WriteString("\n* Read: ")
+		builder.WriteString(wrapElementsJoin(privs.Read, "`"))
+	}
+	if len(privs.Update) > 0 {
+		builder.WriteString("\n* Update: ")
+		builder.WriteString(wrapElementsJoin(privs.Update, "`"))
+	}
+	if len(privs.Delete) > 0 {
+		builder.WriteString("\n* Delete: ")
+		builder.WriteString(wrapElementsJoin(privs.Delete, "`"))
+	}
+
+	return builder.String()
+}
+
 // ref: https://github.com/coryflucas/terraform-provider-kubernetes/blob/master/internal/framework/provider/functions/decode.go
 func convertJSONToTerraform(ctx context.Context, data any) (attr.Value, diag.Diagnostics) { //nolint:ireturn
 	switch value := data.(type) {

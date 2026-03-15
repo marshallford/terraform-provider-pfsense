@@ -38,7 +38,8 @@ func (r *DNSResolverApplyResource) Metadata(_ context.Context, req resource.Meta
 
 func (r *DNSResolverApplyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Apply DNS resolver configuration.",
+		Description:         "Apply DNS resolver configuration.",
+		MarkdownDescription: "Apply DNS resolver configuration." + privilegesMarkdown(pfsense.DNSResolverChanges{}),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "UUID for DNS resolver apply.",

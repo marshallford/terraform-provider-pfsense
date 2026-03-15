@@ -4,11 +4,14 @@ page_title: "pfsense_firewall_filter_reload Resource - terraform-provider-pfsens
 subcategory: ""
 description: |-
   Reload firewall filter.
+  Required Privileges: WebCfg - Status: Filter Reload Status
 ---
 
 # pfsense_firewall_filter_reload (Resource)
 
 Reload firewall filter.
+
+Required Privileges: `WebCfg - Status: Filter Reload Status`
 
 ## Example Usage
 

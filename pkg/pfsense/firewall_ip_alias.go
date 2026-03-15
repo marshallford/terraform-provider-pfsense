@@ -30,6 +30,15 @@ type FirewallIPAliasEntry struct {
 	Description string
 }
 
+func (FirewallIPAlias) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
+		Delete: []string{PrivDiagnosticsCommand, PrivFirewallAliases},
+	}
+}
+
 func (FirewallIPAlias) Types() []string {
 	return []string{"host", "network"}
 }

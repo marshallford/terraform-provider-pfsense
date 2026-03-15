@@ -47,6 +47,15 @@ type HostOverrideAlias struct {
 	Description string
 }
 
+func (HostOverride) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivDNSResolverEditHost},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivDNSResolverEditHost},
+		Delete: []string{PrivDiagnosticsCommand, PrivDNSResolver},
+	}
+}
+
 func (p *hostOverrideAliasItemResponse) UnmarshalJSON(data []byte) error {
 	if data[0] == '{' {
 		type t hostOverrideAliasItemResponse

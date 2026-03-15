@@ -4,11 +4,14 @@ page_title: "pfsense_system_version Data Source - terraform-provider-pfsense"
 subcategory: ""
 description: |-
   Retrieves current and latest system version.
+  Required Privileges: WebCfg - System: Package Manager: Install Package
 ---
 
 # pfsense_system_version (Data Source)
 
 Retrieves current and latest system version.
+
+Required Privileges: `WebCfg - System: Package Manager: Install Package`
 
 ## Example Usage
 

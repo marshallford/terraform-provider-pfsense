@@ -29,6 +29,15 @@ type FirewallPortAliasEntry struct {
 	Description string
 }
 
+func (FirewallPortAlias) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
+		Delete: []string{PrivDiagnosticsCommand, PrivFirewallAliases},
+	}
+}
+
 func (portAlias *FirewallPortAlias) SetName(name string) error {
 	portAlias.Name = name
 

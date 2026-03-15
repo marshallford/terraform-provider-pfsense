@@ -45,6 +45,15 @@ type DHCPv4StaticMapping struct {
 	MaximumLeaseTime    time.Duration
 }
 
+func (DHCPv4StaticMapping) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivDHCPServerEditStaticMapping},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivDHCPServerEditStaticMapping},
+		Delete: []string{PrivDiagnosticsCommand, PrivDHCPServer},
+	}
+}
+
 func (sm DHCPv4StaticMapping) StringifyIPAddress() string {
 	return safeAddrString(sm.IPAddress)
 }

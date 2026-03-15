@@ -34,6 +34,15 @@ type DomainOverride struct {
 	Description string
 }
 
+func (DomainOverride) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivDNSResolverEditDomainOverride},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivDNSResolverEditDomainOverride},
+		Delete: []string{PrivDiagnosticsCommand, PrivDNSResolver},
+	}
+}
+
 func (do DomainOverride) StringifyIPAddress() string {
 	return safeAddrString(do.IPAddress)
 }

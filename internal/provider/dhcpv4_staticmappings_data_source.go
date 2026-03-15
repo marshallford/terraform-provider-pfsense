@@ -32,7 +32,7 @@ func (d *DHCPv4StaticMappingsDataSource) Metadata(_ context.Context, req datasou
 func (d *DHCPv4StaticMappingsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Retrieves all DHCPv4 static mappings. Static mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries.",
-		MarkdownDescription: "Retrieves all DHCPv4 [static mappings](https://docs.netgate.com/pfsense/en/latest/services/dhcp/ipv4.html#static-mappings). Static mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries.",
+		MarkdownDescription: "Retrieves all DHCPv4 [static mappings](https://docs.netgate.com/pfsense/en/latest/services/dhcp/ipv4.html#static-mappings). Static mappings express a preference for which IP address will be assigned to a given client based on its MAC address. In a network where unknown clients are denied, this also serves as a list of known clients which are allowed to receive leases or have static ARP entries." + privilegesMarkdown(pfsense.DHCPv4StaticMapping{}, true),
 		Attributes: map[string]schema.Attribute{
 			"interface": schema.StringAttribute{
 				Description: "Network interface.",

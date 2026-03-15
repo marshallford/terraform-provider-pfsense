@@ -4,11 +4,14 @@ page_title: "pfsense_dnsresolver_domainoverrides Data Source - terraform-provide
 subcategory: ""
 description: |-
   Retrieves all DNS resolver domain overrides https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html. Domains for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.
+  Required Privileges: WebCfg - Diagnostics: Command
 ---
 
 # pfsense_dnsresolver_domainoverrides (Data Source)
 
 Retrieves all DNS resolver [domain overrides](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domains for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.
+
+Required Privileges: `WebCfg - Diagnostics: Command`
 
 ## Example Usage
 

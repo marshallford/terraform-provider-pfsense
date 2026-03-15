@@ -25,6 +25,15 @@ type ConfigFile struct {
 	Content string
 }
 
+func (ConfigFile) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+		Delete: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+	}
+}
+
 func (cf ConfigFile) formatName() string {
 	return fmt.Sprintf("%s/%s.%s", dnsResolverConfigFileDir, cf.Name, dnsResolverConfigFileExt)
 }

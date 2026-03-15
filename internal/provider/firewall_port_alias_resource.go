@@ -45,7 +45,7 @@ func (r *FirewallPortAliasResource) Metadata(_ context.Context, req resource.Met
 func (r *FirewallPortAliasResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Firewall port alias, defines a group of ports and/or port ranges. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
-		MarkdownDescription: "Firewall port [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of ports and/or port ranges. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
+		MarkdownDescription: "Firewall port [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of ports and/or port ranges. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall." + privilegesMarkdown(pfsense.FirewallPortAlias{}),
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description: FirewallPortAliasModel{}.descriptions()["name"].Description,

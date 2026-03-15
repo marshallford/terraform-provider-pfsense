@@ -8,6 +8,14 @@ import (
 	"net/url"
 )
 
+type DHCPv4Changes struct{}
+
+func (DHCPv4Changes) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDHCPServer},
+	}
+}
+
 func (pf *Client) ApplyDHCPv4Changes(ctx context.Context, iface string) error {
 	pf.mutexes.DHCPv4Apply.Lock()
 	defer pf.mutexes.DHCPv4Apply.Unlock()

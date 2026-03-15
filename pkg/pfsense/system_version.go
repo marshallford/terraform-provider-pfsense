@@ -14,6 +14,12 @@ type SystemVersion struct {
 	Latest  string `json:"version"`           //nolint:tagliatelle
 }
 
+func (SystemVersion) Privileges() Privileges {
+	return Privileges{
+		Read: []string{PrivPackageManagerInstall},
+	}
+}
+
 func (pf *Client) getSystemVersion(ctx context.Context) (*SystemVersion, error) {
 	unableToParseResErr := fmt.Errorf("%w system version response", ErrUnableToParse)
 	relativeURL := url.URL{Path: "pkg_mgr_install.php"}
