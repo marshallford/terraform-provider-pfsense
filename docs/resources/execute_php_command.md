@@ -12,7 +12,7 @@ description: |-
 
 [Execute PHP command](https://docs.netgate.com/pfsense/en/latest/diagnostics/command-prompt.html#php-execute). The command must print exactly one valid JSON value.
 
-Required Privileges: 
+Required Privileges:
 * Create: `WebCfg - Diagnostics: Command`
 * Read: `WebCfg - Diagnostics: Command`
 * Update: `WebCfg - Diagnostics: Command`

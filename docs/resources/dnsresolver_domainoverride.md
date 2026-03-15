@@ -12,7 +12,7 @@ description: |-
 
 DNS resolver [domain override](https://docs.netgate.com/pfsense/en/latest/services/dns/resolver-domain-overrides.html). Domain for which the resolver's standard DNS lookup process should be overridden and a different (non-standard) lookup server should be queried instead.
 
-Required Privileges: 
+Required Privileges:
 * Create: `WebCfg - Diagnostics: Command`, `WebCfg - Services: DNS Resolver: Edit Domain Override`
 * Read: `WebCfg - Diagnostics: Command`
 * Update: `WebCfg - Diagnostics: Command`, `WebCfg - Services: DNS Resolver: Edit Domain Override`

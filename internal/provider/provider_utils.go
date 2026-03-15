@@ -155,21 +155,23 @@ func wrapElementsJoin(input []string, wrap string) string {
 
 func privilegesMarkdown(privs pfsense.Privileges, readOnly ...bool) string {
 	var sb strings.Builder
-	sb.WriteString("\n\nRequired Privileges: ")
 
 	isReadOnly := len(readOnly) > 0 && readOnly[0]
 	onlyCreate := len(privs.Create) > 0 && len(privs.Read) == 0 && len(privs.Update) == 0 && len(privs.Delete) == 0
 
 	if isReadOnly {
+		sb.WriteString("\n\nRequired Privileges: ")
 		sb.WriteString(wrapElementsJoin(privs.Read, "`"))
 		return sb.String()
 	}
 
 	if onlyCreate {
+		sb.WriteString("\n\nRequired Privileges: ")
 		sb.WriteString(wrapElementsJoin(privs.Create, "`"))
 		return sb.String()
 	}
 
+	sb.WriteString("\n\nRequired Privileges:")
 	if len(privs.Create) > 0 {
 		sb.WriteString("\n* Create: ")
 		sb.WriteString(wrapElementsJoin(privs.Create, "`"))

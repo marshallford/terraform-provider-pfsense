@@ -12,7 +12,7 @@ description: |-
 
 Firewall port [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of ports and/or port ranges. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.
 
-Required Privileges: 
+Required Privileges:
 * Create: `WebCfg - Diagnostics: Command`, `WebCfg - Firewall: Alias: Edit`
 * Read: `WebCfg - Diagnostics: Command`
 * Update: `WebCfg - Diagnostics: Command`, `WebCfg - Firewall: Alias: Edit`

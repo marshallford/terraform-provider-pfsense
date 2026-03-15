@@ -12,7 +12,7 @@ description: |-
 
 DNS resolver (Unbound) [config file](https://man.freebsd.org/cgi/man.cgi?unbound.conf). **Prerequisite**: Must add the directive `include-toplevel: /var/unbound/conf.d/*` to the DNS resolver custom options input. **Use with caution**, content is not checked/validated.
 
-Required Privileges: 
+Required Privileges:
 * Create: `WebCfg - Diagnostics: Command`, `WebCfg - Diagnostics: Edit File`
 * Read: `WebCfg - Diagnostics: Command`
 * Update: `WebCfg - Diagnostics: Command`, `WebCfg - Diagnostics: Edit File`
