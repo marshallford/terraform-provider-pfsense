@@ -12,13 +12,6 @@ import (
 	"time"
 )
 
-var DHCPv4StaticMappingPrivileges = Privileges{
-	Create: []string{PrivDiagnosticsCommand, PrivDHCPServerEditStaticMapping},
-	Read:   []string{PrivDiagnosticsCommand},
-	Update: []string{PrivDiagnosticsCommand, PrivDHCPServerEditStaticMapping},
-	Delete: []string{PrivDiagnosticsCommand, PrivDHCPServer},
-}
-
 type dhcpv4StaticMappingResponse struct {
 	MACAddress          string   `json:"mac"`
 	ClientIdentifier    string   `json:"cid"`
@@ -50,6 +43,15 @@ type DHCPv4StaticMapping struct {
 	DomainSearchList    []string
 	DefaultLeaseTime    time.Duration
 	MaximumLeaseTime    time.Duration
+}
+
+func (DHCPv4StaticMapping) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivDHCPServerEditStaticMapping},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivDHCPServerEditStaticMapping},
+		Delete: []string{PrivDiagnosticsCommand, PrivDHCPServer},
+	}
 }
 
 func (sm DHCPv4StaticMapping) StringifyIPAddress() string {

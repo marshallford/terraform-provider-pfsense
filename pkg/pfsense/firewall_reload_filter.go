@@ -8,8 +8,12 @@ import (
 	"net/url"
 )
 
-var FirewallFilterPrivileges = Privileges{
-	Create: []string{PrivFilterReloadStatus},
+type FirewallFilter struct{}
+
+func (FirewallFilter) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivFilterReloadStatus},
+	}
 }
 
 func (pf *Client) ReloadFirewallFilter(ctx context.Context) error {

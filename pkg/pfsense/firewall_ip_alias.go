@@ -8,13 +8,6 @@ import (
 	"strconv"
 )
 
-var FirewallIPAliasPrivileges = Privileges{
-	Create: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
-	Read:   []string{PrivDiagnosticsCommand},
-	Update: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
-	Delete: []string{PrivDiagnosticsCommand, PrivFirewallAliases},
-}
-
 type firewallIPAliasResponse struct {
 	Name        string `json:"name"`
 	Description string `json:"descr"`
@@ -35,6 +28,15 @@ type FirewallIPAlias struct {
 type FirewallIPAliasEntry struct {
 	IP          string
 	Description string
+}
+
+func (FirewallIPAlias) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
+		Delete: []string{PrivDiagnosticsCommand, PrivFirewallAliases},
+	}
 }
 
 func (FirewallIPAlias) Types() []string {

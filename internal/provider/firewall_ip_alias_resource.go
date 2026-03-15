@@ -45,7 +45,7 @@ func (r *FirewallIPAliasResource) Metadata(_ context.Context, req resource.Metad
 func (r *FirewallIPAliasResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Firewall IP alias, defines a group of hosts and/or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall.",
-		MarkdownDescription: "Firewall IP [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of hosts and/or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall." + privilegesMarkdown(pfsense.FirewallIPAliasPrivileges),
+		MarkdownDescription: "Firewall IP [alias](https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html), defines a group of hosts and/or networks. Aliases can be referenced by firewall rules, port forwards, outbound NAT rules, and other places in the firewall." + privilegesMarkdown(pfsense.FirewallIPAlias{}),
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description: FirewallIPAliasModel{}.descriptions()["name"].Description,

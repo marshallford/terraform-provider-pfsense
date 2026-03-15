@@ -11,13 +11,6 @@ import (
 	"strings"
 )
 
-var DNSResolverHostOverridePrivileges = Privileges{
-	Create: []string{PrivDiagnosticsCommand, PrivDNSResolverEditHost},
-	Read:   []string{PrivDiagnosticsCommand},
-	Update: []string{PrivDiagnosticsCommand, PrivDNSResolverEditHost},
-	Delete: []string{PrivDiagnosticsCommand, PrivDNSResolver},
-}
-
 const (
 	hostOverrideIPAddressesSep = ","
 )
@@ -52,6 +45,15 @@ type HostOverrideAlias struct {
 	Host        string
 	Domain      string
 	Description string
+}
+
+func (HostOverride) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivDNSResolverEditHost},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivDNSResolverEditHost},
+		Delete: []string{PrivDiagnosticsCommand, PrivDNSResolver},
+	}
 }
 
 func (p *hostOverrideAliasItemResponse) UnmarshalJSON(data []byte) error {

@@ -12,13 +12,6 @@ import (
 
 // TODO pfSense allows for more than one domain override entry with the same domain.
 
-var DNSResolverDomainOverridePrivileges = Privileges{
-	Create: []string{PrivDiagnosticsCommand, PrivDNSResolverEditDomainOverride},
-	Read:   []string{PrivDiagnosticsCommand},
-	Update: []string{PrivDiagnosticsCommand, PrivDNSResolverEditDomainOverride},
-	Delete: []string{PrivDiagnosticsCommand, PrivDNSResolver},
-}
-
 const (
 	domainOverrideIPPortSep = "@"
 	DefaultDNSPort          = 53
@@ -39,6 +32,15 @@ type DomainOverride struct {
 	TLSQueries  bool
 	TLSHostname string
 	Description string
+}
+
+func (DomainOverride) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivDNSResolverEditDomainOverride},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivDNSResolverEditDomainOverride},
+		Delete: []string{PrivDiagnosticsCommand, PrivDNSResolver},
+	}
 }
 
 func (do DomainOverride) StringifyIPAddress() string {

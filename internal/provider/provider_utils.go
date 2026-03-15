@@ -153,43 +153,50 @@ func wrapElementsJoin(input []string, wrap string) string {
 	return strings.Join(wrapElements(input, wrap), ", ")
 }
 
-func privilegesMarkdown(privs pfsense.Privileges, readOnly ...bool) string {
-	var sb strings.Builder
+type pfsensePrivileges interface {
+	Privileges() pfsense.Privileges
+}
+
+func privilegesMarkdown(p pfsensePrivileges, readOnly ...bool) string {
+	privs := p.Privileges()
+	var builder strings.Builder
 
 	isReadOnly := len(readOnly) > 0 && readOnly[0]
 	onlyCreate := len(privs.Create) > 0 && len(privs.Read) == 0 && len(privs.Update) == 0 && len(privs.Delete) == 0
 
 	if isReadOnly {
-		sb.WriteString("\n\nRequired Privileges: ")
-		sb.WriteString(wrapElementsJoin(privs.Read, "`"))
-		return sb.String()
+		builder.WriteString("\n\nRequired Privileges: ")
+		builder.WriteString(wrapElementsJoin(privs.Read, "`"))
+
+		return builder.String()
 	}
 
 	if onlyCreate {
-		sb.WriteString("\n\nRequired Privileges: ")
-		sb.WriteString(wrapElementsJoin(privs.Create, "`"))
-		return sb.String()
+		builder.WriteString("\n\nRequired Privileges: ")
+		builder.WriteString(wrapElementsJoin(privs.Create, "`"))
+
+		return builder.String()
 	}
 
-	sb.WriteString("\n\nRequired Privileges:")
+	builder.WriteString("\n\nRequired Privileges:")
 	if len(privs.Create) > 0 {
-		sb.WriteString("\n* Create: ")
-		sb.WriteString(wrapElementsJoin(privs.Create, "`"))
+		builder.WriteString("\n* Create: ")
+		builder.WriteString(wrapElementsJoin(privs.Create, "`"))
 	}
 	if len(privs.Read) > 0 {
-		sb.WriteString("\n* Read: ")
-		sb.WriteString(wrapElementsJoin(privs.Read, "`"))
+		builder.WriteString("\n* Read: ")
+		builder.WriteString(wrapElementsJoin(privs.Read, "`"))
 	}
 	if len(privs.Update) > 0 {
-		sb.WriteString("\n* Update: ")
-		sb.WriteString(wrapElementsJoin(privs.Update, "`"))
+		builder.WriteString("\n* Update: ")
+		builder.WriteString(wrapElementsJoin(privs.Update, "`"))
 	}
 	if len(privs.Delete) > 0 {
-		sb.WriteString("\n* Delete: ")
-		sb.WriteString(wrapElementsJoin(privs.Delete, "`"))
+		builder.WriteString("\n* Delete: ")
+		builder.WriteString(wrapElementsJoin(privs.Delete, "`"))
 	}
 
-	return sb.String()
+	return builder.String()
 }
 
 // ref: https://github.com/coryflucas/terraform-provider-kubernetes/blob/master/internal/framework/provider/functions/decode.go

@@ -8,8 +8,12 @@ import (
 	"net/url"
 )
 
-var DNSResolverChangesPrivileges = Privileges{
-	Create: []string{PrivDNSResolver},
+type DNSResolverChanges struct{}
+
+func (DNSResolverChanges) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDNSResolver},
+	}
 }
 
 func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) error {

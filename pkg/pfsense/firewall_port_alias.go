@@ -8,13 +8,6 @@ import (
 	"strconv"
 )
 
-var FirewallPortAliasPrivileges = Privileges{
-	Create: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
-	Read:   []string{PrivDiagnosticsCommand},
-	Update: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
-	Delete: []string{PrivDiagnosticsCommand, PrivFirewallAliases},
-}
-
 type firewallPortAliasResponse struct {
 	Name        string `json:"name"`
 	Description string `json:"descr"`
@@ -34,6 +27,15 @@ type FirewallPortAlias struct {
 type FirewallPortAliasEntry struct {
 	Port        string
 	Description string
+}
+
+func (FirewallPortAlias) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivFirewallAliasEdit},
+		Delete: []string{PrivDiagnosticsCommand, PrivFirewallAliases},
+	}
 }
 
 func (portAlias *FirewallPortAlias) SetName(name string) error {

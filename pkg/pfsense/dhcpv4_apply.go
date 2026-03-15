@@ -8,8 +8,12 @@ import (
 	"net/url"
 )
 
-var DHCPv4ChangesPrivileges = Privileges{
-	Create: []string{PrivDHCPServer},
+type DHCPv4Changes struct{}
+
+func (DHCPv4Changes) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDHCPServer},
+	}
 }
 
 func (pf *Client) ApplyDHCPv4Changes(ctx context.Context, iface string) error {

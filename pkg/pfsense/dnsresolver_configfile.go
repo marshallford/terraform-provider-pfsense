@@ -10,13 +10,6 @@ import (
 	"strings"
 )
 
-var DNSResolverConfigFilePrivileges = Privileges{
-	Create: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
-	Read:   []string{PrivDiagnosticsCommand},
-	Update: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
-	Delete: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
-}
-
 const (
 	dnsResolverConfigFileDir = "/var/unbound/conf.d"
 	dnsResolverConfigFileExt = "conf"
@@ -30,6 +23,15 @@ type configFileResponse struct {
 type ConfigFile struct {
 	Name    string
 	Content string
+}
+
+func (ConfigFile) Privileges() Privileges {
+	return Privileges{
+		Create: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+		Read:   []string{PrivDiagnosticsCommand},
+		Update: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+		Delete: []string{PrivDiagnosticsCommand, PrivDiagnosticsEditFile},
+	}
 }
 
 func (cf ConfigFile) formatName() string {
