@@ -88,7 +88,7 @@ func (DNSResolverHostOverrideAliasModel) AttrTypes() map[string]attr.Type {
 func (m *DNSResolverHostOverridesModel) Set(ctx context.Context, hostOverrides pfsense.HostOverrides) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	hostOverrideModels := []DNSResolverHostOverrideModel{}
+	hostOverrideModels := make([]DNSResolverHostOverrideModel, 0, len(hostOverrides))
 	for _, hostOverride := range hostOverrides {
 		var hostOverrideModel DNSResolverHostOverrideModel
 		diags.Append(hostOverrideModel.Set(ctx, hostOverride)...)
@@ -121,7 +121,7 @@ func (m *DNSResolverHostOverrideModel) Set(ctx context.Context, hostOverride pfs
 
 	m.FQDN = types.StringValue(hostOverride.FQDN())
 
-	hostOverrideAliasModels := []DNSResolverHostOverrideAliasModel{}
+	hostOverrideAliasModels := make([]DNSResolverHostOverrideAliasModel, 0, len(hostOverride.Aliases))
 	for _, hostOverrideAlias := range hostOverride.Aliases {
 		var hostOverrideAliasModel DNSResolverHostOverrideAliasModel
 		diags.Append(hostOverrideAliasModel.Set(ctx, hostOverrideAlias)...)

@@ -112,7 +112,7 @@ func (DHCPv4StaticMappingModel) AttrTypes() map[string]attr.Type {
 func (m *DHCPv4StaticMappingsModel) Set(ctx context.Context, staticMappings pfsense.DHCPv4StaticMappings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	staticMappingModels := []DHCPv4StaticMappingModel{}
+	staticMappingModels := make([]DHCPv4StaticMappingModel, 0, len(staticMappings))
 	for _, staticMapping := range staticMappings {
 		var staticMappingModel DHCPv4StaticMappingModel
 		diags.Append(staticMappingModel.Set(ctx, staticMapping)...)

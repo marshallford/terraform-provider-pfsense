@@ -32,7 +32,7 @@ type FirewallAliasesDataSource struct {
 func (m *FirewallAliasesModel) Set(ctx context.Context, ipAliases pfsense.FirewallIPAliases, portAliases pfsense.FirewallPortAliases) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	ipAliasModels := []FirewallIPAliasModel{}
+	ipAliasModels := make([]FirewallIPAliasModel, 0, len(ipAliases))
 	for _, ipAlias := range ipAliases {
 		var ipAliasModel FirewallIPAliasModel
 		diags.Append(ipAliasModel.Set(ctx, ipAlias)...)
@@ -43,7 +43,7 @@ func (m *FirewallAliasesModel) Set(ctx context.Context, ipAliases pfsense.Firewa
 	diags.Append(newDiags...)
 	m.IP = ipAliasesValue
 
-	portAliasModels := []FirewallPortAliasModel{}
+	portAliasModels := make([]FirewallPortAliasModel, 0, len(portAliases))
 	for _, portAlias := range portAliases {
 		var portAliasModel FirewallPortAliasModel
 		diags.Append(portAliasModel.Set(ctx, portAlias)...)

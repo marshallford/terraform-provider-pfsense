@@ -25,6 +25,7 @@ var (
 
 type DNSResolverConfigFileResourceModel struct {
 	DNSResolverConfigFileModel
+
 	Apply types.Bool `tfsdk:"apply"`
 }
 

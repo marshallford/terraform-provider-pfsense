@@ -12,7 +12,7 @@ Configure [pfSense](https://www.pfsense.org/) firewall/router with Terraform. Va
 
 | Release  | pfSense            | Terraform |
 | :------: | :----------------: | :-------: |
-| < v1.0.0 | >= 2.6.0, <= 2.7.2 | >= 1.7.0  |
+| < v1.0.0 | >= 2.6.0, <= 2.8.1 | >= 1.12.0 |
 
 ## Development Requirements
 

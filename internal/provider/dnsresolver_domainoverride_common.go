@@ -57,7 +57,7 @@ func (DNSResolverDomainOverrideModel) AttrTypes() map[string]attr.Type {
 func (m *DNSResolverDomainOverridesModel) Set(ctx context.Context, domainOverrides pfsense.DomainOverrides) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	domainOverrideModels := []DNSResolverDomainOverrideModel{}
+	domainOverrideModels := make([]DNSResolverDomainOverrideModel, 0, len(domainOverrides))
 	for _, domainOverride := range domainOverrides {
 		var domainOverrideModel DNSResolverDomainOverrideModel
 		diags.Append(domainOverrideModel.Set(ctx, domainOverride)...)

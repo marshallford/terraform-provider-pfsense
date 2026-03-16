@@ -46,7 +46,7 @@ func (pf *Client) retryableDo(req *http.Request, reqBody *[]byte) (*http.Respons
 			req.Body = io.NopCloser(bytes.NewReader(*reqBody))
 		}
 
-		resp, httpDoErr = pf.httpClient.Do(req)
+		resp, httpDoErr = pf.httpClient.Do(req) //nolint:gosec
 		retry, shouldRetryErr = shouldRetry(req.Context(), resp, httpDoErr)
 
 		if !retry || (*pf.Options.MaxAttempts-attempt) <= 0 {

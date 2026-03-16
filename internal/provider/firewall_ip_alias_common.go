@@ -79,7 +79,7 @@ func (m *FirewallIPAliasModel) Set(ctx context.Context, ipAlias pfsense.Firewall
 
 	m.Type = types.StringValue(ipAlias.Type)
 
-	ipAliasEntryModels := []FirewallIPAliasEntryModel{}
+	ipAliasEntryModels := make([]FirewallIPAliasEntryModel, 0, len(ipAlias.Entries))
 	for _, ipAlias := range ipAlias.Entries {
 		var ipAliasEntryModel FirewallIPAliasEntryModel
 		diags.Append(ipAliasEntryModel.Set(ctx, ipAlias)...)

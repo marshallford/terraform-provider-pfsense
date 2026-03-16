@@ -29,6 +29,7 @@ var (
 
 type DNSResolverHostOverrideResourceModel struct {
 	DNSResolverHostOverrideModel
+
 	Apply types.Bool `tfsdk:"apply"`
 }
 
