@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
@@ -34,12 +34,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: .go-version
-        cache: true
     - name: Download dependencies
       run: go mod download
     - name: Build
@@ -50,12 +49,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: .go-version
-        cache: true
     - name: Download dependencies
       run: go mod download
     - name: Setup Terraform
@@ -80,17 +78,16 @@ jobs:
       fail-fast: false
       matrix:
         terraform:
-        - 1.10.*
-        - 1.11.*
         - 1.12.*
+        - 1.13.*
+        - 1.14.*
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: .go-version
-        cache: true
     - name: Download dependencies
       run: go mod download
     - name: Setup Terraform

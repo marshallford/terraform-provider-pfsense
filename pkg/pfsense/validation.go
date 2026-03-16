@@ -17,7 +17,7 @@ var dnsLabelRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-
 // TODO implement validation in Set functions.
 // solve: len == 0 checks will break Get functions, for example when a string is empty
 
-// used for hostname and host override name.
+// ValidateDNSLabel is used for hostname and host override name.
 func ValidateDNSLabel(dnsLabel string) error {
 	if !dnsLabelRegex.MatchString(dnsLabel) {
 		return fmt.Errorf("%w, not a valid rfc 1123 dns label", ErrClientValidation)
@@ -26,8 +26,8 @@ func ValidateDNSLabel(dnsLabel string) error {
 	return nil
 }
 
-// used for FQDN, domain search list, domains, etc
-// note: this validation is fairly loose to align with pfSense
+// ValidateDomain is used for FQDN, domain search list, domains, etc.
+// Note: this validation is fairly loose to align with pfSense.
 func ValidateDomain(domain string) error {
 	if len(domain) == 0 {
 		return fmt.Errorf("%w, domain cannot be empty", ErrClientValidation)

@@ -64,7 +64,7 @@ func (do *DomainOverride) SetDomain(domain string) error {
 	return nil
 }
 
-// TODO support address without port specified (default to 53/853).
+// SetIPAddress TODO support address without port specified (default to 53/853).
 func (do *DomainOverride) SetIPAddress(ipAddress string) error {
 	if ipAddress == "" {
 		return nil

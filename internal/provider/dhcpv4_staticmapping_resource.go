@@ -30,6 +30,7 @@ var (
 
 type DHCPv4StaticMappingResourceModel struct {
 	DHCPv4StaticMappingModel
+
 	Apply types.Bool `tfsdk:"apply"`
 }
 

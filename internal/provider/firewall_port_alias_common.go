@@ -70,7 +70,7 @@ func (m *FirewallPortAliasModel) Set(ctx context.Context, portAlias pfsense.Fire
 		m.Description = types.StringValue(portAlias.Description)
 	}
 
-	portAliasEntryModels := []FirewallPortAliasEntryModel{}
+	portAliasEntryModels := make([]FirewallPortAliasEntryModel, 0, len(portAlias.Entries))
 	for _, portAlias := range portAlias.Entries {
 		var portAliasEntryModel FirewallPortAliasEntryModel
 		diags.Append(portAliasEntryModel.Set(ctx, portAlias)...)

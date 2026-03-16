@@ -22,6 +22,7 @@ var (
 
 type ExecutePHPCommandResourceModel struct {
 	ExecutePHPCommandModel
+
 	DestroyCommand types.String `tfsdk:"destroy_command"`
 }
 

@@ -69,7 +69,7 @@ func (p *hostOverrideAliasItemResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// TODO replace with Terraform custom type for netip.Addr.
+// StringifyIPAddresses TODO replace with Terraform custom type for netip.Addr.
 func (ho HostOverride) StringifyIPAddresses() []string {
 	addrs := make([]string, 0, len(ho.IPAddresses))
 	for _, ipAddress := range ho.IPAddresses {

@@ -75,6 +75,8 @@ resource "pfsense_dhcpv4_staticmapping" "advanced_example" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # specify in format 'interface,mac_address'
 terraform import pfsense_dhcpv4_staticmapping.example lan,00:00:00:00:00:00

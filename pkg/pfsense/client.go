@@ -34,7 +34,7 @@ const (
 type Options struct {
 	URL              *url.URL
 	Username         string
-	Password         string
+	Password         string //nolint:gosec
 	TLSSkipVerify    *bool
 	RetryMinWait     *time.Duration
 	RetryMaxWait     *time.Duration

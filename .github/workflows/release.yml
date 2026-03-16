@@ -15,16 +15,15 @@ jobs:
     # environment: release
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Fetch tags
       run: git fetch --force --tags
     - name: Setup go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: .go-version
-        cache: true
     - name: Import GPG key
       id: gpg
       uses: crazy-max/ghaction-import-gpg@v6
@@ -33,7 +32,7 @@ jobs:
     - name: GoReleaser
       uses: goreleaser/goreleaser-action@v6
       with:
-        version: v2.9.0
+        version: v2.12.7
         args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

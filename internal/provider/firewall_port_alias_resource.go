@@ -27,6 +27,7 @@ var (
 
 type FirewallPortAliasResourceModel struct {
 	FirewallPortAliasModel
+
 	Apply types.Bool `tfsdk:"apply"`
 }
 
