@@ -258,7 +258,7 @@ func (sms DHCPv4StaticMappings) GetControlIDByMACAddress(macAddress net.Hardware
 //nolint:gocognit
 func (pf *Client) getDHCPv4StaticMappings(ctx context.Context, iface string) (*DHCPv4StaticMappings, error) {
 	unableToParseResErr := fmt.Errorf("%w static mapping response", ErrUnableToParse)
-	command := fmt.Sprintf("print_r(json_encode($config['dhcpd']['%s']['staticmap']));", iface)
+	command := fmt.Sprintf("print_r(json_encode($config['dhcpd']['%s']['staticmap'] ?? []));", iface)
 	var smResp []dhcpv4StaticMappingResponse
 	if err := pf.executePHPCommand(ctx, command, &smResp); err != nil {
 		return nil, err

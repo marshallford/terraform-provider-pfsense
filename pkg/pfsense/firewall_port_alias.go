@@ -87,7 +87,8 @@ func (portAliases FirewallPortAliases) GetControlIDByName(name string) (*int, er
 func (pf *Client) getFirewallPortAliases(ctx context.Context) (*FirewallPortAliases, error) {
 	unableToParseResErr := fmt.Errorf("%w port alias response", ErrUnableToParse)
 	command := "$output = array();" +
-		"array_walk($config['aliases']['alias'], function(&$v, $k) use (&$output) {" +
+		"$aliases = $config['aliases']['alias'] ?? [];" +
+		"array_walk($aliases, function(&$v, $k) use (&$output) {" +
 		"if (in_array($v['type'], array('port'))) {" +
 		"$v['controlID'] = $k; array_push($output, $v);" +
 		"}});" +

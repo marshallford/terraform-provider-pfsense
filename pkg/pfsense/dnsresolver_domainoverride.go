@@ -122,7 +122,7 @@ func (dos DomainOverrides) GetControlIDByDomain(domain string) (*int, error) {
 
 func (pf *Client) getDNSResolverDomainOverrides(ctx context.Context) (*DomainOverrides, error) {
 	unableToParseResErr := fmt.Errorf("%w domain override response", ErrUnableToParse)
-	command := "print_r(json_encode($config['unbound']['domainoverrides']));"
+	command := "print_r(json_encode($config['unbound']['domainoverrides'] ?? []));"
 	var doResp []domainOverrideResponse
 	if err := pf.executePHPCommand(ctx, command, &doResp); err != nil {
 		return nil, err

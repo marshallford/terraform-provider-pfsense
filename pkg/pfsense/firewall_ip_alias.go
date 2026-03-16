@@ -98,7 +98,8 @@ func (ipAliases FirewallIPAliases) GetControlIDByName(name string) (*int, error)
 func (pf *Client) getFirewallIPAliases(ctx context.Context) (*FirewallIPAliases, error) {
 	unableToParseResErr := fmt.Errorf("%w ip alias response", ErrUnableToParse)
 	command := "$output = array();" +
-		"array_walk($config['aliases']['alias'], function(&$v, $k) use (&$output) {" +
+		"$aliases = $config['aliases']['alias'] ?? [];" +
+		"array_walk($aliases, function(&$v, $k) use (&$output) {" +
 		"if (in_array($v['type'], array('host', 'network'))) {" +
 		"$v['controlID'] = $k; array_push($output, $v);" +
 		"}});" +
