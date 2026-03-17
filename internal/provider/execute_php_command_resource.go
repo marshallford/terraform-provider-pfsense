@@ -88,7 +88,7 @@ func (r *ExecutePHPCommandResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	result, err := r.client.ExecutePHPCommand(ctx, data.Command.ValueString(), "create")
+	result, err := r.client.ExecutePHPCommand(ctx, data.Command.ValueString(), true)
 	if addError(&resp.Diagnostics, "Failed to execute PHP command", err) {
 		return
 	}
@@ -128,7 +128,7 @@ func (r *ExecutePHPCommandResource) Delete(ctx context.Context, req resource.Del
 	}
 
 	if !data.DestroyCommand.IsNull() {
-		_, err := r.client.ExecutePHPCommand(ctx, data.DestroyCommand.ValueString(), "delete")
+		_, err := r.client.ExecutePHPCommand(ctx, data.DestroyCommand.ValueString(), true)
 		addError(&resp.Diagnostics, "Failed to execute PHP command", err)
 	}
 }

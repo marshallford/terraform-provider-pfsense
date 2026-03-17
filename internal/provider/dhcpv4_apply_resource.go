@@ -40,6 +40,7 @@ func (r *DHCPv4ApplyResource) Metadata(_ context.Context, req resource.MetadataR
 
 func (r *DHCPv4ApplyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		DeprecationMessage:  "Use the pfsense_dhcpv4_apply action instead.",
 		Description:         "Apply DHCPv4 configuration.",
 		MarkdownDescription: "Apply DHCPv4 configuration." + privilegesMarkdown(pfsense.DHCPv4Changes{}),
 		Attributes: map[string]schema.Attribute{

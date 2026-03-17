@@ -38,6 +38,7 @@ func (r *FirewallFilterReloadResource) Metadata(_ context.Context, req resource.
 
 func (r *FirewallFilterReloadResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		DeprecationMessage:  "Use the pfsense_firewall_filter_reload action instead.",
 		Description:         "Reload firewall filter.",
 		MarkdownDescription: "Reload firewall filter." + privilegesMarkdown(pfsense.FirewallFilter{}),
 		Attributes: map[string]schema.Attribute{

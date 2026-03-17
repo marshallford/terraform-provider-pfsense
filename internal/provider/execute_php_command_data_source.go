@@ -66,7 +66,7 @@ func (d *ExecutePHPCommandDataSource) Read(ctx context.Context, _ datasource.Rea
 		return
 	}
 
-	result, err := d.client.ExecutePHPCommand(ctx, data.Command.ValueString(), "read")
+	result, err := d.client.ExecutePHPCommand(ctx, data.Command.ValueString(), false)
 	if addError(&resp.Diagnostics, "Failed to execute PHP command", err) {
 		return
 	}

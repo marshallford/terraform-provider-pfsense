@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -100,6 +101,21 @@ func configureDataSourceClient(req datasource.ConfigureRequest, resp *datasource
 // 	return opts, ok
 // }
 
+func configureActionClient(req action.ConfigureRequest, resp *action.ConfigureResponse) (*pfsense.Client, bool) {
+	if req.ProviderData == nil {
+		return nil, false
+	}
+
+	opts, ok := req.ProviderData.(*pfsense.Client)
+
+	if !ok {
+		summary, detail := unexpectedConfigureType("Action", req.ProviderData)
+		resp.Diagnostics.AddError(summary, detail)
+	}
+
+	return opts, ok
+}
+
 func addError(diags *diag.Diagnostics, summary string, err error) bool {
 	if err != nil {
 		diags.AddError(summary, fmt.Sprintf("%s: %s", diagDetailPrefix, err))
@@ -157,16 +173,20 @@ type pfsensePrivileges interface {
 	Privileges() pfsense.Privileges
 }
 
-func privilegesMarkdown(p pfsensePrivileges, readOnly ...bool) string {
+func privilegesMarkdown(p pfsensePrivileges, dataSource ...bool) string {
 	privs := p.Privileges()
 	var builder strings.Builder
 
-	isReadOnly := len(readOnly) > 0 && readOnly[0]
+	forDataSource := len(dataSource) > 0 && dataSource[0]
 	onlyCreate := len(privs.Create) > 0 && len(privs.Read) == 0 && len(privs.Update) == 0 && len(privs.Delete) == 0
 
-	if isReadOnly {
+	if forDataSource {
 		builder.WriteString("\n\nRequired Privileges: ")
-		builder.WriteString(wrapElementsJoin(privs.Read, "`"))
+		if len(privs.Read) > 0 {
+			builder.WriteString(wrapElementsJoin(privs.Read, "`"))
+		} else {
+			builder.WriteString(wrapElementsJoin(privs.Create, "`"))
+		}
 
 		return builder.String()
 	}

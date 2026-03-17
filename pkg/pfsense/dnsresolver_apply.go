@@ -27,7 +27,7 @@ func (pf *Client) ApplyDNSResolverChanges(ctx context.Context) error {
 
 	resp, err := pf.call(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return fmt.Errorf("%w dns resolver changes, %w", ErrApplyOperationFailed, err)
+		return fmt.Errorf("%w (apply) dns resolver changes, %w", ErrExecOperationFailed, err)
 	}
 
 	defer resp.Body.Close() //nolint:errcheck
