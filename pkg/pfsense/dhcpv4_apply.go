@@ -30,7 +30,7 @@ func (pf *Client) ApplyDHCPv4Changes(ctx context.Context, iface string) error {
 
 	resp, err := pf.call(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return fmt.Errorf("%w '%s' dhcpv4 changes, %w", ErrApplyOperationFailed, iface, err)
+		return fmt.Errorf("%w (apply) '%s' dhcpv4 changes, %w", ErrExecOperationFailed, iface, err)
 	}
 
 	defer resp.Body.Close() //nolint:errcheck

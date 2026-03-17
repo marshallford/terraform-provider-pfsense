@@ -27,7 +27,7 @@ func (pf *Client) ReloadFirewallFilter(ctx context.Context) error {
 
 	resp, err := pf.call(ctx, http.MethodPost, relativeURL, &values)
 	if err != nil {
-		return fmt.Errorf("%w, failed to reload firewall filter, %w", ErrApplyOperationFailed, err)
+		return fmt.Errorf("%w (reload firewall filter), %w", ErrExecOperationFailed, err)
 	}
 
 	defer resp.Body.Close() //nolint:errcheck

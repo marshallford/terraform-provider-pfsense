@@ -4,19 +4,14 @@ page_title: "pfsense_execute_php_command Resource - terraform-provider-pfsense"
 subcategory: ""
 description: |-
   Execute PHP command https://docs.netgate.com/pfsense/en/latest/diagnostics/command-prompt.html#php-execute. The command must print exactly one valid JSON value.
-  Required Privileges:
-  Create: WebCfg - Diagnostics: CommandRead: WebCfg - Diagnostics: CommandUpdate: WebCfg - Diagnostics: CommandDelete: WebCfg - Diagnostics: Command
+  Required Privileges: WebCfg - Diagnostics: Command
 ---
 
 # pfsense_execute_php_command (Resource)
 
 [Execute PHP command](https://docs.netgate.com/pfsense/en/latest/diagnostics/command-prompt.html#php-execute). The command must print exactly one valid JSON value.
 
-Required Privileges:
-* Create: `WebCfg - Diagnostics: Command`
-* Read: `WebCfg - Diagnostics: Command`
-* Update: `WebCfg - Diagnostics: Command`
-* Delete: `WebCfg - Diagnostics: Command`
+Required Privileges: `WebCfg - Diagnostics: Command`
 
 ## Example Usage
 

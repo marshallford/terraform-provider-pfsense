@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -15,7 +16,10 @@ import (
 	"github.com/marshallford/terraform-provider-pfsense/pkg/pfsense"
 )
 
-var _ provider.Provider = (*pfSenseProvider)(nil)
+var (
+	_ provider.Provider            = (*pfSenseProvider)(nil)
+	_ provider.ProviderWithActions = (*pfSenseProvider)(nil)
+)
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
@@ -193,7 +197,7 @@ func (p *pfSenseProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
-	resp.EphemeralResourceData = client
+	resp.ActionData = client
 
 	tflog.Info(ctx, "Configured pfSense client", map[string]any{"success": true})
 }
@@ -221,5 +225,14 @@ func (p *pfSenseProvider) Resources(_ context.Context) []func() resource.Resourc
 		NewDHCPv4ApplyResource,
 		NewDHCPv4StaticMappingResource,
 		NewExecutePHPCommandResource,
+	}
+}
+
+func (p *pfSenseProvider) Actions(_ context.Context) []func() action.Action {
+	return []func() action.Action{
+		NewDHCPv4ApplyAction,
+		NewDNSResolverApplyAction,
+		NewExecutePHPCommandAction,
+		NewFirewallFilterReloadAction,
 	}
 }
